@@ -1,0 +1,393 @@
+SAYDX Ultimate Business Operating System (S-UBOS)
+1️⃣ LOYIHA MAQSADI
+
+Freelancer / Agentlik / IT studiya uchun:
+
+Loyiha boshqaruvi
+
+Moliyaviy nazorat
+
+Vaqt tracking
+
+Deadline monitoring
+
+Ish jarayoni tahlili
+
+Klient bilan hisob-kitob
+
+Chek/Invoice generatsiya
+
+Avtomatik ogohlantirish
+
+Telegram integratsiya
+
+Risk monitoring
+
+AI asosidagi prognoz
+
+Barchasi yagona premium web ilovada.
+
+2️⃣ TIZIM ARXITEKTURASI
+
+Frontend (Next.js / React)
+⬇
+Backend API (Node.js + Express)
+⬇
+PostgreSQL (Asosiy DB)
+⬇
+Redis (Cache & Notification Queue)
+⬇
+Scheduler (Cron Job Engine)
+⬇
+Telegram Bot Service
+⬇
+PDF Generator Service
+⬇
+Cloud Storage (Invoice saqlash)
+
+3️⃣ GLOBAL MODULLAR
+🧠 1. SUPER DASHBOARD (Command Center)
+
+Real-time ko‘rsatadi:
+
+🔵 Aktiv loyihalar soni
+
+🟢 Tugallangan loyihalar
+
+🔴 Kechikayotgan loyihalar
+
+💰 Umumiy daromad
+
+💸 Umumiy xarajat
+
+📈 Sof foyda
+
+⏱ Umumiy ishlangan soat
+
+📊 O‘rtacha soatlik daromad
+
+Grafiklar:
+
+Oylik revenue chart
+
+Cashflow chart
+
+Performance heatmap
+
+Deadline risk indikator
+
+📁 2. PROJECT MASTER CONTROL
+
+Har loyiha ichida:
+
+Asosiy Ma’lumotlar
+
+Loyiha nomi
+
+Klient
+
+Turi (web, bot, dizayn, server, marketing)
+
+Budjet
+
+Valyuta (UZS/USD)
+
+Boshlanish sana
+
+Deadline
+
+Status
+
+Ish Nazorati
+
+Ish foizi (%)
+
+To‘lov foizi (%)
+
+Qolgan summa
+
+Qolgan vaqt (real-time countdown)
+
+Risk darajasi (AI baholaydi)
+
+Timeline View
+
+Gantt chart
+
+Milestone ko‘rinishi
+
+Task dependency
+
+📝 3. TASK & WORKFLOW ENGINE
+
+Har loyiha ichida:
+
+Tasklar
+
+Subtasklar
+
+Priority
+
+Status (todo / in progress / done)
+
+Ishlangan vaqt (soat/minut)
+
+Ishni boshlash / to‘xtatish timer
+
+Izohlar
+
+Fayl biriktirish
+
+Activity history
+
+Qo‘shimcha:
+✔ Kanban view
+✔ Calendar view
+✔ List view
+
+⏱ 4. TIME TRACKING SYSTEM
+
+Live timer
+
+Manual time entry
+
+Har kuni ishlangan soat statistikasi
+
+Haftalik workload
+
+Ish samaradorligi indeksi
+
+Soatlik daromad avtomatik hisob
+
+💰 5. ADVANCED FINANCE SYSTEM
+Kirimlar
+
+Shartnoma summasi
+
+Qisman to‘lovlar
+
+Oldindan to‘lov
+
+Qolgan qarz
+
+Chiqimlar
+
+Server xarajati
+
+Dizayn
+
+Domen
+
+Reklama
+
+Boshqa xarajatlar
+
+Avtomatik Hisob:
+
+Foyda
+
+Marja %
+
+ROI
+
+Break-even point
+
+🧾 6. SMART INVOICE GENERATOR
+
+Funksiyalar:
+
+Xizmat qo‘shish (nomi + narx + muddat)
+
+Oyma-oy avtomatik hisoblash
+
+Valyuta tanlash
+
+Chek boshlanish summasi
+
+To‘lov rekvizitlari
+
+QR kod
+
+SAYDX logo
+
+Imzo joyi
+
+To‘lov qayerga o‘tkaziladi
+
+PDF ichida:
+
+Itemlar ro‘yxati
+
+Muddatlar
+
+Itogo
+
+QQS (agar qo‘shilsa)
+
+Sana
+
+Yuklash bosilganda:
+✔ PDF generatsiya
+✔ Bazaga yozish
+✔ Telegramga yuborish
+
+🔔 7. SMART NOTIFICATION SYSTEM
+
+Telegramga yuboriladi:
+
+Yangi loyiha
+
+Deadline 7/3/1 kun qoldi
+
+Deadline o‘tdi
+
+To‘lov kelmadi
+
+To‘lov to‘liq yopildi
+
+Ish foizi past
+
+Xabar ichida:
+
+📁 Nomi
+📅 Deadline
+⏳ Qolgan vaqt
+💰 To‘lov holati
+📊 Ish foizi
+
+🤖 8. AI RISK ANALYZER
+
+Tahlil qiladi:
+
+Ish foizi past + vaqt kam → HIGH RISK
+
+To‘lov foizi past → FINANCE RISK
+
+Kechikish ehtimoli %
+
+AI quyidagilarni beradi:
+
+Tavsiya
+
+Prognoz tugash sanasi
+
+Qo‘shimcha ish vaqti hisob
+
+📊 9. ANALYTICS & REPORTING
+
+Oylik hisobot
+
+Klient bo‘yicha daromad
+
+Loyihalar bo‘yicha foyda
+
+Ish samaradorligi
+
+Time vs Revenue chart
+
+Excel export
+
+PDF report
+
+🔐 10. SECURITY & ACCESS CONTROL
+
+Role-based access
+
+Activity log
+
+Audit trail
+
+Backup system
+
+2FA
+
+IP monitoring
+
+🎨 11. PREMIUM UI TALABLAR
+
+Glassmorphism design
+
+Gradient cardlar
+
+Smooth animation
+
+Dark/Light mode
+
+Neon highlight
+
+Responsive
+
+Mobile friendly
+
+Professional icon pack
+
+📂 12. FILE & DOCUMENT MANAGEMENT
+
+Fayl yuklash
+
+Versiya tarixi
+
+Shartnoma saqlash
+
+PDF preview
+
+🌍 13. MULTI-CURRENCY SYSTEM
+
+USD
+
+UZS
+
+Kurs avtomatik yangilanadi
+
+Hisoblar avtomatik konvertatsiya qilinadi
+
+🧮 14. ADVANCED CALCULATION ENGINE
+
+Avtomatik oyma-oy hisob
+
+Subscription tracking
+
+Recurring payments
+
+Automatic renewal reminder
+
+🗓 15. SMART CALENDAR SYSTEM
+
+Deadline ko‘rinishi
+
+Ish rejalari
+
+Bo‘sh kunlar
+
+Ish yuklamasi
+
+🔄 16. AUTOMATION ENGINE
+
+Cron based reminder
+
+Recurring invoice
+
+Avtomatik arxiv
+
+Auto backup
+
+📈 17. PERFORMANCE MONITORING
+
+Ish tezligi
+
+Samaradorlik %
+
+Qaysi klient ko‘proq foyda keltiradi
+
+Qaysi loyiha ko‘proq vaqt oladi
+
+💡 18. SEN O‘YLAB KO‘RMAGAN FUNKSIYALAR
+
+✔ Emergency mode (kechikish bo‘lsa ogohlantirish kuchayadi)
+✔ Blacklist klient
+✔ Client scoring
+✔ Budget overflow alert
+✔ Productivity score
+✔ Personal goal tracking
+✔ Revenue target system
+✔ Mood log (ish samaradorligi bilan bog‘lash)

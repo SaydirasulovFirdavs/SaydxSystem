@@ -1,0 +1,148 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+/* Invoice preview container — exact dimensions for PDF export (no A4, no scale) */
+.invoice-preview {
+  overflow: hidden;
+  box-sizing: border-box;
+  width: 794px;
+  height: 1123px;
+}
+
+@media (max-width: 840px) {
+  .invoice-preview {
+    width: 100%;
+    max-width: 794px;
+    height: auto;
+    min-height: 1123px;
+  }
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+    --font-display: 'Outfit', sans-serif;
+
+    /* Premium Dark Theme Variables */
+    --background: 230 25% 4%; /* Very dark blue/black */
+    --foreground: 210 40% 98%;
+
+    --card: 230 20% 7%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 230 20% 7%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 190 90% 50%; /* Neon Cyan */
+    --primary-foreground: 230 25% 4%;
+
+    --secondary: 270 70% 60%; /* Neon Purple */
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 230 20% 12%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 230 20% 15%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 350 80% 60%; /* Neon Red/Pink */
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 230 20% 15%;
+    --input: 230 20% 12%;
+    --ring: 190 90% 50%;
+
+    --radius: 1rem;
+    
+    /* Chart colors for Recharts */
+    --chart-1: 190 90% 50%; /* Cyan */
+    --chart-2: 270 70% 60%; /* Purple */
+    --chart-3: 150 80% 50%; /* Green */
+    --chart-4: 350 80% 60%; /* Red */
+    --chart-5: 40 90% 60%;  /* Orange */
+  }
+
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 230 25% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 230 25% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 230 25% 15%;
+    --primary: 190 90% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 60% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 230 15% 92%;
+    --muted-foreground: 230 10% 45%;
+    --accent: 230 15% 92%;
+    --accent-foreground: 230 25% 15%;
+    --destructive: 350 80% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 230 15% 88%;
+    --input: 230 15% 90%;
+    --ring: 190 90% 40%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary;
+    font-family: var(--font-sans);
+    background-image: 
+      radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.05), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(176, 38, 255, 0.05), transparent 25%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-card/40 backdrop-blur-xl border border-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.4)];
+  }
+  
+  .glass-input {
+    @apply bg-black/20 border-white/10 focus:border-primary/50 focus:ring-primary/20 backdrop-blur-sm transition-all;
+  }
+
+  .text-gradient {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-primary via-[#8b5cf6] to-secondary;
+  }
+
+  .hover-glow {
+    @apply transition-all duration-300;
+  }
+  .hover-glow:hover {
+    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.5);
+    border-color: hsl(var(--primary) / 0.5);
+  }
+}
+
+/* Custom Scrollbar for a premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}
+
+/* To'lov muddati — kalendar belgisi oq (qora fonda ko‘rinsin) */
+.date-picker-white-icon::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.9;
+}
+
