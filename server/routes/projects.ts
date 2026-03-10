@@ -35,7 +35,7 @@ export function registerProjectRoutes(app: Express, isAuthenticated: any, isAdmi
         }
     });
 
-    app.patch(api.projects.update.path, isAuthenticated, isAdmin, async (req, res) => {
+    app.put(api.projects.update.path, isAuthenticated, isAdmin, async (req, res) => {
         try {
             const id = Number(req.params.id);
             const input = api.projects.update.input.parse(req.body);
