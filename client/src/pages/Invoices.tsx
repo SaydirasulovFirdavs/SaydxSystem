@@ -252,62 +252,116 @@ export default function Invoices() {
             </div>
           </DialogHeader>
           <div className="flex-1 flex overflow-hidden">
-            <div className="w-[45%] overflow-y-auto p-6 bg-black/20 custom-scrollbar space-y-6">
-              <form id="invoiceForm" onSubmit={handleSaveInvoice} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4 bg-white/5 p-4 rounded-xl border border-white/5">
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-bold text-white/40 uppercase">Raqam: {nextInvoiceNumber}</label>
-                    <Input type="date" required value={dueDateForm} onChange={e => setDueDateForm(e.target.value)} className="glass-input" />
-                    <select value={languageForm} onChange={e => setLanguageForm(e.target.value as any)} className="w-full glass-input p-2 rounded bg-slate-900 border-white/10 text-white">
-                      <option value="uz">O'zbekcha</option>
-                      <option value="en">English</option>
-                      <option value="ru">Русский</option>
-                    </select>
+            <div className="w-[40%] overflow-y-auto p-6 bg-black/40 border-r border-white/10 custom-scrollbar">
+              <form id="invoiceForm" onSubmit={handleSaveInvoice} className="space-y-8">
+
+                {/* Asosiy ma'lumotlar */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Asosiy ma&apos;lumotlar</h3>
+                    <span className="px-3 py-1 rounded-full bg-white/10 text-xs font-mono text-white/70">
+                      {nextInvoiceNumber || "INV-AUTO"}
+                    </span>
                   </div>
-                  <div className="space-y-4">
-                    <select value={projectIdForm} onChange={e => setProjectIdForm(e.target.value ? Number(e.target.value) : "")} required className="w-full glass-input p-2 rounded bg-slate-900 border-white/10 text-white">
-                      <option value="">Loyiha tanlang...</option>
-                      {projects?.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <select value={formCurrency} onChange={e => setFormCurrency(e.target.value as any)} className="w-full glass-input p-2 rounded bg-slate-900 border-white/10 text-white">
-                      <option value="UZS">UZS</option>
-                      <option value="USD">USD</option>
-                    </select>
-                    <select value={statusForm} onChange={e => setStatusForm(e.target.value as any)} className="w-full glass-input p-2 rounded bg-slate-900 border-white/10 text-white">
-                      <option value="pending">Kutilmoqda</option>
-                      <option value="paid">To'langan</option>
-                      <option value="unpaid">To'lanmadi</option>
-                    </select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs text-white/50">Mijoz / Kompaniya</label>
+                      <Input value={clientNameForm} onChange={e => setClientNameForm(e.target.value)} placeholder="Mijoz ismi" className="glass-input h-10" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs text-white/50">Kompaniya nomi</label>
+                      <Input value={companyForm} onChange={e => setCompanyForm(e.target.value)} placeholder="Agarda mavjud bo'lsa" className="glass-input h-10" />
+                    </div>
+                    <div className="space-y-2 col-span-2">
+                      <label className="text-xs text-white/50">Manzil, Telefon, Email</label>
+                      <Input value={billToContactForm} onChange={e => setBillToContactForm(e.target.value)} placeholder="Toshkent, Shayxontoxur... +99890..." className="glass-input h-10" />
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
-                  <p className="text-[10px] font-bold text-blue-400 uppercase">Mijoz ma'lumotlari</p>
-                  <Input value={clientNameForm} onChange={e => setClientNameForm(e.target.value)} placeholder="Mijoz ismi" className="glass-input" />
-                  <Input value={companyForm} onChange={e => setCompanyForm(e.target.value)} placeholder="Kompaniya nomi" className="glass-input" />
-                  <Input value={billToContactForm} onChange={e => setBillToContactForm(e.target.value)} placeholder="Manzil, Tel, Email" className="glass-input" />
-                </div>
+                <div className="h-px w-full bg-white/10" />
 
-                <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <p className="text-[10px] font-bold text-rose-400 uppercase">Xizmatlar</p>
-                    <Button type="button" variant="outline" size="sm" onClick={() => setInvoiceRows(prev => [...prev, { title: "", quantity: 1, paidQuantity: 1, unitPrice: "", serviceType: "row" }])} className="h-7 text-[9px]"><Plus className="w-3 h-3 mr-1" /> Qo'shish</Button>
-                  </div>
-                  {invoiceRows.map((row, i) => (
-                    <div key={i} className="p-3 bg-white/5 rounded-lg border border-white/5 relative group space-y-2">
-                      <Button type="button" variant="ghost" size="icon" onClick={() => setInvoiceRows(prev => prev.filter((_, j) => j !== i))} className="absolute -top-2 -right-2 h-5 w-5 bg-red-500 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></Button>
-                      <Input value={row.title} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} placeholder="Xizmat nomi" className="glass-input h-8 text-xs" />
-                      <div className="grid grid-cols-3 gap-2">
-                        <Input type="number" value={row.paidQuantity} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, paidQuantity: e.target.value } : x))} placeholder="E-To'lov" className="glass-input h-8 text-xs" />
-                        <Input type="number" value={row.unitPrice} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, unitPrice: e.target.value } : x))} placeholder="Narxi" className="glass-input h-8 text-xs" />
-                        <Input type="date" value={row.startDate || ""} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, startDate: e.target.value } : x))} className="glass-input h-8 text-xs" />
+                {/* Loyiha va To'lov */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Loyiha & To&apos;lov</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs text-white/50">Loyiha</label>
+                      <select value={projectIdForm} onChange={e => setProjectIdForm(e.target.value ? Number(e.target.value) : "")} required className="w-full h-10 bg-black/20 border border-white/10 rounded-md px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <option value="" className="text-slate-900">Loyiha tanlang...</option>
+                        {projects?.map(p => <option key={p.id} value={p.id} className="text-slate-900">{p.name}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs text-white/50">Muddati (Due Date)</label>
+                      <Input type="date" required value={dueDateForm} onChange={e => setDueDateForm(e.target.value)} className="glass-input h-10" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs text-white/50">Holati</label>
+                      <select value={statusForm} onChange={e => setStatusForm(e.target.value as any)} className="w-full h-10 bg-black/20 border border-white/10 rounded-md px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <option value="pending" className="text-slate-900">Kutilmoqda</option>
+                        <option value="paid" className="text-slate-900">To&apos;langan</option>
+                        <option value="unpaid" className="text-slate-900">To&apos;lanmadi</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs text-white/50">Valyuta / Til</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <select value={formCurrency} onChange={e => setFormCurrency(e.target.value as any)} className="w-full h-10 bg-black/20 border border-white/10 rounded-md px-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
+                          <option value="UZS" className="text-slate-900">UZS</option>
+                          <option value="USD" className="text-slate-900">USD</option>
+                        </select>
+                        <select value={languageForm} onChange={e => setLanguageForm(e.target.value as any)} className="w-full h-10 bg-black/20 border border-white/10 rounded-md px-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
+                          <option value="uz" className="text-slate-900">O&apos;zb</option>
+                          <option value="en" className="text-slate-900">Eng</option>
+                          <option value="ru" className="text-slate-900">Рус</option>
+                        </select>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                </div>
+
+                <div className="h-px w-full bg-white/10" />
+
+                {/* Xizmatlar ro'yxati */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Xizmatlar</h3>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setInvoiceRows(prev => [...prev, { title: "", quantity: 1, paidQuantity: 1, unitPrice: "", serviceType: "row" }])} className="h-8 border-white/10 hover:bg-white/10 text-white">
+                      <Plus className="w-4 h-4 mr-2" /> Qo&apos;shish
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    {invoiceRows.map((row, i) => (
+                      <div key={i} className="p-4 bg-black/20 rounded-xl border border-white/5 relative group space-y-3">
+                        <Button type="button" variant="ghost" size="icon" onClick={() => setInvoiceRows(prev => prev.filter((_, j) => j !== i))} className="absolute -top-3 -right-3 h-7 w-7 bg-red-500/80 hover:bg-red-500 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg">
+                          <X className="w-4 h-4" />
+                        </Button>
+                        <div>
+                          <label className="text-[10px] text-white/40 uppercase mb-1 block">Xizmat nomi</label>
+                          <Input value={row.title} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} placeholder="Masalan: Web sayt yaratish" className="glass-input h-9 text-sm" />
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <label className="text-[10px] text-white/40 uppercase mb-1 block">Miqdor</label>
+                            <Input type="number" value={row.paidQuantity} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, paidQuantity: e.target.value } : x))} placeholder="Misol: 1" className="glass-input h-9 text-sm" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-white/40 uppercase mb-1 block">Narxi</label>
+                            <Input type="number" value={row.unitPrice} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, unitPrice: e.target.value } : x))} placeholder="0.00" className="glass-input h-9 text-sm" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-white/40 uppercase mb-1 block">Sana</label>
+                            <Input type="date" value={row.startDate || ""} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, startDate: e.target.value } : x))} className="glass-input h-9 text-sm" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </form>
             </div>
-            <div className="w-[55%] bg-slate-100 p-8 overflow-y-auto flex justify-center items-start custom-scrollbar">
+            <div className="w-[60%] bg-slate-100 p-8 overflow-y-auto flex justify-center items-start custom-scrollbar">
               {invoiceSettings && (
                 <InvoicePreview
                   language={languageForm}
