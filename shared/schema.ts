@@ -271,7 +271,12 @@ export const salariesRelations = relations(salaries, ({ one }) => ({
 
 export const insertClientSchema = createInsertSchema(clients).omit({ id: true, createdAt: true });
 export const insertCompanySchema = createInsertSchema(companies).omit({ id: true, createdAt: true });
-export const insertProjectSchema = createInsertSchema(projects).omit({ id: true, createdAt: true, riskLevel: true });
+export const insertProjectSchema = createInsertSchema(projects)
+  .omit({ id: true, createdAt: true, riskLevel: true })
+  .extend({
+    startDate: z.coerce.date(),
+    deadlineDate: z.coerce.date(),
+  });
 export const insertTaskSchema = createInsertSchema(tasks).omit({ id: true, createdAt: true, loggedMinutes: true });
 export const insertTimeEntrySchema = createInsertSchema(timeEntries).omit({ id: true, date: true });
 export const insertTransactionSchema = createInsertSchema(transactions)
