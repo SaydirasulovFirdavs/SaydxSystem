@@ -83,7 +83,7 @@ export async function setupAuth(app: Express) {
     app.get("/api/login", (_req, res) => res.redirect("/"));
     app.get("/api/callback", (_req, res) => res.redirect("/"));
     app.get("/api/logout", (_req, res) => res.redirect("/"));
-    return;
+    return { isAuthenticated, isAdmin };
   }
 
   // Login/parol orqali kirish (LOCAL_LOGIN=true)
@@ -114,7 +114,7 @@ export async function setupAuth(app: Express) {
       app.get("/api/logout", (_req, res) => res.redirect("/login"));
     }
     app.get("/api/login", (_req, res) => res.redirect("/login"));
-    return;
+    return { isAuthenticated, isAdmin };
   }
 
   const config = await getOidcConfig();
@@ -188,7 +188,18 @@ export async function setupAuth(app: Express) {
       );
     });
   });
+
+  return { isAuthenticated, isAdmin };
 }
+
+export const isAdmin: RequestHandler = (req, res, next) => {
+  if (process.env.DISABLE_AUTH === "true") return next();
+  const user = req.user as any;
+  if (!req.isAuthenticated() || user?.role !== "admin") {
+    return res.status(403).json({ message: "Forbidden: Admin access only" });
+  }
+  next();
+};
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   if (process.env.DISABLE_AUTH === "true") return next();

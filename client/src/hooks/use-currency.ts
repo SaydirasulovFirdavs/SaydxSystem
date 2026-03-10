@@ -16,7 +16,7 @@ export function useCurrency() {
   const { data: rateData } = useQuery({
     queryKey: ["/api/currency-rate"],
     queryFn: async () => {
-      const res = await fetch("/api/currency-rate", { credentials: "include" });
+      const res = await fetch("/api/currency-rate", { credentials: "include", cache: "no-store" });
       const data = (await res.json()) as { usdToUzs?: number };
       return data;
     },
@@ -28,7 +28,7 @@ export function useCurrency() {
     setDisplayCurrencyState(c);
     try {
       localStorage.setItem(STORAGE_KEY, c);
-    } catch (_) {}
+    } catch (_) { }
   }, []);
 
   /** Summalar API dan hamma vaqt UZS da keladi. Agar displayCurrency USD bo'lsa, konvertatsiya qilamiz. */

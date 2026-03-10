@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { 
-  insertClientSchema, 
+import {
+  insertClientSchema,
   insertCompanySchema,
-  insertProjectSchema, 
+  insertProjectSchema,
   insertTaskSchema,
   insertTimeEntrySchema,
   insertTransactionSchema,
@@ -128,6 +128,14 @@ export const api = {
         400: errorSchemas.validation,
         404: errorSchemas.notFound,
       }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/projects/:id' as const,
+      responses: {
+        204: z.void(),
+        404: errorSchemas.notFound,
+      }
     }
   },
   tasks: {
@@ -153,6 +161,14 @@ export const api = {
       input: insertTaskSchema.partial(),
       responses: {
         200: z.custom<typeof tasks.$inferSelect>(),
+        404: errorSchemas.notFound,
+      }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/tasks/:id' as const,
+      responses: {
+        204: z.void(),
         404: errorSchemas.notFound,
       }
     }
@@ -183,6 +199,14 @@ export const api = {
       responses: {
         201: z.custom<typeof transactions.$inferSelect>(),
         400: errorSchemas.validation,
+      }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/transactions/:id' as const,
+      responses: {
+        204: z.undefined(),
+        404: errorSchemas.notFound,
       }
     }
   },

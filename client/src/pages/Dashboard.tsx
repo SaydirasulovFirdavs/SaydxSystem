@@ -111,20 +111,20 @@ export default function Dashboard() {
             <p className="text-muted-foreground text-sm">Biznesingizning so'nggi holati.</p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-white/50">Ko'rsatish:</span>
-            <div className="inline-flex rounded-lg border border-white/20 bg-white/5 p-0.5">
+            <span className="text-xs text-white/50 font-medium tracking-wide">Ko'rsatish:</span>
+            <div className="inline-flex rounded-xl border border-white/10 bg-black/40 p-1 backdrop-blur-md shadow-inner">
               <Button
                 variant="ghost"
                 size="sm"
-                className={`h-8 px-3 text-sm ${displayCurrency === "UZS" ? "bg-primary/20 text-primary" : "text-white/60 hover:text-white"}`}
+                className={`h-8 px-4 text-sm font-bold tracking-wider transition-all duration-300 rounded-lg ${displayCurrency === "UZS" ? "bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white shadow-[0_0_15px_rgba(79,70,229,0.3)]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
                 onClick={() => setDisplayCurrency("UZS")}
               >
-                UZS (so'm)
+                UZS
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                className={`h-8 px-3 text-sm ${displayCurrency === "USD" ? "bg-primary/20 text-primary" : "text-white/60 hover:text-white"}`}
+                className={`h-8 px-4 text-sm font-bold tracking-wider transition-all duration-300 rounded-lg ${displayCurrency === "USD" ? "bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white shadow-[0_0_15px_rgba(79,70,229,0.3)]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
                 onClick={() => setDisplayCurrency("USD")}
               >
                 USD
@@ -134,23 +134,27 @@ export default function Dashboard() {
         </div>
 
         {/* Stats: ixcham grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {statCards.map((stat, i) => {
             const card = (
               <motion.div
                 key={stat.title}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
-                className={`glass-panel rounded-xl p-4 hover:border-white/10 transition-colors ${stat.title === "Tugallangan" ? "cursor-pointer hover:border-emerald-500/30" : ""}`}
+                transition={{ delay: i * 0.05, type: "spring", stiffness: 100 }}
+                whileHover={{ y: -5, scale: 1.02 }}
+                className={`group relative glass-panel rounded-3xl p-5 hover:border-white/20 transition-all duration-500 overflow-hidden ${stat.title === "Tugallangan" ? "cursor-pointer hover:border-emerald-500/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)]" : "hover:shadow-2xl"}`}
               >
-                <div className="flex items-start justify-between gap-2">
+                {/* Decorative background glow */}
+                <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full blur-[40px] opacity-20 group-hover:opacity-40 transition-opacity duration-500 ${stat.bg.replace('/10', '')}`} />
+
+                <div className="flex items-start justify-between gap-3 relative z-10">
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs text-muted-foreground">{stat.title}</p>
-                    <p className={`text-lg font-bold break-words mt-0.5 ${stat.color}`}>{stat.value}</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-1">{stat.title}</p>
+                    <p className={`text-xl font-black tracking-tight break-words group-hover:drop-shadow-md transition-all ${stat.color}`}>{stat.value}</p>
                   </div>
-                  <div className={`shrink-0 p-2 rounded-lg ${stat.bg}`}>
-                    <stat.icon className={`w-4 h-4 ${stat.color}`} />
+                  <div className={`shrink-0 p-3 rounded-2xl ${stat.bg} border border-white/5 group-hover:scale-110 transition-transform duration-300 shadow-inner`}>
+                    <stat.icon className={`w-5 h-5 ${stat.color}`} />
                   </div>
                 </div>
               </motion.div>
@@ -159,33 +163,43 @@ export default function Dashboard() {
           })}
         </div>
 
-        {/* Charts: 2/3 + 1/3 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="lg:col-span-2 glass-panel rounded-xl p-4"
+            initial={{ opacity: 0, scale: 0.98, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="lg:col-span-2 glass-panel rounded-3xl p-6 relative overflow-hidden group border-white/5 hover:border-white/10 transition-colors"
           >
-            <h3 className="text-base font-bold text-white mb-4">Daromadlar dinamikasi</h3>
-            <div className="h-[260px] w-full">
+            {/* Ambient Chart Glow */}
+            <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+
+            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-blue-400" /> Daromadlar dinamikasi
+            </h3>
+            <div className="h-[300px] w-full relative z-10">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={revenueData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="strokeGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#3b82f6" />
+                      <stop offset="100%" stopColor="#8b5cf6" />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }} />
-                  <YAxis stroke="rgba(255,255,255,0.4)" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }} tickFormatter={chartTickFormatter} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.2)" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 600 }} tickMargin={10} axisLine={false} tickLine={false} />
+                  <YAxis stroke="rgba(255,255,255,0.2)" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 600 }} tickFormatter={chartTickFormatter} axisLine={false} tickLine={false} tickMargin={10} />
                   <RechartsTooltip
-                    contentStyle={{ backgroundColor: "rgba(10, 10, 15, 0.95)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
+                    contentStyle={{ backgroundColor: "rgba(0, 0, 0, 0.8)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", backdropFilter: "blur(12px)", boxShadow: "0 10px 30px -10px rgba(0,0,0,0.5)" }}
+                    itemStyle={{ color: "#fff", fontWeight: "bold" }}
+                    labelStyle={{ color: "rgba(255,255,255,0.5)", marginBottom: "4px", fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px" }}
                     formatter={(val: number) => [chartTooltipFormatter(val), "Kirim"]}
                     labelFormatter={(label) => label}
                   />
-                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
+                  <Area type="monotone" dataKey="revenue" stroke="url(#strokeGradient)" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" animationDuration={1500} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -193,45 +207,52 @@ export default function Dashboard() {
 
           {/* Loyihalar holati — yaxshilangan */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.25 }}
-            className="glass-panel rounded-xl p-4"
+            initial={{ opacity: 0, scale: 0.98, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="glass-panel rounded-3xl p-6 flex flex-col items-center border-white/5 hover:border-white/10 transition-colors relative overflow-hidden"
           >
-            <h3 className="text-base font-bold text-white mb-4">Loyihalar holati</h3>
-            <div className="space-y-3">
-              {projectStatusData.map((entry) => (
-                <div key={entry.name} className="flex items-center gap-3">
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/10 rounded-full blur-[50px] pointer-events-none" />
+
+            <h3 className="text-lg font-bold text-white mb-8 w-full flex items-center gap-2">
+              <Briefcase className="w-5 h-5 text-purple-400" /> Loyihalar holati
+            </h3>
+            <div className="space-y-6 w-full relative z-10">
+              {projectStatusData.map((entry, index) => (
+                <div key={entry.name} className="flex items-center gap-4 group">
                   <span
-                    className={`w-20 text-sm font-semibold shrink-0 ${
-                      entry.name === "Faol"
-                        ? "text-sky-400"
+                    className={`w-24 text-xs font-bold uppercase tracking-widest shrink-0 transition-colors ${entry.name === "Faol"
+                        ? "text-sky-400 group-hover:text-sky-300"
                         : entry.name === "Tugallangan"
-                          ? "text-emerald-400"
-                          : "text-rose-400"
-                    }`}
+                          ? "text-emerald-400 group-hover:text-emerald-300"
+                          : "text-rose-400 group-hover:text-rose-300"
+                      }`}
                   >
                     {entry.name}
                   </span>
-                  <div className="flex-1 h-8 rounded-lg overflow-hidden bg-white/10 flex">
-                    <div
-                      className="h-full rounded-lg transition-all flex items-center justify-end pr-2"
+                  <div className="flex-1 h-3 rounded-full overflow-hidden bg-black/40 border border-white/5 relative">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: totalProjects ? `${(entry.count / totalProjects) * 100}%` : "0%" }}
+                      transition={{ delay: 0.6 + (index * 0.1), duration: 1, type: "spring", bounce: 0.2 }}
+                      className="h-full rounded-full relative"
                       style={{
-                        width: totalProjects ? `${(entry.count / totalProjects) * 100}%` : "0%",
                         backgroundColor: entry.fill,
-                        minWidth: entry.count > 0 ? "2rem" : "0",
+                        boxShadow: `0 0 10px ${entry.fill}80` // Add dynamic glow
                       }}
                     >
-                      {entry.count > 0 && <span className="text-xs font-bold text-white drop-shadow">{entry.count}</span>}
-                    </div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+                    </motion.div>
                   </div>
-                  <span className="text-sm font-semibold text-white w-8 text-right">{entry.count}</span>
+                  <span className="text-lg font-black text-white w-8 text-right drop-shadow-md">{entry.count}</span>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-white/5">
-              Jami: <span className="font-medium text-white">{totalProjects}</span> ta loyiha
-            </p>
+
+            <div className="mt-auto w-full pt-6 border-t border-white/5 relative z-10 flex justify-between items-center">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Barcha Loyihalar</span>
+              <span className="text-2xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">{totalProjects}</span>
+            </div>
           </motion.div>
         </div>
       </div>

@@ -50,14 +50,15 @@ export function useCreateProject() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.projects.list.path] });
       queryClient.invalidateQueries({ queryKey: [api.dashboard.stats.path] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
     },
   });
 }
 
-export function useUpdateProject(id: number) {
+export function useUpdateProject() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (updates: UpdateProject) => {
+    mutationFn: async ({ id, updates }: { id: number, updates: UpdateProject }) => {
       const url = buildUrl(api.projects.update.path, { id });
       const res = await fetch(url, {
         method: "PUT",
@@ -69,8 +70,27 @@ export function useUpdateProject(id: number) {
       return api.projects.update.responses[200].parse(await res.json());
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [api.projects.get.path, id] });
       queryClient.invalidateQueries({ queryKey: [api.projects.list.path] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+    },
+  });
+}
+
+export function useDeleteProject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const url = buildUrl(api.projects.delete.path, { id });
+      const res = await fetch(url, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Loyihani o'chirish muvaffaqiyatsiz bo'ldi");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.projects.list.path] });
+      queryClient.invalidateQueries({ queryKey: [api.dashboard.stats.path] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
     },
   });
 }

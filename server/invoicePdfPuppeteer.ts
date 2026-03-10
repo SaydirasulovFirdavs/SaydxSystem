@@ -1,4 +1,43 @@
-import type { InvoiceForPdf, InvoiceItemForPdf, ProjectForPdf, InvoiceSettingsForPdf } from "./invoicePdf";
+export type InvoiceForPdf = {
+  id: number;
+  invoiceNumber: string;
+  amount: string;
+  currency: string;
+  status?: string;
+  paymentTerms?: string;
+  clientName?: string;
+  company?: string;
+  billToContact?: string;
+  dueDate: Date;
+  createdAt: Date;
+  projectId: number;
+};
+
+export type InvoiceItemForPdf = {
+  title: string;
+  quantity: number | string;
+  paidQuantity: number | string;
+  unitPrice: string | number;
+  serviceType?: string;
+  startDate?: Date | string;
+};
+
+export type ProjectForPdf = {
+  name: string;
+} | undefined;
+
+export type InvoiceSettingsForPdf = {
+  companyName: string | null;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  paymentDetailLines: string | null;
+  paymentNote: string | null;
+  authorizedName: string | null;
+  authorizedPosition: string | null;
+} | null;
+
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -6,25 +45,68 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const UPLOAD_DIR = path.join(__dirname, "..", "uploads", "invoices");
 
+// ─── Translation dictionary ────────────────────────────────────────────────
+type Lang = "uz" | "en" | "ru";
+
+const T: Record<string, Record<Lang, string>> = {
+  officialInvoice: { uz: "RASMIY HISOB-FAKTURA", en: "OFFICIAL INVOICE", ru: "ОФИЦИАЛЬНЫЙ СЧЁТ" },
+  issueDate: { uz: "Sana", en: "Issue Date", ru: "Дата выставления" },
+  dueDate: { uz: "Muddat", en: "Due Date", ru: "Срок оплаты" },
+  statusPaid: { uz: "To'langan", en: "Paid", ru: "Оплачено" },
+  statusUnpaid: { uz: "To'lanmadi", en: "Unpaid", ru: "Не оплачено" },
+  statusPending: { uz: "Kutilmoqda", en: "Pending", ru: "Ожидает оплаты" },
+  from: { uz: "Bajaruvchi", en: "From / Contractor", ru: "От / Исполнитель" },
+  billTo: { uz: "Buyurtmachi", en: "Bill To / Client", ru: "Кому / Заказчик" },
+  project: { uz: "Loyiha", en: "Project", ru: "Проект" },
+  serviceDesc: { uz: "XIZMAT TA'RIFI", en: "SERVICE DESCRIPTION", ru: "ОПИСАНИЕ УСЛУГИ" },
+  start: { uz: "BOSHLANISH", en: "START", ru: "НАЧАЛО" },
+  days: { uz: "KUN", en: "DAYS", ru: "ДНЕЙ" },
+  end: { uz: "TUGASH", en: "END", ru: "ОКОНЧАНИЕ" },
+  price: { uz: "NARXI (SUMMA)", en: "PRICE (AMOUNT)", ru: "ЦЕНА (СУММА)" },
+  services: { uz: "XIZMATLARI", en: "SERVICES", ru: "УСЛУГИ" },
+  subtotal: { uz: "JAMI", en: "SUBTOTAL", ru: "ИТОГО" },
+  paymentDetails: { uz: "To'lov Rekvizitlari", en: "Payment Details", ru: "Реквизиты оплаты" },
+  totalServices: { uz: "Umumiy Xizmatlar", en: "Total Services", ru: "Всего услуг" },
+  grandTotal: { uz: "Jami To'lov", en: "Grand Total", ru: "Итоговая сумма" },
+  noServices: { uz: "Xizmatlar qo'shilmagan...", en: "No services added...", ru: "Услуги не добавлены..." },
+  authorized: { uz: "TASDIQLANGAN", en: "AUTHORIZED", ru: "УДОСТОВЕРЕНО" },
+  city: { uz: "Toshkent", en: "Tashkent", ru: "Ташкент" },
+  yr: { uz: "y.", en: "", ru: "г." },
+  bankName: { uz: "Bank nomi", en: "Bank Name", ru: "Название банка" },
+  accNo: { uz: "Hisob raqami", en: "Account No", ru: "Номер счета" },
+  companyAddress: { uz: "Toshkent, O'zbekiston", en: "Tashkent, Uzbekistan", ru: "Ташкент, Узбекистан" },
+  paymentNote: { uz: "To'lov shartnoma asosida amalga oshiriladi.", en: "Payment is made under the contract.", ru: "Оплата производится по договору." },
+  authorizedName: { uz: "Mas'ul shaxs", en: "Authorized Name", ru: "Имя представителя" },
+  authorizedPosition: { uz: "Lavozimi", en: "Position", ru: "Должность" },
+  officialMerchantDoc: { uz: "RASMIY SAVDO HUJJATI", en: "OFFICIAL MERCHANT DOCUMENT", ru: "ОФИЦИАЛЬНЫЙ ТОРГОВЫЙ ДОКУМЕНТ" },
+  contractDetails: { uz: "Shartnoma ma'lumotlari", en: "Contract Details", ru: "Данные договора" },
+  contractParty: { uz: "Shartnoma tomoni", en: "Contracting Party", ru: "Сторона договора" },
+};
+
+function t(key: string, lang: Lang): string {
+  return T[key]?.[lang] ?? T[key]?.["uz"] ?? key;
+}
+// ──────────────────────────────────────────────────────────────────────────
+
 function ensureDir(dir: string) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 }
 
-function getSettings(s: InvoiceSettingsForPdf) {
+function getSettings(s: InvoiceSettingsForPdf, lang: Lang) {
   const defaults = {
     companyName: "SAYD.X LLC",
-    address: "Toshkent, O'zbekiston",
+    address: t('companyAddress', lang),
     phone: "+998 90 000 00 00",
     email: "info@saydx.uz",
     website: "saydx.uz",
-    paymentNote: "To'lov shartnoma asosida amalga oshiriladi.",
-    authorizedName: "Authorized Name",
-    authorizedPosition: "Position",
+    paymentNote: t('paymentNote', lang),
+    authorizedName: t('authorizedName', lang),
+    authorizedPosition: t('authorizedPosition', lang),
     paymentDetailLines: [
-      { title: "Bank nomi", value: "Your Bank Name" },
-      { title: "Hisob raqami", value: "1234 5678 9012 3456" },
+      { title: t('bankName', lang), value: "Your Bank Name" },
+      { title: t('accNo', lang), value: "1234 5678 9012 3456" },
     ],
   };
   if (!s) return defaults;
@@ -65,348 +147,324 @@ function formatAmount(amt: string | number, currency: string) {
   return `${formatted} ${currency}`;
 }
 
-function monthlyBreakdown(start: Date, months: number, unitPrice: string, currency: string) {
-  const res = [];
-  for (let i = 0; i < months; i++) {
-    const d = new Date(start);
-    d.setMonth(d.getMonth() + i);
-    const end = new Date(d);
-    end.setMonth(end.getMonth() + 1);
-    end.setDate(end.getDate() - 1);
-
-    const period = `${d.toLocaleDateString("uz-UZ", { day: "2-digit", month: "2-digit" })} - ${end.toLocaleDateString(
-      "uz-UZ",
-      { day: "2-digit", month: "2-digit", year: "numeric" }
-    )}`;
-    res.push({ period, amount: formatAmount(unitPrice, currency) });
-  }
-  return res;
-}
-
 function buildInvoiceHtml(
   invoice: InvoiceForPdf,
   items: InvoiceItemForPdf[],
   project: ProjectForPdf,
   settings: InvoiceSettingsForPdf,
-  baseUrl: string
+  baseUrl: string,
+  lang: Lang = "uz"
 ) {
-  const s = getSettings(settings);
-  const issueDate = new Date(invoice.createdAt);
-  const dueDate = new Date(invoice.dueDate);
-  const validationId = `INV-${invoice.id.toString().padStart(6, "0")}`;
-  const dateStr = (d: Date) => d.toLocaleDateString("uz-UZ", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, ".");
+  const s = getSettings(settings, lang);
+  const dateStr = (d: string | Date | null) => {
+    if (!d) return "---";
+    const date = new Date(d);
+    if (isNaN(date.getTime())) return "---";
+    const locale = lang === "uz" ? "uz-UZ" : lang === "en" ? "en-GB" : "ru-RU";
+    return date.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, ".");
+  };
 
-  // Helper to escape HTML to prevent XSS in the generated PDF if data comes from user
-  const esc = (str: string | null | undefined) => (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const esc = (val: any) => {
+    const str = String(val || "");
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  };
 
+  const currency = invoice.currency || "UZS";
   const logoUrl = `${baseUrl}/LOGO2.png`;
   const imzoUrl = `${baseUrl}/imzo.PNG`;
-  const currency = invoice.currency || "UZS";
+
+  // --- Resilient Grouping Logic ---
+  const validRows = items.filter(r => r.title && String(r.title).trim());
+  const groupedRows: Record<string, any[]> = {
+    'api': [],
+    'server': [],
+    'row': []
+  };
+
+  validRows.forEach(row => {
+    const type = (row.serviceType || 'row').toLowerCase();
+    const targetType = (type === 'api' || type === 'server') ? type : 'row';
+
+    const repeats = Math.max(1, Number(row.paidQuantity) || 1);
+    const quantity = Math.max(1, Number(row.quantity) || 1);
+    const unitPrice = Number(row.unitPrice) || 0;
+
+    if (row.startDate) {
+      let currentStart = new Date(row.startDate);
+      for (let i = 0; i < repeats; i++) {
+        const end = new Date(currentStart);
+        end.setDate(end.getDate() + quantity);
+
+        groupedRows[targetType].push({
+          title: row.title,
+          subTitle: targetType.toUpperCase(),
+          startDate: dateStr(currentStart),
+          endDate: dateStr(end),
+          days: quantity,
+          price: unitPrice
+        });
+        currentStart = new Date(end);
+      }
+    } else {
+      // Uniform calculation logic for all row types as requested
+      const multiplier = repeats;
+      groupedRows[targetType].push({
+        title: row.title,
+        subTitle: targetType === 'row' ? '' : targetType.toUpperCase(),
+        startDate: targetType !== 'row' ? dateStr(row.startDate as any) : '',
+        days: quantity,
+        price: unitPrice * multiplier
+      });
+    }
+  });
+
+  const activeTypes = ['api', 'server', 'row'].filter(tp => groupedRows[tp].length > 0);
+
+  // Calculate total from categories to ensure 100% matching with the table
+  const totalAmount = Object.values(groupedRows).flat().reduce((sum, item) => sum + (item.price || 0), 0);
+
+  // Seal Status Logic - Standardizing status values
+  const rawStatus = (invoice.status || 'pending').toLowerCase();
+  let sText = t('statusPending', lang);
+  let sColor = '#d97706'; // Pending: Amber/Saffron
+
+  if (rawStatus === 'paid') {
+    sText = t('statusPaid', lang);
+    sColor = '#059669';
+  } else if (rawStatus === 'unpaid') {
+    sText = t('statusUnpaid', lang);
+    sColor = '#dc2626';
+  }
 
   return `<!DOCTYPE html>
-<html lang="uz">
+<html lang="${lang}">
 <head>
   <meta charset="UTF-8">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --primary: #0f172a;
-      --secondary: #334155;
-      --accent: #2563eb;
-      --gold: #d4af37;
-      --text-main: #1e293b;
-      --text-light: #64748b;
-      --white: #ffffff;
-      --bg-soft: #f8fafc;
-      --border: #e2e8f0;
-      
-      /* Status Mapping */
-      --status-paid: #10b981;
-      --status-pending: #f59e0b;
-      --status-unpaid: #ef4444;
-    }
-    
     * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     body { 
       margin: 0; padding: 0; 
-      font-family: 'Inter', sans-serif; 
-      color: var(--text-main); 
-      background: #fff;
-      line-height: 1.5;
+      font-family: 'Inter', system-ui, sans-serif; 
+      color: #1e293b; 
+      background: #ffffff; 
     }
-    h1, h2, h3, .brand, .totals-label { font-family: 'Outfit', sans-serif; }
-
-    .pdf-container {
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 0;
-      position: relative;
+    .invoice-card {
+      width: 100%; max-width: 800px; margin: 0 auto; background: white;
     }
-
-    /* TOP HEADER - DARK PREMIUM */
-    .premium-header {
-      background: var(--primary);
-      color: var(--white);
-      padding: 50px 60px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .premium-header::after {
-      content: ""; position: absolute; top: 0; right: 0;
-      width: 150px; height: 150px;
-      background: rgba(255,255,255,0.03);
-      border-radius: 50%; transform: translate(50%, -50%);
-    }
-
-    .brand-section { display: flex; align-items: center; gap: 20px; }
-    .logo-img { height: 70px; filter: brightness(0) invert(1); }
-    .brand-title { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
-    
-    .header-info { text-align: right; }
-    .doc-type { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3em; opacity: 0.7; margin-bottom: 5px; }
-    .inv-number { font-size: 34px; font-weight: 800; margin: 0; }
-
-    /* CONTENT BODY */
-    .content-body { padding: 40px 60px; }
-
-    /* STATUS BAR */
-    .status-bar {
+    .header {
+      background: #0f172a; color: white; padding: 40px 40px;
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
+      position: relative; overflow: hidden;
+    }
+    .header-logo { height: 42px; filter: brightness(0) invert(1); vertical-align: middle; }
+    .header-info { text-align: right; z-index: 10; position: relative; }
+    .doc-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3em; color: rgba(255,255,255,0.6); margin-bottom: 2px; font-family: 'Outfit'; }
+    .inv-no { font-size: 28px; font-weight: 900; margin: 0; font-family: 'Outfit'; color: white; letter-spacing: -0.025em; }
+    .header-accent { position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: rgba(255,255,255,0.05); border-radius: 50%; transform: translate(50%, -50%); }
+
+    .content { padding: 30px 0; }
+    .dates-row { 
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 30px;
     }
     .status-badge {
-      padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 800;
-      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 6px 14px; border-radius: 6px; font-size: 10px; font-weight: 900;
+      text-transform: uppercase; letter-spacing: 0.05em; border: 1.5px solid;
     }
-    .badge-paid { background: #ecfdf5; color: var(--status-paid); }
-    .badge-pending { background: #fffbeb; color: var(--status-pending); }
-    .badge-unpaid { background: #fef2f2; color: var(--status-unpaid); }
+    .status-paid { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+    .status-unpaid { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    .status-pending { background: #fffbeb; color: #b45309; border-color: #fef3c7; }
 
-    .dates-row { display: flex; gap: 40px; }
-    .date-item { font-size: 13px; }
-    .date-label { color: var(--text-light); font-weight: 600; margin-right: 8px; }
-    .date-val { font-weight: 700; color: var(--primary); }
+    .date-item { display: inline-block; margin-left: 32px; }
+    .date-label { color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-right: 8px; font-size: 10px; }
+    .date-val { font-weight: 800; color: #0f172a; font-size: 13px; }
 
-    /* PARTY SECTION */
-    .party-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
-      margin-bottom: 50px;
-    }
-    .party-box h4 {
-      font-size: 11px; font-weight: 800; color: var(--text-light);
-      text-transform: uppercase; letter-spacing: 0.15em;
-      margin: 0 0 15px 0; border-bottom: 2px solid var(--border);
-      padding-bottom: 8px; display: inline-block;
-    }
-    .party-name { font-size: 18px; font-weight: 800; color: var(--primary); margin-bottom: 8px; }
-    .party-details { font-size: 13px; color: var(--secondary); line-height: 1.6; }
+    .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-bottom: 30px; }
+    .party-title { font-size: 9px; font-weight: 900; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #dbeafe; padding-bottom: 4px; margin-bottom: 10px; display: inline-block; font-family: 'Outfit'; }
+    .party-name { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 6px; font-family: 'Outfit'; }
+    .details { font-size: 12px; color: #64748b; line-height: 1.6; }
+    .pj-badge { background: #eff6ff; color: #2563eb; font-size: 9px; font-weight: 900; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px; }
 
-    /* TABLE DESIGN */
-    .table-section { margin-bottom: 40px; }
+    .table-container { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; margin-bottom: 30px; }
     table { width: 100%; border-collapse: collapse; }
-    thead th {
-      text-align: left; background: var(--bg-soft);
-      padding: 15px 20px; font-size: 12px; font-weight: 800;
-      color: var(--text-light); text-transform: uppercase; letter-spacing: 0.1em;
-    }
-    .item-row td { padding: 20px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
-    .row-nr { width: 40px; color: var(--text-light); font-weight: 700; }
-    .row-title { font-weight: 700; color: var(--primary); font-size: 15px; }
-    .row-meta { font-size: 11px; color: var(--accent); font-weight: 800; text-transform: uppercase; margin-top: 2px; }
-    .text-right { text-align: right; }
-    .price-col { font-weight: 600; color: var(--primary); }
+    thead th { background: #f8fafc; padding: 12px 20px; font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    
+    .cat-header { background: #f8fafc; color: #3b82f6; font-size: 9px; font-weight: 900; padding: 10px 20px; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #f1f5f9; }
+    .item-row td { padding: 12px 20px; border-bottom: 1px solid #f1f5f9; font-size: 12px; vertical-align: middle; }
+    .row-title { font-weight: 700; color: #0f172a; margin-bottom: 1px; text-transform: uppercase; }
+    .row-subtitle { font-size: 9px; color: #3b82f6; font-weight: 700; text-transform: uppercase; }
+    
+    .cat-total-row { background: #f1f5f9; }
+    .cat-total-label { text-align: right; color: #64748b; font-size: 10px; font-weight: 800; padding: 8px 20px; text-transform: uppercase; }
+    .cat-total-val { text-align: right; color: #0f172a; font-size: 11px; font-weight: 800; padding: 8px 20px; }
 
-    /* SUMMARY section */
-    .summary-grid {
-      display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px;
-      page-break-inside: avoid;
-    }
-    .payment-instructions {
-      background: var(--bg-soft); border-radius: 12px; padding: 25px;
-    }
-    .payment-instructions h4 {
-      margin: 0 0 15px 0; font-size: 12px; font-weight: 800; color: var(--secondary);
-      text-transform: uppercase;
-    }
-    .pay-detail { font-size: 13px; margin-bottom: 8px; display: flex; }
-    .pay-label { color: var(--text-light); width: 100px; flex-shrink: 0; }
-    .pay-val { font-weight: 700; color: var(--primary); }
-    .pay-note {
-      margin-top: 15px; font-size: 12px; font-weight: 600; color: var(--accent);
-      padding-top: 15px; border-top: 1px dashed var(--border);
-    }
+    .summary-section { display: grid; grid-template-columns: 1.25fr 1fr; gap: 40px; page-break-inside: avoid; }
+    .payment-details-box { background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
+    .pay-title { font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.1em; }
+    .pay-row { font-size: 11px; margin-bottom: 4px; display: flex; }
+    .pay-key { color: #94a3b8; font-weight: 700; width: 90px; }
+    .pay-val { font-weight: 800; color: #0f172a; }
+    .pay-note-box { border-top: 1px solid #e2e8f0; margin-top: 10px; padding-top: 10px; color: #3b82f6; font-weight: 800; font-style: italic; font-size: 11px; }
 
-    .totals-box { display: flex; flex-direction: column; gap: 12px; }
-    .total-row { display: flex; justify-content: space-between; font-size: 14px; }
-    .total-divider { height: 1px; background: var(--border); margin: 8px 0; }
-    .grand-total {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-top: 10px; padding: 15px 0;
-    }
-    .grand-total-label { font-size: 20px; font-weight: 800; color: var(--primary); }
-    .grand-total-val { font-size: 28px; font-weight: 800; color: var(--accent); }
+    .totals-box { display: flex; flex-direction: column; justify-content: flex-end; }
+    .total-line { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; color: #64748b; }
+    .grand-total-row { border-top: 2px solid #3b82f6; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .grand-label { font-size: 15px; font-weight: 900; text-transform: uppercase; color: #0f172a; }
+    .grand-value { font-size: 24px; font-weight: 900; color: #2563eb; font-family: 'Outfit'; }
 
-    /* SIGNATURE & SEAL */
-    .auth-section {
-      margin-top: 60px; display: flex; justify-content: space-between; align-items: flex-end;
-      page-break-inside: avoid; border-top: 1px solid var(--border); padding-top: 40px;
-    }
-    .seal-wrap {
-      width: 140px; height: 140px; border: 3px solid var(--accent); border-radius: 50%;
+    .footer-auth { margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; page-break-inside: avoid; }
+    .auth-seal {
+      width: 135px; height: 135px; 
+      border: 3.5px double #000080; border-radius: 50%;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      transform: rotate(-10deg); color: var(--accent); border-style: double;
+      transform: rotate(-10deg); color: #000080; position: relative;
+      background: rgba(0, 0, 128, 0.02);
+      overflow: visible;
+      box-shadow: 0 0 0 1.5px #000080 inset;
     }
-    .seal-brand { font-size: 16px; font-weight: 900; line-height: 1; }
-    .seal-ver { font-size: 8px; font-weight: 800; letter-spacing: 0.3em; margin-top: 5px; }
+    .signature-area { text-align: right; }
+    .signature-img { height: 50px; mix-blend-mode: multiply; margin-bottom: 5px; }
+    .signatory-name { font-size: 13px; font-weight: 800; margin: 0; color: #0f172a; }
+    .signatory-pos { font-size: 9px; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
 
-    .signature-wrap { text-align: right; }
-    .sig-img { height: 75px; margin-bottom: 10px; opacity: 0.9; }
-    .sig-name { font-size: 16px; font-weight: 800; color: var(--primary); margin: 0; }
-    .sig-pos { font-size: 12px; color: var(--text-light); font-weight: 600; margin: 4px 0; }
-
-    /* FOOTER */
-    .footer {
-      margin-top: 80px; text-align: center; color: var(--text-light); font-size: 11px;
-      padding-bottom: 40px;
-    }
-    .footer-links { font-weight: 700; margin-bottom: 8px; color: var(--secondary); }
-
+    .legal-footer { margin-top: 60px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px; padding-bottom: 40px; }
+    .contact-info { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #cbd5e1; margin-bottom: 4px; }
   </style>
 </head>
 <body>
-  <div class="pdf-container">
-    <header class="premium-header">
-      <div class="brand-section">
-        <img src="${esc(logoUrl)}" class="logo-img" alt="SAYD.X">
-        <div class="brand-title">SAYD.X</div>
+  <div class="invoice-card">
+    <header class="header">
+      <div style="display: flex; align-items: center; z-index: 10; position: relative;">
+        <img src="${esc(logoUrl)}" class="header-logo" alt="Logo" onerror="this.style.display='none'">
       </div>
       <div class="header-info">
-        <div class="doc-type">Official Invoice</div>
-        <h1 class="inv-number">№ ${esc(invoice.invoiceNumber)}</h1>
+        <div class="doc-label">${t('officialInvoice', lang)}</div>
+        <h1 class="inv-no">№ ${esc(invoice.invoiceNumber)}</h1>
       </div>
+      <div class="header-accent"></div>
     </header>
 
-    <main class="content-body">
-      <section class="status-bar">
-        <div class="status-badge ${invoice.status === "paid" ? "badge-paid" :
-      invoice.status === "pending" ? "badge-pending" : "badge-unpaid"
-    }">
-          ${invoice.status === "paid" ? "Muvaffaqiyatli To'langan" :
-      invoice.status === "pending" ? "To'lov Kutilmoqda" : "To'lanmagan / Bekor qilingan"
-    }
+    <div class="content">
+      <div class="dates-row">
+        <div class="status-badge status-${invoice.status || 'pending'}">
+          ${invoice.status === 'paid' ? t('statusPaid', lang) : invoice.status === 'unpaid' ? t('statusUnpaid', lang) : t('statusPending', lang)}
         </div>
-        <div class="dates-row">
-          <div class="date-item"><span class="date-label">ISSUE DATE:</span><span class="date-val">${dateStr(issueDate)}</span></div>
-          <div class="date-item"><span class="date-label">DUE DATE:</span><span class="date-val">${dateStr(dueDate)}</span></div>
+        <div>
+          <div class="date-item"><span class="date-label">${t('issueDate', lang)}:</span><span class="date-val">${dateStr(invoice.createdAt)}</span></div>
+          <div class="date-item"><span class="date-label">${t('dueDate', lang)}:</span><span class="date-val">${dateStr(invoice.dueDate)}</span></div>
         </div>
-      </section>
+      </div>
 
-      <section class="party-grid">
-        <div class="party-box">
-          <h4>From / Bajaruvchi</h4>
+      <div class="parties">
+        <div>
+          <h4 class="party-title">${t('from', lang)}</h4>
           <div class="party-name">${esc(s.companyName)}</div>
-          <div class="party-details">
-            ${esc(s.address)}<br>
-            ${esc(s.email)}<br>
-            ${esc(s.phone)}<br>
-            ${esc(s.website)}
+          <div class="details">
+            <div>• ${esc(s.address)}</div>
+            <div>• ${esc(s.email)}</div>
+            <div>• ${esc(s.phone)}</div>
           </div>
         </div>
-        <div class="party-box">
-          <h4>Bill To / Buyurtmachi</h4>
-          <div class="party-name">${esc(invoice.clientName || "Mijoz")}</div>
-          <div class="party-details">
-            <span style="font-weight: 700">${esc(invoice.company || "Xususiy Shaxs")}</span><br>
-            ${esc(invoice.billToContact || "—")}<br>
-            <span style="color: var(--accent); font-weight: 600;">Loyiha: ${project?.name ? esc(project.name) : "—"}</span>
+        <div>
+          <h4 class="party-title">${t('billTo', lang)}</h4>
+          <div class="party-name">${esc(invoice.clientName || 'Mijoz')}</div>
+          <div class="details">
+            <div class="pj-badge">${t('project', lang)}: ${esc(project?.name || '---')}</div>
+            <div style="font-weight: 800; color: #334155; margin-bottom: 2px;">${esc(invoice.company || '')}</div>
+            <div>${esc(invoice.billToContact || '')}</div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section class="table-section">
+      <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th class="row-nr">#</th>
-              <th>Xizmat Ta'rifi va Tavsifi</th>
-              <th class="text-right">Hajm</th>
-              <th class="text-right">Birlik Narxi</th>
-              <th class="text-right">Jami Summa</th>
+              <th style="width: 50px; text-align: center;">#</th>
+              <th>${t('serviceDesc', lang)}</th>
+              <th style="text-align: center; width: 90px;">${t('start', lang)}</th>
+              <th style="text-align: center; width: 60px;">${t('days', lang)}</th>
+              <th style="text-align: center; width: 90px;">${t('end', lang)}</th>
+              <th style="text-align: right; width: 130px;">${t('price', lang)}</th>
             </tr>
           </thead>
           <tbody>
-            ${items.map((item, i) => `
-              <tr class="item-row">
-                <td class="row-nr">${i + 1}</td>
-                <td>
-                  <div class="row-title">${esc(item.title)}</div>
-                  ${item.serviceType ? `<div class="row-meta">${esc(item.serviceType)} Services</div>` : ""}
-                </td>
-                <td class="text-right">${item.quantity}</td>
-                <td class="text-right price-col">${formatAmount(item.unitPrice, currency)}</td>
-                <td class="text-right price-col" style="color: var(--accent)">${formatAmount(String(Number(item.quantity) * Number(item.unitPrice)), currency)}</td>
-              </tr>
-            `).join("")}
+            ${activeTypes.length === 0 ? `<tr><td colspan="6" style="padding: 40px; text-align: center; color: #94a3b8; font-style: italic; font-weight: 700;">${t('noServices', lang)}</td></tr>` : ''}
+            ${activeTypes.map(type => {
+    const rows = groupedRows[type];
+    const categoryTotal = rows.reduce((sum, r) => sum + r.price, 0);
+
+    const rowsHtml = rows.map((row: any, idx: number) => `
+                <tr class="item-row">
+                  <td style="text-align: center; color: #cbd5e1; font-weight: 800;">${idx + 1}</td>
+                  <td>
+                    <div class="row-title">${esc(row.title)}</div>
+                    ${row.subTitle ? `<div class="row-subtitle">${esc(row.subTitle)}</div>` : ''}
+                  </td>
+                  <td style="text-align: center; font-weight: 700; color: #64748b;">${row.startDate || '---'}</td>
+                  <td style="text-align: center; font-weight: 700; color: #64748b;">${row.days || '---'}</td>
+                  <td style="text-align: center; font-weight: 900; color: #2563eb;">${row.endDate || '---'}</td>
+                  <td style="text-align: right; font-weight: 900; color: #0f172a;">${formatAmount(row.price, currency)}</td>
+                </tr>
+              `).join('');
+
+    return `
+                <tr><td colspan="6" class="cat-header">${type.toUpperCase()} ${t('services', lang)}</td></tr>
+                ${rowsHtml}
+                <tr class="cat-total-row">
+                  <td colspan="5" class="cat-total-label">${type.toUpperCase()} ${t('subtotal', lang)}:</td>
+                  <td class="cat-total-val">${formatAmount(categoryTotal, currency)}</td>
+                </tr>
+              `;
+  }).join('')}
           </tbody>
         </table>
-      </section>
+      </div>
 
-      <section class="summary-grid">
-        <div class="payment-instructions">
-          <h4>To'lov Rekvizitlari</h4>
-          ${s.paymentDetailLines.map(l => `
-            <div class="pay-detail">
-              <span class="pay-label">${esc(l.title || "Ma'lumot")}:</span>
+      <div class="summary-section">
+        <div class="payment-details-box">
+          <div class="pay-title">${t('paymentDetails', lang)}</div>
+          ${s.paymentDetailLines.map((l: any) => `
+            <div class="pay-row">
+              <span class="pay-key">${esc(l.title)}:</span>
               <span class="pay-val">${esc(l.value)}</span>
             </div>
-          `).join("")}
-          <div class="pay-note">${esc(s.paymentNote)}</div>
+          `).join('')}
+          <div class="pay-note-box">${esc(s.paymentNote)}</div>
         </div>
-
         <div class="totals-box">
-          <div class="total-row">
-            <span style="color: var(--text-light)">Umumiy Xizmatlar:</span>
-            <span style="font-weight: 700">${formatAmount(invoice.amount, currency)}</span>
+          <div class="total-line">
+            <span style="font-weight: 700;">${t('totalServices', lang)}</span>
+            <span style="font-weight: 900; color: #0f172a;">${formatAmount(totalAmount, currency)}</span>
           </div>
-          <div class="total-row">
-            <span style="color: var(--text-light)">Soliq va Yig'imlar (0%):</span>
-            <span style="font-weight: 700">0.00 ${currency}</span>
-          </div>
-          <div class="total-divider"></div>
-          <div class="grand-total">
-            <span class="grand-total-label">JAMI TO'LOV:</span>
-            <span class="grand-total-val">${formatAmount(invoice.amount, currency)}</span>
+          <div class="grand-total-row">
+            <span class="grand-label">${t('grandTotal', lang)}</span>
+            <span class="grand-value">${formatAmount(totalAmount, currency)}</span>
           </div>
         </div>
-      </section>
-
-      <footer class="auth-section">
-        <div class="seal-wrap">
-          <div class="seal-brand">SAYD.X</div>
-          <div class="seal-ver">OFFICIAL SEAL</div>
-          <div style="font-size: 8px; margin-top: 5px;">${validationId}</div>
-        </div>
-        
-        <div class="signature-wrap">
-          <img src="${esc(imzoUrl)}" class="sig-img" alt="Electronic Signature">
-          <p class="sig-name">${esc(s.authorizedName)}</p>
-          <p class="sig-pos">${esc(s.authorizedPosition)}</p>
-          <div style="font-size: 11px; color: var(--text-light); margin-top: 5px;">Toshkent, ${dateStr(new Date())} y.</div>
-        </div>
-      </footer>
-    </main>
-
-    <footer class="footer">
-      <div class="footer-links">
-        ${esc(s.website)} &nbsp; | &nbsp; ${esc(s.email)} &nbsp; | &nbsp; ${esc(s.phone)}
       </div>
-      <div>&copy; ${new Date().getFullYear()} SAYD.X DIGITAL SOLUTIONS. Generated by internal ERP system.</div>
+
+      <div class="footer-auth">
+        <div class="auth-seal">
+          <div style="font-size: 24px; font-weight: 800; font-family: 'Outfit'; letter-spacing: 0.12em; line-height: 1;">SAYD.X</div>
+          <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; margin-top: 5px; color: ${sColor} !important; border: 1px solid ${sColor}; padding: 1px 4px; border-radius: 3px; background: white;">
+            ${sText}
+          </div>
+          <div style="font-size: 8px; font-weight: 700; margin-top: 8px; opacity: 0.8; letter-spacing: 0.02em;">${esc(invoice.invoiceNumber)}</div>
+        </div>
+        <div class="signature-area">
+          <img src="${esc(imzoUrl)}" class="signature-img" alt="Signature">
+          <p class="signatory-name">${esc(s.authorizedName)}</p>
+          <p class="signatory-pos">${esc(s.authorizedPosition)}</p>
+          <div style="font-size: 10px; color: #94a3b8; font-style: italic; margin-top: 4px;">${t('city', lang)}, ${dateStr(new Date())} ${t('yr', lang)}</div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="legal-footer">
+      <div class="contact-info">${esc(s.website)} | ${esc(s.email)} | ${esc(s.phone)}</div>
+      <div style="font-size: 9px; color: #cbd5e1;">&copy; ${new Date().getFullYear()} SAYD.X DIGITAL SOLUTIONS. ${t('officialMerchantDoc', lang)}.</div>
     </footer>
   </div>
 </body>
@@ -421,13 +479,25 @@ export async function generateInvoicePdfPuppeteer(
   settings: InvoiceSettingsForPdf,
   widthPx: number,
   _heightPx: number,
-  baseUrl: string
+  baseUrl: string,
+  lang: Lang = "uz"
 ): Promise<string> {
   ensureDir(UPLOAD_DIR);
-  const filename = `chek-${invoice.invoiceNumber.replace(/\s/g, "-")}-${invoice.id}.pdf`;
+  const timestamp = Date.now();
+  const filename = `invoice-${invoice.id}-${timestamp}.pdf`;
   const filePath = path.join(UPLOAD_DIR, filename);
 
-  const html = buildInvoiceHtml(invoice, items, project, settings, baseUrl);
+  // Clean up old files for this invoice to prevent clutter
+  try {
+    const files = fs.readdirSync(UPLOAD_DIR);
+    for (const f of files) {
+      if (f.startsWith(`invoice-${invoice.id}-`) && f.endsWith('.pdf')) {
+        try { fs.unlinkSync(path.join(UPLOAD_DIR, f)); } catch (e) { }
+      }
+    }
+  } catch (e) { }
+
+  const html = buildInvoiceHtml(invoice, items, project, settings, baseUrl, lang);
 
   const puppeteer = await import("puppeteer");
   const browser = await puppeteer.default.launch({
@@ -438,20 +508,44 @@ export async function generateInvoicePdfPuppeteer(
   try {
     const page = await browser.newPage();
     await page.setContent(html, {
-      waitUntil: "networkidle0",
-      timeout: 15000,
+      waitUntil: ["networkidle0", "domcontentloaded"],
+      timeout: 30000,
     });
-    await page.setViewport({ width: Math.round(widthPx), height: 1200 });
+
+    // Wait for everything to settle
+    await page.evaluateHandle('document.fonts.ready');
+    await new Promise(r => setTimeout(r, 500)); // Extra wiggle room for images/layout
+
+    // Robust height calculation
+    const bodyHeight = await page.evaluate(() => {
+      return Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.offsetHeight,
+        document.body.clientHeight,
+        document.documentElement.clientHeight
+      );
+    });
+
+    // Final height with small buffer for PDF rendering variations
+    const finalHeightPx = Math.max(1060, bodyHeight + 20);
+
+    await page.setViewport({
+      width: 794, // Standard A4 width at 96 DPI
+      height: Math.round(finalHeightPx),
+      deviceScaleFactor: 2
+    });
 
     await page.pdf({
       path: filePath,
-      format: "A4",
+      format: 'A4',
       printBackground: true,
       margin: {
-        top: "15mm",
-        right: "15mm",
-        bottom: "15mm",
-        left: "15mm",
+        top: "20mm",
+        right: "20mm",
+        bottom: "20mm",
+        left: "20mm",
       },
     });
   } finally {
@@ -459,4 +553,26 @@ export async function generateInvoicePdfPuppeteer(
   }
 
   return `/api/invoices/${invoice.id}/pdf`;
+}
+
+/** Helper to find the latest PDF for a given invoice ID in the uploads directory. */
+export function getInvoicePdfPath(invoiceId: number): string | null {
+  ensureDir(UPLOAD_DIR);
+  try {
+    const files = fs.readdirSync(UPLOAD_DIR);
+    // Find files matching invoice-{id}-*.pdf
+    const matches = files.filter(f => f.startsWith(`invoice-${invoiceId}-`) && f.endsWith('.pdf'));
+    if (matches.length === 0) return null;
+
+    // Sort by timestamp (the part after the last hyphen) descending
+    matches.sort((a, b) => {
+      const tsA = parseInt(a.split('-').pop()?.split('.')[0] || "0");
+      const tsB = parseInt(b.split('-').pop()?.split('.')[0] || "0");
+      return tsB - tsA;
+    });
+
+    return path.join(UPLOAD_DIR, matches[0]);
+  } catch (e) {
+    return null;
+  }
 }

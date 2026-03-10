@@ -1,15 +1,27 @@
 import { useState, useMemo } from "react";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { ChevronLeft, Save, User, UserCog, Eye, EyeOff } from "lucide-react";
+import { ChevronLeft, Save, User, UserCog, Eye, EyeOff, Trash2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { priorityLabel, statusLabel } from "@/lib/uz";
+import { useDeleteEmployee } from "@/hooks/use-employees";
 
 type Employee = { id: string; username: string; firstName: string; lastName: string; role: string; companyRole?: string };
 type Task = { id: number; title: string; description: string; priority: string; status: string; createdAt: Date; projectId: number };
@@ -19,6 +31,9 @@ export default function EmployeeDetails() {
     const employeeId = params.id;
     const [showPassword, setShowPassword] = useState(false);
     const { toast } = useToast();
+    const [, setLocation] = useLocation();
+
+    const deleteEmployee = useDeleteEmployee();
 
     const { data: employee, isLoading: isEmpLoading } = useQuery<Employee>({
         queryKey: [`/api/employees/${employeeId}`],
@@ -82,16 +97,55 @@ export default function EmployeeDetails() {
                         <ChevronLeft className="w-4 h-4" /> Xodimlar
                     </span>
                 </Link>
-                <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-primary/80">
-                        <UserCog className="w-8 h-8" />
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 border border-white/10 flex items-center justify-center text-blue-400 backdrop-blur-sm shadow-xl">
+                            <UserCog className="w-8 h-8" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-display font-bold text-white tracking-tight">
+                                {employee.firstName} {employee.lastName}
+                            </h1>
+                            <p className="text-sm text-blue-400 font-bold uppercase tracking-widest mt-1">@{employee.username}</p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-3xl font-display font-bold text-white">
-                            {employee.firstName} {employee.lastName}
-                        </h1>
-                        <p className="text-sm text-primary font-medium">@{employee.username}</p>
-                    </div>
+
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button
+                                variant="destructive"
+                                className="bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-400 border border-red-500/20 font-bold tracking-wide"
+                            >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Xodimni o'chirish
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="glass-panel border-red-500/20 max-w-sm">
+                            <AlertDialogHeader>
+                                <AlertDialogTitle className="text-white flex items-center gap-2">
+                                    <ShieldAlert className="text-red-500 w-5 h-5" /> Diqqat!
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-slate-400">
+                                    Haqiqatan ham <strong className="text-white">{employee.firstName} {employee.lastName}</strong> profilini va unga tegishli barcha ma'lumotlarni o'chirib tashlamoqchimisiz?
+                                    Bu amallarni ortga qaytarib bo'lmaydi.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel className="bg-transparent border-white/10 text-white hover:bg-white/5">Bekor qilish</AlertDialogCancel>
+                                <AlertDialogAction
+                                    className="bg-red-600 hover:bg-red-700 text-white font-bold"
+                                    onClick={async () => {
+                                        if (employeeId) {
+                                            await deleteEmployee.mutateAsync(employeeId);
+                                            setLocation("/employees");
+                                        }
+                                    }}
+                                >
+                                    O'chirish
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             </div>
 
@@ -106,49 +160,56 @@ export default function EmployeeDetails() {
                 </TabsList>
 
                 <TabsContent value="info">
-                    <div className="glass-panel p-6 rounded-2xl max-w-2xl border-white/5">
-                        <h2 className="text-xl font-semibold text-white mb-6">Tahrirlash</h2>
-                        <form onSubmit={handleUpdate} className="space-y-6">
+                    <div className="glass-panel p-6 rounded-3xl max-w-2xl border-white/5 relative overflow-hidden">
+                        {/* Decorative glow */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] rounded-full pointer-events-none" />
+
+                        <h2 className="text-xl font-bold tracking-tight text-white mb-6 flex items-center gap-2">
+                            <ShieldAlert className="text-blue-400 w-5 h-5" /> Tahrirlash
+                        </h2>
+                        <form onSubmit={handleUpdate} className="space-y-6 relative z-10">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="text-sm font-medium text-white/70 mb-1 block">Ism</label>
-                                    <Input name="firstName" defaultValue={employee.firstName} className="glass-input text-white" />
+                                    <label className="text-sm font-bold tracking-tight text-white/70 mb-1.5 block">Ism</label>
+                                    <Input name="firstName" defaultValue={employee.firstName} className="glass-input text-white font-medium" />
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium text-white/70 mb-1 block">Familiya</label>
-                                    <Input name="lastName" defaultValue={employee.lastName} className="glass-input text-white" />
+                                    <label className="text-sm font-bold tracking-tight text-white/70 mb-1.5 block">Familiya</label>
+                                    <Input name="lastName" defaultValue={employee.lastName} className="glass-input text-white font-medium" />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="text-sm font-bold tracking-tight text-white/70 mb-1.5 block">Kompaniyadagi roli / Lavozimi</label>
+                                    <Input name="companyRole" defaultValue={employee.companyRole || ""} className="glass-input text-white font-medium max-w-md" />
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium text-white/70 mb-1 block">Kompaniyadagi roli (masalan, Backend dasturchi)</label>
-                                    <Input name="companyRole" defaultValue={employee.companyRole || ""} className="glass-input text-white" />
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-white/70 mb-1 block">Login (Username)</label>
-                                    <Input name="username" defaultValue={employee.username} required className="glass-input text-white" />
+                                    <label className="text-sm font-bold tracking-tight text-white/70 mb-1.5 block">Login (Username)</label>
+                                    <Input name="username" defaultValue={employee.username} required className="glass-input text-white font-medium bg-black/40" />
                                 </div>
                             </div>
-                            <div className="pt-4 border-t border-white/5">
-                                <label className="text-sm font-medium text-white/70 mb-1 block">Yangi parol (faqat o'zgartirish uchun)</label>
+                            <div className="pt-6 mt-2 border-t border-white/5">
+                                <label className="text-sm font-bold tracking-tight text-white/70 mb-1.5 block">Yangi parol (faqat o'zgartirish uchun)</label>
                                 <div className="relative flex items-center w-full md:max-w-xs">
                                     <Input
                                         type={showPassword ? "text" : "password"}
                                         name="password"
-                                        placeholder="Parolni kiritmasangiz eski parol qoladi"
-                                        className="glass-input text-white w-full pr-12"
+                                        placeholder="O'zgarishsiz qoldirish uchun bo'sh qoldiring"
+                                        className="glass-input text-white w-full pr-12 font-medium"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
                                         className="absolute right-3 text-white/50 hover:text-white transition-colors"
                                     >
-                                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
                                 </div>
                             </div>
 
-                            <Button type="submit" disabled={updateEmployee.isPending} className="bg-primary hover:bg-primary/90 text-background flex gap-2">
-                                <Save className="w-4 h-4" /> Saqlash
-                            </Button>
+                            <div className="pt-2">
+                                <Button type="submit" disabled={updateEmployee.isPending} className="bg-secondary hover:bg-secondary/90 text-white font-black h-11 px-8 shadow-[0_0_15px_rgba(0,240,255,0.3)] transition-all">
+                                    <Save className="w-4 h-4 mr-2" /> {updateEmployee.isPending ? "Saqlanmoqda..." : "Saqlash"}
+                                </Button>
+                            </div>
                         </form>
                     </div>
                 </TabsContent>

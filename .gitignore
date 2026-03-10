@@ -7,3 +7,15 @@ server/public
 uploads
 vite.config.ts.*
 *.tar.gz
+
+# Log fayllar
+*.log
+auth_debug.log
+server_startup.log
+routes_active.log
+storage_debug.log
+
+# Vaqtinchalik debug fayllar
+diag_fresh.ts
+tmp_*.ts
+project_audit_report.md

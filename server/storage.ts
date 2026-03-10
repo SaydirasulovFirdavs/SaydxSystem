@@ -11,6 +11,7 @@ import {
   type Invoice, type InsertInvoice,
   type InvoiceItem, type InsertInvoiceItem,
   type InvoiceSettings, type UpdateInvoiceSettings,
+  salaries, type Salary, type InsertSalary,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -35,6 +36,7 @@ export interface IStorage {
   getTask(id: number): Promise<Task | undefined>;
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: number, updates: UpdateTaskRequest): Promise<Task>;
+  deleteTask(id: number): Promise<void>;
 
   // Time Entries
   getFirstUserId(): Promise<string | undefined>;
@@ -48,6 +50,7 @@ export interface IStorage {
   // Invoices
   getInvoices(): Promise<Invoice[]>;
   getInvoice(id: number): Promise<Invoice | undefined>;
+  getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined>;
   getNextInvoiceNumber(): Promise<string>;
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
   updateInvoice(id: number, updates: { status?: string; amount?: string }): Promise<Invoice | undefined>;
@@ -58,6 +61,11 @@ export interface IStorage {
   upsertInvoiceSettings(data: UpdateInvoiceSettings): Promise<InvoiceSettings>;
   getManualUsdToUzs(): Promise<number | null>;
   setManualUsdToUzs(rate: number): Promise<void>;
+  // Salaries
+  getSalaries(month?: number, year?: number, userId?: string): Promise<Salary[]>;
+  createSalary(salary: InsertSalary): Promise<Salary>;
+  updateSalary(id: number, updates: Partial<InsertSalary>): Promise<Salary | undefined>;
+  deleteSalary(id: number): Promise<void>;
   // Time stats
   getTimeEntriesBetween(start: Date, end: Date): Promise<TimeEntry[]>;
 }
@@ -138,21 +146,17 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async deleteProject(id: number): Promise<void> {
+    await db.delete(projects).where(eq(projects.id, id));
+  }
+
   // Tasks
   async getTasksByProject(projectId: number): Promise<Task[]> {
     return await db.select().from(tasks).where(eq(tasks.projectId, projectId)).orderBy(desc(tasks.createdAt));
   }
 
   async getTasksByAssignee(assigneeId: string): Promise<Task[]> {
-    try {
-      return await db.select().from(tasks).where(eq(tasks.assigneeId, assigneeId)).orderBy(desc(tasks.createdAt));
-    } catch (err) {
-      const fs = await import("fs");
-      const path = await import("path");
-      const msg = `[${new Date().toISOString()}] getTasksByAssignee FAILED for ${assigneeId}: ${err instanceof Error ? err.stack : String(err)}\n`;
-      fs.appendFileSync(path.join(process.cwd(), "db_error.log"), msg);
-      throw err;
-    }
+    return await db.select().from(tasks).where(eq(tasks.assigneeId, assigneeId)).orderBy(desc(tasks.createdAt));
   }
 
   async getTask(id: number): Promise<Task | undefined> {
@@ -172,6 +176,10 @@ export class DatabaseStorage implements IStorage {
     const updated = rows[0];
     if (!updated) throw new Error("Task not found");
     return updated;
+  }
+
+  async deleteTask(id: number): Promise<void> {
+    await db.delete(tasks).where(eq(tasks.id, id));
   }
 
   // Time Entries
@@ -206,6 +214,10 @@ export class DatabaseStorage implements IStorage {
     const newTx = rows[0];
     if (!newTx) throw new Error("Failed to create transaction");
     return newTx;
+  }
+
+  async deleteTransaction(id: number): Promise<void> {
+    await db.delete(transactions).where(eq(transactions.id, id));
   }
 
   // Invoices
@@ -245,9 +257,22 @@ export class DatabaseStorage implements IStorage {
     return newInvoice;
   }
 
-  async updateInvoice(id: number, updates: { status?: string; amount?: string; pdfUrl?: string }): Promise<Invoice | undefined> {
+  async updateInvoice(id: number, updates: Partial<InsertInvoice> & { status?: string; pdfUrl?: string }): Promise<Invoice | undefined> {
     const rows = await db.update(invoices).set(updates).where(eq(invoices.id, id)).returning();
     return rows[0];
+  }
+
+  async getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined> {
+    const [invoice] = await db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.invoiceNumber, invoiceNumber));
+    return invoice;
+  }
+
+  async deleteInvoice(id: number): Promise<void> {
+    await db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, id));
+    await db.delete(invoices).where(eq(invoices.id, id));
   }
 
   async getInvoiceItems(invoiceId: number): Promise<InvoiceItem[]> {
@@ -333,6 +358,36 @@ export class DatabaseStorage implements IStorage {
 
   async getTimeEntriesBetween(start: Date, end: Date): Promise<TimeEntry[]> {
     return await db.select().from(timeEntries).where(and(gte(timeEntries.date, start), lte(timeEntries.date, end))).orderBy(desc(timeEntries.date));
+  }
+
+  // Salaries
+  async getSalaries(month?: number, year?: number, userId?: string): Promise<Salary[]> {
+    let query = db.select().from(salaries);
+    const conditions = [];
+    if (month) conditions.push(eq(salaries.month, month));
+    if (year) conditions.push(eq(salaries.year, year));
+    if (userId) conditions.push(eq(salaries.userId, userId));
+
+    const results = conditions.length > 0
+      ? await query.where(and(...conditions)).orderBy(desc(salaries.createdAt))
+      : await query.orderBy(desc(salaries.createdAt));
+
+    return results;
+  }
+
+  async createSalary(salary: InsertSalary): Promise<Salary> {
+    const [row] = await db.insert(salaries).values(salary).returning();
+    if (!row) throw new Error("Database insert returned no rows");
+    return row;
+  }
+
+  async updateSalary(id: number, updates: Partial<InsertSalary>): Promise<Salary | undefined> {
+    const [row] = await db.update(salaries).set(updates).where(eq(salaries.id, id)).returning();
+    return row;
+  }
+
+  async deleteSalary(id: number): Promise<void> {
+    await db.delete(salaries).where(eq(salaries.id, id));
   }
 }
 

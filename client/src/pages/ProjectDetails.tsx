@@ -3,12 +3,12 @@ import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useProject, useUpdateProject } from "@/hooks/use-projects";
-import { useTasks, useCreateTask, useUpdateTask, useLogTime } from "@/hooks/use-tasks";
+import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, useLogTime } from "@/hooks/use-tasks";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { format, formatDistanceToNow, startOfDay } from "date-fns";
 import { uz } from "date-fns/locale";
-import { Play, Check, Plus, Clock, ChevronLeft, DollarSign, Target, List, LayoutGrid, Calendar as CalIcon, Square, CheckCircle } from "lucide-react";
+import { Play, Check, Plus, Clock, ChevronLeft, DollarSign, Target, List, LayoutGrid, Calendar as CalIcon, Square, CheckCircle, Pencil, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -23,7 +23,8 @@ export default function ProjectDetails() {
   const { data: tasks, isLoading: isTasksLoading, isError: isTasksError, refetch: refetchTasks } = useTasks(projectId);
   const createTask = useCreateTask(projectId);
   const updateTask = useUpdateTask(projectId);
-  const updateProject = useUpdateProject(projectId);
+  const deleteTask = useDeleteTask(projectId);
+  const updateProject = useUpdateProject();
   const logTime = useLogTime();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -34,6 +35,7 @@ export default function ProjectDetails() {
   });
 
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<any | null>(null);
   const [isProgressDialogOpen, setIsProgressDialogOpen] = useState(false);
   const [isManualTimeOpen, setIsManualTimeOpen] = useState(false);
   const [manualTimeTaskId, setManualTimeTaskId] = useState<number | null>(null);
@@ -117,23 +119,37 @@ export default function ProjectDetails() {
     );
   }
 
-  const handleCreateTask = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleTaskSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const parentId = formData.get("parentTaskId");
     const assigneeId = formData.get("assigneeId") as string;
+
+    const taskData = {
+      title: formData.get("title") as string,
+      description: formData.get("description") as string,
+      priority: formData.get("priority") as string,
+      status: (editingTask?.status || "todo") as any,
+      ...(parentId && parentId !== "" && { parentTaskId: Number(parentId) }),
+      ...(assigneeId && assigneeId !== "" && { assigneeId }),
+    };
+
     try {
-      await createTask.mutateAsync({
-        title: formData.get("title") as string,
-        description: formData.get("description") as string,
-        priority: formData.get("priority") as string,
-        status: "todo",
-        ...(parentId && parentId !== "" && { parentTaskId: Number(parentId) }),
-        ...(assigneeId && assigneeId !== "" && { assigneeId }),
-      });
+      if (editingTask) {
+        await updateTask.mutateAsync({ id: editingTask.id, ...taskData });
+      } else {
+        await createTask.mutateAsync(taskData);
+      }
       setIsTaskDialogOpen(false);
+      setEditingTask(null);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: number) => {
+    if (window.confirm("Haqiqatan ham ushbu vazifani o'chirmoqchimisiz?")) {
+      await deleteTask.mutateAsync(taskId);
     }
   };
 
@@ -200,41 +216,55 @@ export default function ProjectDetails() {
           </span>
         </Link>
       </div>
-      <div className="mb-8 space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-display font-bold text-white">{project.name}</h1>
-              <span className={`text-xs font-bold uppercase px-2 py-1 rounded-full ${riskColor}`}>
-                {riskLabel(project.riskLevel)}
-              </span>
-              <span className="text-xs px-2 py-1 rounded-full bg-white/10 text-white/80">{typeLabel(project.type)}</span>
+      <div className="glass-panel rounded-3xl p-8 mb-8 border border-white/10 shadow-2xl relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 opacity-30 group-hover:opacity-50 transition-opacity duration-700" />
+        <div className="relative flex flex-col lg:flex-row justify-between items-start gap-8">
+          <div className="flex-1 space-y-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-4xl font-display font-black text-white tracking-tight">{project.name}</h1>
+              <div className="flex gap-2">
+                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${riskColor}`}>
+                  {riskLabel(project.riskLevel)}
+                </span>
+                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/5 text-white/50 border border-white/10">
+                  {typeLabel(project.type)}
+                </span>
+              </div>
             </div>
+
             {(project as { description?: string }).description && (
-              <p className="text-sm text-white/70 mb-2 max-w-2xl">{(project as { description: string }).description}</p>
+              <p className="text-white/60 text-lg leading-relaxed max-w-2xl font-medium italic">
+                &ldquo;{(project as { description: string }).description}&rdquo;
+              </p>
             )}
-            {(project as { additionalRequirements?: string }).additionalRequirements && (
-              <p className="text-sm text-amber-400/90 mb-2 max-w-2xl">Qoʻshimcha: {(project as { additionalRequirements: string }).additionalRequirements}</p>
-            )}
-            <div className="flex flex-wrap gap-4 text-sm">
-              <span className="font-semibold text-sky-300">
-                Boshlandi:{" "}
-                <span className="font-bold text-sky-100">
-                  {format(new Date(project.startDate), "dd.MM.yyyy")}
-                </span>
-              </span>
-              <span className="font-semibold text-rose-300">
-                Muddat:{" "}
-                <span className="font-bold text-rose-100">
-                  {format(new Date(project.deadlineDate), "dd.MM.yyyy")}
-                </span>
-              </span>
-              {countdown && (
-                <span className={countdown.overdue ? "text-destructive font-medium" : "text-amber-400/90"}>
-                  {countdown.overdue ? "⚠ " : "⏱ "}{countdown.text}
-                </span>
-              )}
+
+            <div className="flex flex-wrap gap-6 pt-2">
+              <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
+                <div className="p-2 bg-primary/20 rounded-xl text-primary">
+                  <Play className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-white/40 uppercase font-black tracking-widest">Boshlandi</p>
+                  <p className="text-sm font-bold text-white">{format(new Date(project.startDate), 'dd.MM.yyyy')}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
+                <div className="p-2 bg-destructive/20 rounded-xl text-destructive">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-white/40 uppercase font-black tracking-widest">Muddat</p>
+                  <p className="text-sm font-bold text-white">{format(new Date(project.deadlineDate), 'dd.MM.yyyy')}</p>
+                </div>
+              </div>
             </div>
+
+            {countdown && (
+              <div className={`mt-4 flex items-center gap-2 text-sm font-black italic tracking-tight ${countdown.overdue ? 'text-destructive animate-pulse' : 'text-primary'}`}>
+                <Clock className="w-4 h-4" />
+                {countdown.text}
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -244,7 +274,7 @@ export default function ProjectDetails() {
                 disabled={updateProject.isPending}
                 onClick={() => {
                   if (window.confirm("Loyihani tugallangan deb belgilaysizmi? U \"Tugallangan loyihalar\" boʻlimiga oʻtadi.")) {
-                    updateProject.mutate({ status: "completed" });
+                    updateProject.mutate({ id: projectId, updates: { status: "completed" } });
                   }
                 }}
               >
@@ -261,7 +291,7 @@ export default function ProjectDetails() {
                 </DialogTrigger>
                 <DialogContent className="glass-panel border-white/10">
                   <DialogHeader><DialogTitle className="text-white">Ish va to'lov foizi</DialogTitle></DialogHeader>
-                  <form onSubmit={async (e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); await updateProject.mutateAsync({ progress: workPercentFromTasks, paymentProgress: Number(fd.get("paymentProgress")) }); setIsProgressDialogOpen(false); }} className="space-y-4 mt-4">
+                  <form onSubmit={async (e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); await updateProject.mutateAsync({ id: projectId, updates: { progress: workPercentFromTasks, paymentProgress: Number(fd.get("paymentProgress")) } }); setIsProgressDialogOpen(false); }} className="space-y-4 mt-4">
                     <div>
                       <label className="text-sm text-white/70 block mb-1">Ish foizi</label>
                       <p className="text-sm text-white/60">Vazifalar (Qilinishi kerak / Bajarilmoqda / Bajarildi) bo&apos;yicha avtomatik: <strong className="text-white">{workPercentFromTasks}%</strong></p>
@@ -278,27 +308,40 @@ export default function ProjectDetails() {
             {isAdmin && (
               <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90 text-background">
+                  <Button
+                    className="bg-primary hover:bg-primary/90 text-background"
+                    onClick={() => {
+                      setEditingTask(null);
+                      setIsTaskDialogOpen(true);
+                    }}
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Vazifa qo'shish
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="glass-panel border-white/10">
                   <DialogHeader>
-                    <DialogTitle className="text-white">Yangi vazifa</DialogTitle>
+                    <DialogTitle className="text-white">
+                      {editingTask ? "Vazifani tahrirlash" : "Yangi vazifa"}
+                    </DialogTitle>
                   </DialogHeader>
-                  <form onSubmit={handleCreateTask} className="space-y-4 mt-4">
+                  <form onSubmit={handleTaskSubmit} className="space-y-4 mt-4">
                     <div>
                       <label className="text-sm text-white/70">Nomi</label>
-                      <Input name="title" required className="glass-input text-white" />
+                      <Input name="title" required className="glass-input text-white" defaultValue={editingTask?.title} />
                     </div>
                     <div>
                       <label className="text-sm text-white/70">Tavsif</label>
-                      <textarea name="description" className="w-full rounded-md border border-white/10 bg-black/20 p-3 text-sm text-white focus:ring-2 focus:ring-primary/50" rows={3}></textarea>
+                      <textarea
+                        name="description"
+                        className="w-full rounded-md border border-white/10 bg-black/20 p-3 text-sm text-white focus:ring-2 focus:ring-primary/50"
+                        rows={3}
+                        defaultValue={editingTask?.description}
+                      ></textarea>
                     </div>
                     <div>
                       <label className="text-sm text-white/70">Muhimlik</label>
-                      <select name="priority" className="w-full rounded-md border border-white/10 bg-black/20 p-2 text-white">
+                      <select name="priority" className="w-full rounded-md border border-white/10 bg-black/20 p-2 text-white" defaultValue={editingTask?.priority || "medium"}>
                         <option value="low" className="text-black">Past</option>
                         <option value="medium" className="text-black">O'rta</option>
                         <option value="high" className="text-black">Yuqori</option>
@@ -306,7 +349,7 @@ export default function ProjectDetails() {
                     </div>
                     <div>
                       <label className="text-sm text-white/70">Subtask (ixtiyoriy)</label>
-                      <select name="parentTaskId" className="w-full rounded-md border border-white/10 bg-black/20 p-2 text-white">
+                      <select name="parentTaskId" className="w-full rounded-md border border-white/10 bg-black/20 p-2 text-white" defaultValue={editingTask?.parentTaskId || ""}>
                         <option value="" className="text-black">Asosiy vazifa</option>
                         {rootTasks.map(t => (
                           <option key={t.id} value={t.id} className="text-black">{t.title}</option>
@@ -315,7 +358,7 @@ export default function ProjectDetails() {
                     </div>
                     <div>
                       <label className="text-sm text-white/70">Mas'ul xodim (ixtiyoriy)</label>
-                      <select name="assigneeId" className="w-full rounded-md border border-white/10 bg-black/20 p-2 text-white">
+                      <select name="assigneeId" className="w-full rounded-md border border-white/10 bg-black/20 p-2 text-white" defaultValue={editingTask?.assigneeId || ""}>
                         <option value="" className="text-black">Hech kim</option>
                         {employees?.map(emp => (
                           <option key={emp.id} value={emp.id} className="text-black">{emp.firstName} {emp.lastName}</option>
@@ -330,55 +373,65 @@ export default function ProjectDetails() {
           </div>
         </div>
 
-        {/* Loyiha nazorati: budjet, to'langan, ish foizi, to'lov foizi, qolgan — loyiha valyutasida + UZS/USD */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          <div className="min-w-0">
-            <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 shrink-0" /> Budjet
-            </p>
-            <p className="text-xl font-bold text-emerald-400 break-words">
-              {fmtPrim(Number(project.budget))}
-            </p>
-            <p className="text-xs text-emerald-300/70 mt-0.5 break-words">{fmtSec(Number(project.budget))}</p>
-            <p className="text-xs text-emerald-300/50 mt-0.5 break-words">Jami shartnoma summasi</p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 shrink-0" /> To&apos;langan summa
-            </p>
-            <p className="text-xl font-bold text-sky-400 break-words">
-              {fmtPrim(paidAmount)}
-            </p>
-            <p className="text-xs text-sky-300/70 mt-0.5 break-words">{fmtSec(paidAmount)}</p>
-            <p className="text-xs text-sky-300/50 mt-0.5 break-words">Foydalanuvchi kiritadi (foiz bo&apos;yicha)</p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2"><Target className="w-4 h-4 shrink-0" /> Ish foizi</p>
-            <p className="text-xs text-white/60 mb-1 break-words">Qilinishi kerak, Bajarilmoqda, Bajarildi bo&apos;yicha</p>
-            <div className="h-2 w-full rounded-full overflow-hidden bg-white/10 flex">
-              <div className="h-full bg-emerald-500 transition-all" style={{ width: `${workPercentFromTasks}%` }} />
-              <div className="h-full flex-1 bg-white/20" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-panel p-6 rounded-[2.5rem] border border-white/5 shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+              <DollarSign className="w-12 h-12" />
             </div>
-            <p className="text-sm text-white mt-1">{workPercentFromTasks}%</p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm text-muted-foreground mb-2">To&apos;lov foizi</p>
-            <p className="text-xs text-white/60 mb-1 break-words">Foydalanuvchi kiritadi</p>
-            <div className="h-2 w-full rounded-full overflow-hidden bg-destructive/30 flex">
-              <div className="h-full bg-emerald-500 transition-all" style={{ width: `${project.paymentProgress ?? 0}%` }} title="To'langan" />
-              <div className="h-full flex-1 bg-destructive/80" title="To'lanmagan" />
+            <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Umumiy Byudjet</p>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-3xl font-black text-white">{fmtPrim(Number(project.budget))}</h3>
             </div>
-            <p className="text-sm text-white mt-1 break-words"><span className="text-emerald-400">{project.paymentProgress ?? 0}%</span> to&apos;langan, <span className="text-destructive">{100 - (project.paymentProgress ?? 0)}%</span> to&apos;lanmagan</p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm text-muted-foreground mb-1">Qolgan summa (qarz)</p>
-            <p className="text-xl font-bold text-red-400 break-words">
-              {fmtPrim(remainingAmount)}
-            </p>
-            <p className="text-xs text-red-300/80 mt-0.5 break-words">{fmtSec(remainingAmount)}</p>
-            <p className="text-xs text-red-300/60 mt-0.5 break-words">To&apos;lanishi kerak bo&apos;lgan qoldiq</p>
-          </div>
-        </motion.div>
+            <p className="text-white/30 text-[10px] mt-1 font-medium">{fmtSec(Number(project.budget))}</p>
+            <p className="text-white/20 text-[10px] mt-2 font-medium">Jami shartnoma summasi</p>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-panel p-6 rounded-[2.5rem] border border-white/5 shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform text-emerald-400">
+              <CheckCircle className="w-12 h-12" />
+            </div>
+            <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Toʻlangan Summa</p>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-3xl font-black text-emerald-400">{fmtPrim(paidAmount)}</h3>
+            </div>
+            <p className="text-white/30 text-[10px] mt-1 font-medium">{fmtSec(paidAmount)}</p>
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-[10px] text-white/30 font-bold">{project.paymentProgress || 0}%</span>
+              <div className="h-1.5 flex-1 mx-3 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${project.paymentProgress || 0}%` }} />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass-panel p-6 rounded-[2.5rem] border border-white/5 shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform text-primary">
+              <Target className="w-12 h-12" />
+            </div>
+            <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Ish Foizi</p>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-3xl font-black text-primary">{workPercentFromTasks}%</h3>
+              <span className="text-primary/50 font-bold">FAOL</span>
+            </div>
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-[10px] text-white/30 font-bold">{workPercentFromTasks}%</span>
+              <div className="h-1.5 flex-1 mx-3 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-primary rounded-full" style={{ width: `${workPercentFromTasks}%` }} />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="glass-panel p-6 rounded-[2.5rem] border border-white/5 shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform text-destructive">
+              <DollarSign className="w-12 h-12" />
+            </div>
+            <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Qolgan Summa (Qarz)</p>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-3xl font-black text-destructive">{fmtPrim(remainingAmount)}</h3>
+            </div>
+            <p className="text-white/30 text-[10px] mt-1 font-medium">{fmtSec(remainingAmount)}</p>
+            <p className="text-white/20 text-[10px] mt-2 font-medium">Toʻlanishi kerak boʻlgan qoldiq</p>
+          </motion.div>
+        </div>
       </div>
 
       {/* Timer bar */}
@@ -443,12 +496,35 @@ export default function ProjectDetails() {
                     <td className="p-3 text-sm text-white/80">{statusLabel(task.status)}</td>
                     <td className="p-3 text-sm text-white/80">{task.loggedMinutes} min</td>
                     <td className="p-3 text-right">
-                      <button onClick={() => handleLogTime(task.id)} className="text-xs text-primary mr-2">Vaqt</button>
-                      {runningTimer?.taskId === task.id ? (
-                        <button onClick={handleStopTimer} className="text-xs text-destructive">To'xtatish</button>
-                      ) : (
-                        <button onClick={() => handleStartTimer(task.id)} className="text-xs text-emerald-400">Boshlash</button>
-                      )}
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => handleLogTime(task.id)} className="text-xs text-primary">Vaqt</button>
+                        {runningTimer?.taskId === task.id ? (
+                          <button onClick={handleStopTimer} className="text-xs text-destructive">To'xtatish</button>
+                        ) : (
+                          <button onClick={() => handleStartTimer(task.id)} className="text-xs text-emerald-400">Boshlash</button>
+                        )}
+                        {isAdmin && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setEditingTask(task);
+                                setIsTaskDialogOpen(true);
+                              }}
+                              className="p-1 rounded bg-white/5 text-white/40 hover:text-primary transition-colors"
+                              title="Tahrirlash"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTask(task.id)}
+                              className="p-1 rounded bg-white/5 text-white/40 hover:text-destructive transition-colors"
+                              title="O'chirish"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 </Fragment>
@@ -544,6 +620,27 @@ export default function ProjectDetails() {
                             )}
                           </div>
                           <div className="flex gap-2">
+                            {isAdmin && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setEditingTask(task);
+                                    setIsTaskDialogOpen(true);
+                                  }}
+                                  className="p-1.5 rounded-lg bg-white/5 text-white/40 hover:text-primary hover:bg-primary/10 transition-all"
+                                  title="Tahrirlash"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteTask(task.id)}
+                                  className="p-1.5 rounded-lg bg-white/5 text-white/40 hover:text-destructive hover:bg-destructive/10 transition-all"
+                                  title="O'chirish"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            )}
                             {col.id === "todo" && (
                               <button onClick={() => handleStatusChange(task.id, "in progress")} className="p-1.5 bg-primary/20 text-primary rounded-md hover:bg-primary hover:text-background" title="Bajarilmoqda">
                                 <Play className="w-4 h-4" />

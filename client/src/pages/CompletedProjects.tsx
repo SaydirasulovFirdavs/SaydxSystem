@@ -15,14 +15,22 @@ export default function CompletedProjects() {
 
   return (
     <AppLayout>
-      <div className="mb-8">
-        <Link href="/projects">
-          <span className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-white cursor-pointer mb-4">
-            <ChevronRight className="w-4 h-4 rotate-180" /> Loyihalar
-          </span>
-        </Link>
-        <h1 className="text-3xl font-display font-bold text-white mb-2">Tugallangan loyihalar</h1>
-        <p className="text-muted-foreground">Barcha tugallangan loyihalar ro'yxati.</p>
+      <div className="mb-6 flex items-center gap-2 text-white/40 hover:text-white transition-colors">
+        <ChevronRight className="w-4 h-4 rotate-180" />
+        <Link href="/projects" className="text-sm font-medium">Barcha loyihalar</Link>
+      </div>
+
+      <div className="glass-panel rounded-3xl p-8 mb-8 border border-white/10 shadow-2xl relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-primary/10 opacity-30 group-hover:opacity-50 transition-opacity duration-700" />
+        <div className="relative flex flex-col md:flex-row justify-between items-center gap-6">
+          <div>
+            <h1 className="text-4xl font-display font-black text-white tracking-tight mb-2">Tugallangan Loyihalar</h1>
+            <p className="text-white/50 font-medium">Muvaffaqiyatli yakunlangan barcha loyihalar arxivi.</p>
+          </div>
+          <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
+            <CheckCircle className="w-10 h-10 text-emerald-400" />
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -33,52 +41,53 @@ export default function CompletedProjects() {
             transition={{ delay: i * 0.05 }}
             key={project.id}
           >
-            <Link href={`/projects/${project.id}`} className="block h-full">
-              <div className="glass-panel rounded-2xl p-6 h-full flex flex-col hover:-translate-y-1 hover:shadow-[0_10px_40px_rgba(34,197,94,0.15)] transition-all duration-300 border border-white/5 hover:border-emerald-500/30 group">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-emerald-500/10 group-hover:bg-emerald-500/20 transition-colors">
-                      <CheckCircle className="w-5 h-5 text-emerald-400" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg text-white group-hover:text-emerald-300 transition-colors">{project.name}</h3>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-white/10 text-white/70 uppercase tracking-wider">
-                          {typeLabel(project.type)}
-                        </span>
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300">
-                          Tugallangan
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-white/30 group-hover:text-emerald-400 transition-colors" />
+            <Link href={`/projects/${project.id}`} className="block h-full group">
+              <div className="glass-panel rounded-[2.5rem] p-8 h-full flex flex-col border border-white/5 hover:border-emerald-500/30 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)] relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+                  <CheckCircle className="w-24 h-24 text-emerald-500" />
                 </div>
 
-                <div className="mt-auto space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-muted-foreground">Jarayon</span>
-                      <span className="text-emerald-400 font-medium">{project.progress}%</span>
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex flex-col gap-3">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 w-fit">
+                      Tugallangan
+                    </span>
+                    <h3 className="text-2xl font-black text-white group-hover:text-emerald-400 transition-colors tracking-tight leading-tight">
+                      {project.name}
+                    </h3>
+                  </div>
+                  <div className="p-3 bg-white/5 rounded-2xl text-white/20 group-hover:text-emerald-400 group-hover:bg-emerald-500/10 transition-all duration-300">
+                    <ChevronRight className="w-5 h-5" />
+                  </div>
+                </div>
+
+                <div className="mt-auto space-y-6">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/5 text-white/50 border border-white/10">
+                      {typeLabel(project.type)}
+                    </span>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10 ${project.riskLevel === 'HIGH' ? 'text-destructive bg-destructive/10' :
+                        project.riskLevel === 'MEDIUM' ? 'text-orange-400 bg-orange-400/10' :
+                          'text-emerald-400 bg-emerald-400/10'
+                      }`}>
+                      {riskLabel(project.riskLevel)}
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-end">
+                      <p className="text-[10px] text-white/40 uppercase font-black tracking-widest">Muvaffaqiyat</p>
+                      <p className="text-lg font-black text-emerald-400">100%</p>
                     </div>
-                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-emerald-500 rounded-full"
-                        style={{ width: `${project.progress}%` }}
-                      />
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden p-0.5">
+                      <div className="h-full bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{ width: '100%' }} />
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center pt-4 border-t border-white/5">
-                    <div className="text-sm">
-                      <p className="text-muted-foreground text-xs mb-0.5">Muddat</p>
-                      <p className="text-white font-medium">{format(new Date(project.deadlineDate), "dd.MM.yyyy")}</p>
-                    </div>
-                    <div className="text-sm text-right">
-                      <p className="text-muted-foreground text-xs mb-0.5">Xavf</p>
-                      <p className={`font-bold ${project.riskLevel === "HIGH" ? "text-destructive" : project.riskLevel === "MEDIUM" ? "text-orange-400" : "text-emerald-400"}`}>
-                        {riskLabel(project.riskLevel)}
-                      </p>
+                  <div className="flex justify-between items-center pt-6 border-t border-white/5">
+                    <div className="flex items-center gap-2">
+                      <p className="text-white/30 font-bold text-xs">Yopildi:</p>
+                      <p className="text-white font-black text-sm">{format(new Date(project.deadlineDate), "dd.MM.yyyy")}</p>
                     </div>
                   </div>
                 </div>
@@ -88,16 +97,11 @@ export default function CompletedProjects() {
         ))}
         {projects.length === 0 && (
           <div className="col-span-full py-20 flex flex-col items-center justify-center text-center">
-            <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
-              <CheckCircle className="w-10 h-10 text-emerald-400/50" />
+            <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6">
+              <CheckCircle className="w-12 h-12 text-white/10" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Tugallangan loyihalar yo'q</h3>
-            <p className="text-muted-foreground max-w-md">Loyihalarni tugallanganda ular shu yerda ko'rinadi.</p>
-            <Link href="/projects">
-              <span className="inline-flex items-center gap-2 mt-4 text-primary hover:underline">
-                <Briefcase className="w-4 h-4" /> Loyihalar
-              </span>
-            </Link>
+            <h3 className="text-2xl font-black text-white mb-2">Hozircha tugallangan loyihalar yo&apos;q</h3>
+            <p className="text-white/40 max-w-md font-medium">Bajarilgan loyihalar shu yerda muhrlanadi.</p>
           </div>
         )}
       </div>

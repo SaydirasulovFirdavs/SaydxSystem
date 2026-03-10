@@ -142,7 +142,7 @@ export const transactions = pgTable("transactions", {
 
 export const invoices = pgTable("invoices", {
   id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull().references(() => projects.id),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
   invoiceNumber: text("invoice_number").notNull(),
   amount: numeric("amount").notNull(),
   currency: text("currency").default("UZS").notNull(), // USD | UZS — aniq
@@ -159,6 +159,8 @@ export const invoices = pgTable("invoices", {
   contractStartDate: timestamp("contract_start_date"),
   /** Shartnoma: tugash sanasi (qanchaga) */
   contractEndDate: timestamp("contract_end_date"),
+  /** PDF til: uz | en | ru */
+  language: text("language").default("uz"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -167,13 +169,15 @@ export const invoiceItems = pgTable("invoice_items", {
   invoiceId: integer("invoice_id").notNull().references(() => invoices.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   quantity: integer("quantity").default(1).notNull(),
+  /** To'lov uchun nechtasi hisoblanishi (paid units) */
+  paidQuantity: integer("paid_quantity").default(1).notNull(),
   unitPrice: numeric("unit_price").notNull(),
   /** row | server | api — 3 xil xizmat, PDFda 3 xil jadval */
   serviceType: text("service_type").default("row"),
   /** Server/API: boshlanish sanasi, quantity = necha oy, qolgan oy hisoblanadi */
   startDate: timestamp("start_date"),
   /** Server/API: qaysi loyiha uchun (projectId) */
-  projectId: integer("project_id").references(() => projects.id),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -199,6 +203,28 @@ export const invoiceSettings = pgTable("invoice_settings", {
 export const financeSettings = pgTable("finance_settings", {
   id: serial("id").primaryKey(),
   manualUsdToUzs: numeric("manual_usd_to_uzs").default("12500"), // 1 USD = ? UZS
+});
+
+/** Xodimlar uchun OYLIK (Salaries) jadvali */
+export const salaries = pgTable("salaries", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  /** Umumiy oylik (Total monthly salary) */
+  totalSalary: numeric("total_salary").notNull(),
+  /** Avans (Advance payment) */
+  advance: numeric("advance").default("0").notNull(),
+  /** Bu oydan qolgan summa (Bu oydan qolgan summa) - Auto calculated client side, stored for history */
+  remainingAmount: numeric("remaining_amount").notNull(),
+  /** Loyihadan berilgan summa (Bonus from projects) */
+  projectBonus: numeric("project_bonus").default("0").notNull(),
+  /** Jarima (Fines) */
+  fine: numeric("fine").default("0").notNull(),
+  /** Bir oyda xodimage berilgan jami summa (Total paid per month) */
+  totalPaid: numeric("total_paid").notNull(),
+  month: integer("month").notNull(), // 1-12
+  year: integer("year").notNull(),
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // --- Relations ---
@@ -237,6 +263,10 @@ export const invoiceItemsRelations = relations(invoiceItems, ({ one }) => ({
   invoice: one(invoices, { fields: [invoiceItems.invoiceId], references: [invoices.id] }),
 }));
 
+export const salariesRelations = relations(salaries, ({ one }) => ({
+  user: one(users, { fields: [salaries.userId], references: [users.id] }),
+}));
+
 // --- Zod Schemas ---
 
 export const insertClientSchema = createInsertSchema(clients).omit({ id: true, createdAt: true });
@@ -244,9 +274,12 @@ export const insertCompanySchema = createInsertSchema(companies).omit({ id: true
 export const insertProjectSchema = createInsertSchema(projects).omit({ id: true, createdAt: true, riskLevel: true });
 export const insertTaskSchema = createInsertSchema(tasks).omit({ id: true, createdAt: true, loggedMinutes: true });
 export const insertTimeEntrySchema = createInsertSchema(timeEntries).omit({ id: true, date: true });
-export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true, date: true });
+export const insertTransactionSchema = createInsertSchema(transactions)
+  .omit({ id: true })
+  .extend({ date: z.coerce.date().optional() });
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true });
 export const insertInvoiceItemSchema = createInsertSchema(invoiceItems).omit({ id: true, createdAt: true });
+export const insertSalarySchema = createInsertSchema(salaries).omit({ id: true, createdAt: true });
 
 export const paymentDetailLineSchema = z.object({ title: z.string(), value: z.string() });
 export const updateInvoiceSettingsSchema = z.object({
@@ -292,3 +325,6 @@ export type InsertInvoiceItem = z.infer<typeof insertInvoiceItemSchema>;
 
 export type InvoiceSettings = typeof invoiceSettings.$inferSelect;
 export type UpdateInvoiceSettings = z.infer<typeof updateInvoiceSettingsSchema>;
+
+export type Salary = typeof salaries.$inferSelect;
+export type InsertSalary = z.infer<typeof insertSalarySchema>;

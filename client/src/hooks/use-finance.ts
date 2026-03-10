@@ -72,16 +72,16 @@ export function useCreateInvoice() {
 export function useUpdateInvoice() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+    mutationFn: async ({ id, ...data }: { id: number;[key: string]: any }) => {
       const res = await fetch(`/api/invoices/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify(data),
         credentials: "include",
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Faktura yangilanmadi.");
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Faktura yangilanmadi.");
       }
       return res.json();
     },
@@ -107,7 +107,15 @@ export function useInvoiceItems(invoiceId: number | null) {
 export function useAddInvoiceItem(invoiceId: number) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { title: string; quantity: number; unitPrice: string; serviceType?: "row" | "server" | "api"; startDate?: string; projectId?: number }) => {
+    mutationFn: async (data: {
+      title: string;
+      quantity: number;
+      paidQuantity: number;
+      unitPrice: string;
+      serviceType?: "row" | "server" | "api";
+      startDate?: string;
+      projectId?: number
+    }) => {
       const res = await fetch(`/api/invoices/${invoiceId}/items`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -135,5 +143,48 @@ export function useDeleteInvoiceItem(invoiceId: number) {
       queryClient.invalidateQueries({ queryKey: ["/api/invoices", invoiceId, "items"] });
       queryClient.invalidateQueries({ queryKey: [api.invoices.list.path] });
     },
+  });
+}
+export function useDeleteTransaction() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/transactions/${id}`, { method: "DELETE", credentials: "include" });
+      if (!res.ok) throw new Error("Tranzaksiya o'chirilmadi");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.transactions.list.path] });
+      queryClient.invalidateQueries({ queryKey: [api.dashboard.stats.path] });
+    },
+  });
+}
+
+export function useDeleteInvoice() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/invoices/${id}`, { method: "DELETE", credentials: "include" });
+      if (!res.ok) throw new Error("Faktura o'chirilmadi");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.invoices.list.path] });
+    },
+  });
+}
+
+export function useVerifyInvoice(invoiceNumber: string) {
+  return useQuery({
+    queryKey: ["/api/invoices/verify", invoiceNumber],
+    queryFn: async () => {
+      if (!invoiceNumber.trim()) return null;
+      const res = await fetch(`/api/invoices/verify/${encodeURIComponent(invoiceNumber)}`);
+      if (res.status === 404) {
+        return { notFound: true };
+      }
+      if (!res.ok) throw new Error("Tekshirishda xatolik yuz berdi");
+      return res.json();
+    },
+    enabled: invoiceNumber.length > 5,
+    retry: false,
   });
 }

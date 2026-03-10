@@ -80,3 +80,20 @@ export function useLogTime() {
     }
   });
 }
+
+export function useDeleteTask(projectId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const url = buildUrl(api.tasks.delete.path, { id });
+      const res = await fetch(url, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Vazifa o'chirilmadi");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.tasks.list.path, projectId] });
+    },
+  });
+}
