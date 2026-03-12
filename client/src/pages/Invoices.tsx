@@ -354,42 +354,50 @@ export default function Invoices() {
                   
                   <div className="space-y-4">
                     {invoiceRows.map((row, i) => (
-                      <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/10 relative group hover:border-white/20 transition-all">
-                        <Button type="button" variant="ghost" size="icon" onClick={() => setInvoiceRows(prev => prev.filter((_, j) => j !== i))} className="absolute -top-2 -right-2 h-7 w-7 bg-rose-500 shadow-xl rounded-full text-white opacity-0 group-hover:opacity-100 transition-all hover:scale-110 z-30 flex items-center justify-center border-2 border-slate-900">
-                          <X className="w-4 h-4" />
-                        </Button>
-                        <div className="space-y-4">
-                          <div className="flex gap-3">
-                            <div className="flex-[3] space-y-1.5">
-                              <label className="text-[9px] font-bold text-white/30 uppercase pl-1">Xizmat nomi</label>
-                              <Input value={row.title} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} placeholder="Xizmat nomi" className="glass-input h-10 text-[12px]" />
-                            </div>
-                            <div className="flex-[1.5] space-y-1.5">
-                              <label className="text-[9px] font-bold text-white/30 uppercase pl-1">Boshlanish</label>
-                              <Input type="date" value={row.startDate || ""} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, startDate: e.target.value } : x))} className="glass-input h-10 text-[11px] date-picker-white-icon px-2" />
-                            </div>
-                            <div className="flex-[0.8] space-y-1.5 text-center">
-                              <label className="text-[9px] font-bold text-white/30 uppercase leading-none block h-4">Kuni</label>
-                              <Input type="number" value={row.quantity} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, quantity: e.target.value } : x))} placeholder="0" className="glass-input h-10 text-[12px] text-center px-1" />
-                            </div>
-                            <div className="flex-[1] space-y-1.5 text-center">
-                              <label className="text-[9px] font-bold text-white/30 uppercase leading-none block h-4">To'lov</label>
-                              <Input type="number" value={row.paidQuantity} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, paidQuantity: e.target.value } : x))} placeholder="0" className="glass-input h-10 text-[12px] text-center border-amber-500/20 px-1 font-bold text-amber-400" />
-                            </div>
-                            <div className="flex-[1.2] space-y-1.5 text-right">
-                              <label className="text-[9px] font-bold text-white/30 uppercase pr-1 leading-none block h-4">Narxi</label>
-                              <Input type="number" value={row.unitPrice} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, unitPrice: e.target.value } : x))} placeholder="0" className="glass-input h-10 text-[12px] text-right px-2 font-bold" />
-                            </div>
+                      <div key={i} className="group relative bg-white/[0.03] border border-white/10 rounded-xl p-4 transition-all hover:bg-white/[0.05] hover:border-white/20">
+                        {/* Delete button - Integrated better */}
+                        <button type="button" onClick={() => setInvoiceRows(prev => prev.filter((_, j) => j !== i))} className="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg transform scale-0 group-hover:scale-100 transition-all z-30 hover:bg-rose-600">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+
+                        <div className="grid grid-cols-12 gap-x-4 gap-y-3">
+                          {/* Xizmat nomi */}
+                          <div className="col-span-5 space-y-1.5">
+                            <label className="text-[10px] font-black text-white/30 uppercase tracking-tighter pl-1">Xizmat nomi</label>
+                            <Input value={row.title} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} placeholder="Xizmat nomi" className="glass-input h-10 text-[12px] bg-black/20 border-white/5" />
                           </div>
-                          
-                          <div className="pt-1.5 border-t border-white/5 mt-1">
-                            <div className="flex items-center gap-3">
-                              <label className="text-[9px] font-bold text-blue-400/60 uppercase whitespace-nowrap">Loyiha bog'lanishi:</label>
-                              <select value={row.projectId || ""} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, projectId: e.target.value ? Number(e.target.value) : undefined } : x))} className="flex-1 bg-white/5 border-none h-8 px-3 rounded-lg text-[11px] text-white/50 outline-none">
-                                <option value="" className="text-black">Loyiha tanlang...</option>
-                                {projects?.map(p => <option key={p.id} value={p.id} className="text-black">{p.name}</option>)}
-                              </select>
-                            </div>
+
+                          {/* Boshlanish */}
+                          <div className="col-span-3 space-y-1.5">
+                            <label className="text-[10px] font-black text-white/30 uppercase tracking-tighter pl-1">Boshlanish</label>
+                            <Input type="date" value={row.startDate || ""} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, startDate: e.target.value } : x))} className="glass-input h-10 text-[11px] date-picker-white-icon bg-black/20 border-white/5 px-2" />
+                          </div>
+
+                          {/* Kuni */}
+                          <div className="col-span-1 space-y-1.5">
+                            <label className="text-[10px] font-black text-white/30 uppercase tracking-tighter block text-center">Kuni</label>
+                            <Input type="number" value={row.quantity} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, quantity: e.target.value } : x))} placeholder="1" className="glass-input h-10 text-[12px] text-center bg-black/20 border-white/5 px-1" />
+                          </div>
+
+                          {/* To'lov */}
+                          <div className="col-span-1 space-y-1.5">
+                            <label className="text-[10px] font-black text-white/30 uppercase tracking-tighter block text-center">To'lov</label>
+                            <Input type="number" value={row.paidQuantity} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, paidQuantity: e.target.value } : x))} placeholder="1" className="glass-input h-10 text-[12px] text-center bg-black/20 border-white/5 px-1 font-bold text-amber-500/80" />
+                          </div>
+
+                          {/* Narxi */}
+                          <div className="col-span-2 space-y-1.5">
+                            <label className="text-[10px] font-black text-white/30 uppercase tracking-tighter block text-right pr-1">Narxi</label>
+                            <Input type="number" value={row.unitPrice} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, unitPrice: e.target.value } : x))} placeholder="0" className="glass-input h-10 text-[12px] text-right bg-black/20 border-white/5 px-3 font-bold" />
+                          </div>
+
+                          {/* Project link - More subtle */}
+                          <div className="col-span-12 flex items-center gap-3 pt-1 border-t border-white/5">
+                            <span className="text-[9px] font-bold text-blue-400/40 uppercase tracking-widest">Loyiha:</span>
+                            <select value={row.projectId || ""} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, projectId: e.target.value ? Number(e.target.value) : undefined } : x))} className="flex-1 bg-transparent border-none text-[10px] text-white/40 focus:text-white/80 transition-colors cursor-pointer outline-none">
+                              <option value="" className="text-black italic">Loyiha bog'lanmagan...</option>
+                              {projects?.map(p => <option key={p.id} value={p.id} className="text-black">{p.name}</option>)}
+                            </select>
                           </div>
                         </div>
                       </div>
