@@ -243,12 +243,16 @@ export default function Invoices() {
 
       <Dialog open={isInvDialogOpen} onOpenChange={setIsInvDialogOpen}>
         <DialogContent className={`glass-panel border-white/10 p-0 flex flex-col overflow-hidden transition-all ${isFullScreen ? 'w-screen h-screen max-w-none m-0 rounded-none' : 'w-[95vw] max-w-7xl h-[90vh]'}`}>
-          <DialogHeader className="p-4 border-b border-white/5 bg-black/60 relative flex flex-row items-center justify-between">
-            <DialogTitle className="text-white text-lg font-bold tracking-tight">{editingInvoiceId ? "Tahrirlash" : "Yangi faktura"}</DialogTitle>
-            <div className="flex items-center gap-2 mr-8">
-              <Button type="button" variant="ghost" size="sm" onClick={() => setIsFullScreen(!isFullScreen)} className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all flex items-center justify-center">
+          <DialogHeader className="p-5 border-b border-white/5 bg-black/60 relative flex flex-row items-center">
+            <DialogTitle className="text-white text-lg font-black tracking-tight uppercase opacity-90">{editingInvoiceId ? "Tahrirlash" : "Yangi faktura"}</DialogTitle>
+            <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <button 
+                type="button" 
+                onClick={() => setIsFullScreen(!isFullScreen)} 
+                className="h-8 w-8 text-white/20 hover:text-white hover:bg-white/5 rounded-lg transition-all flex items-center justify-center group/btn"
+              >
                 {isFullScreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-              </Button>
+              </button>
             </div>
           </DialogHeader>
           <div className="flex-1 flex overflow-hidden">
