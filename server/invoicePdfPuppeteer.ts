@@ -338,7 +338,7 @@ function buildInvoiceHtml(
     .signatory-pos { font-size: 9px; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
 
     .legal-footer { margin-top: 60px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px; padding-bottom: 40px; }
-    .contact-info { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #cbd5e1; margin-bottom: 4px; }
+    .contact-info { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-bottom: 4px; }
   </style>
 </head>
 <body>
@@ -473,7 +473,7 @@ function buildInvoiceHtml(
 
     <footer class="legal-footer">
       <div class="contact-info">${esc(s.website)} | ${esc(s.email)} | ${esc(s.phone)}</div>
-      <div style="font-size: 9px; color: #cbd5e1;">&copy; ${new Date().getFullYear()} SAYD.X DIGITAL SOLUTIONS. ${t('officialMerchantDoc', lang)}.</div>
+      <div style="font-size: 9px; color: #94a3b8;">&copy; ${new Date().getFullYear()} SAYD.X DIGITAL SOLUTIONS. ${t('officialMerchantDoc', lang)}.</div>
     </footer>
   </div>
 </body>

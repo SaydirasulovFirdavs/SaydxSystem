@@ -337,7 +337,7 @@ export function InvoicePreview({
                     </div>
                 </div>
 
-                <div className="text-center pt-8 opacity-30">
+                <div className="text-center pt-8 opacity-60">
                     <div className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400">
                         {settings.website.toUpperCase()} &nbsp; | &nbsp; {settings.email.toUpperCase()} &nbsp; | &nbsp; {settings.phone}
                     </div>
