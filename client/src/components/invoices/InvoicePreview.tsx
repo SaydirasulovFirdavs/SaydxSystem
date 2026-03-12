@@ -60,6 +60,8 @@ export function InvoicePreview({
             contractDetails: { uz: "Shartnoma ma'lumotlari", en: "Contract Details", ru: "Данные договора" },
             contractParty: { uz: "Shartnoma tomoni", en: "Contracting Party", ru: "Сторона договора" },
             city: { uz: "Toshkent", en: "Tashkent", ru: "Ташкент" },
+            services: { uz: "XIZMATLARI", en: "SERVICES", ru: "УСЛУГИ" },
+            subtotal: { uz: "JAMI", en: "SUBTOTAL", ru: "ИТОГО" },
         };
         return T[key]?.[language] || key;
     };
@@ -187,65 +189,88 @@ export function InvoicePreview({
                                     );
                                 }
 
-                                const expandedRows: any[] = [];
+                                const groupedRows: Record<string, any[]> = { 'api': [], 'server': [], 'row': [] };
+                                
                                 validRows.forEach(row => {
                                     const repeats = Math.max(1, Number(row.paidQuantity) || 1);
                                     const duration = Math.max(1, Number(row.quantity) || 1);
                                     const unitPrice = Number(row.unitPrice) || 0;
                                     const type = (row.serviceType || 'row').toLowerCase();
+                                    const targetType = (type === 'api' || type === 'server') ? type : 'row';
 
                                     if (row.startDate) {
                                         let currentStart = new Date(row.startDate);
                                         for (let i = 0; i < repeats; i++) {
                                             const end = new Date(currentStart);
                                             end.setDate(end.getDate() + duration);
-
-                                            expandedRows.push({
+                                            groupedRows[targetType].push({
                                                 title: row.title,
-                                                subTitle: (type === 'api' || type === 'server') ? type.toUpperCase() : '',
+                                                subTitle: (targetType === 'api' || targetType === 'server') ? targetType.toUpperCase() : '',
                                                 startDate: currentStart,
                                                 endDate: end,
                                                 days: duration,
                                                 price: unitPrice
                                             });
-                                            // Next start is this end
                                             currentStart = new Date(end);
                                         }
                                     } else {
-                                        // Row with no start date - just repeat with placeholders if needed, 
-                                        // but usually we just show it as is with multiplier if no dates
-                                        expandedRows.push({
+                                        groupedRows[targetType].push({
                                             title: row.title,
-                                            subTitle: (type === 'api' || type === 'server') ? type.toUpperCase() : '',
+                                            subTitle: (targetType === 'api' || targetType === 'server') ? targetType.toUpperCase() : '',
                                             startDate: null,
                                             endDate: null,
                                             days: duration,
-                                            price: unitPrice * repeats,
-                                            isMerged: repeats > 1
+                                            price: unitPrice * repeats
                                         });
                                     }
                                 });
 
-                                return expandedRows.map((row, idx) => {
-                                    const startFormatted = row.startDate ? format(row.startDate, "dd.MM.yyyy") : "---";
-                                    const endFormatted = row.endDate ? format(row.endDate, "dd.MM.yyyy") : "---";
-                                    
+                                const activeTypes = ['api', 'server', 'row'].filter(tp => groupedRows[tp].length > 0);
+                                let globalIdx = 0;
+
+                                return activeTypes.map((type) => {
+                                    const rows = groupedRows[type];
+                                    const categoryTotal = rows.reduce((sum, r) => sum + r.price, 0);
+
                                     return (
-                                        <tr key={idx} className="border-t border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                            <td className="px-4 py-4 font-bold text-slate-300">{idx + 1}</td>
-                                            <td className="px-4 py-4">
-                                                <p className="font-bold text-[#0f172a] uppercase">{row.title}</p>
-                                                {row.subTitle && (
-                                                    <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">{row.subTitle}</span>
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-4 text-center font-medium text-slate-500">{startFormatted}</td>
-                                            <td className="px-4 py-4 text-center font-bold text-[#0f172a]">{row.days}</td>
-                                            <td className="px-4 py-4 text-center font-black text-blue-600">{endFormatted}</td>
-                                            <td className="px-4 py-4 text-right font-black text-[#0f172a]">
-                                                {new Intl.NumberFormat("uz-UZ").format(row.price)} {currency}
-                                            </td>
-                                        </tr>
+                                        <Fragment key={type}>
+                                            {/* Category Heading */}
+                                            <tr className="bg-slate-50/80">
+                                                <td colSpan={6} className="px-4 py-2 font-black text-blue-500 uppercase tracking-[0.2em] text-[8px]">
+                                                    {type.toUpperCase()} {t('services')}
+                                                </td>
+                                            </tr>
+                                            {/* Category Items */}
+                                            {rows.map((row, rIdx) => {
+                                                globalIdx++;
+                                                return (
+                                                    <tr key={`${type}-${rIdx}`} className="border-t border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                                        <td className="px-4 py-3.5 font-bold text-slate-300">{globalIdx}</td>
+                                                        <td className="px-4 py-3.5">
+                                                            <p className="font-bold text-[#0f172a] uppercase">{row.title}</p>
+                                                            {row.subTitle && (
+                                                                <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest">{row.subTitle}</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-4 py-3.5 text-center font-medium text-slate-500">{row.startDate ? format(row.startDate, "dd.MM.yyyy") : "---"}</td>
+                                                        <td className="px-4 py-3.5 text-center font-bold text-[#0f172a]">{row.days}</td>
+                                                        <td className="px-4 py-3.5 text-center font-black text-blue-600">{row.endDate ? format(row.endDate, "dd.MM.yyyy") : "---"}</td>
+                                                        <td className="px-4 py-3.5 text-right font-black text-[#0f172a]">
+                                                            {new Intl.NumberFormat("uz-UZ").format(row.price)} {currency}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            {/* Category Subtotal */}
+                                            <tr className="bg-slate-50/30">
+                                                <td colSpan={5} className="px-4 py-2 text-right font-black text-slate-400 uppercase tracking-widest text-[8px]">
+                                                    {type.toUpperCase()} {t('subtotal')}:
+                                                </td>
+                                                <td className="px-4 py-2 text-right font-black text-blue-600">
+                                                    {new Intl.NumberFormat("uz-UZ").format(categoryTotal)} {currency}
+                                                </td>
+                                            </tr>
+                                        </Fragment>
                                     );
                                 });
                             })()}
