@@ -173,7 +173,7 @@ function buildInvoiceHtml(
   const logoUrl = `${baseUrl}/LOGO2.png`;
   const imzoUrl = `${baseUrl}/imzo.PNG`;
 
-  // --- Resilient Grouping Logic ---
+  // --- Robust Row Expansion and Categorical Grouping ---
   const validRows = items.filter(r => r.title && String(r.title).trim());
   const groupedRows: Record<string, any[]> = {
     'api': [],
@@ -186,42 +186,44 @@ function buildInvoiceHtml(
     const targetType = (type === 'api' || type === 'server') ? type : 'row';
 
     const repeats = Math.max(1, Number(row.paidQuantity) || 1);
-    const quantity = Math.max(1, Number(row.quantity) || 1);
+    const duration = Math.max(1, Number(row.quantity) || 1);
     const unitPrice = Number(row.unitPrice) || 0;
 
     if (row.startDate) {
       let currentStart = new Date(row.startDate);
       for (let i = 0; i < repeats; i++) {
         const end = new Date(currentStart);
-        end.setDate(end.getDate() + quantity);
+        end.setDate(end.getDate() + duration);
 
         groupedRows[targetType].push({
           title: row.title,
-          subTitle: targetType.toUpperCase(),
+          subTitle: (targetType === 'api' || targetType === 'server') ? targetType.toUpperCase() : '',
           startDate: dateStr(currentStart),
           endDate: dateStr(end),
-          days: quantity,
+          days: duration,
           price: unitPrice
         });
         currentStart = new Date(end);
       }
     } else {
-      // Uniform calculation logic for all row types as requested
-      const multiplier = repeats;
+      // No date - show as merged row with multiplier for total consistency
       groupedRows[targetType].push({
         title: row.title,
-        subTitle: targetType === 'row' ? '' : targetType.toUpperCase(),
-        startDate: targetType !== 'row' ? dateStr(row.startDate as any) : '',
-        days: quantity,
-        price: unitPrice * multiplier
+        subTitle: (targetType === 'api' || targetType === 'server') ? targetType.toUpperCase() : '',
+        startDate: '---',
+        endDate: '---',
+        days: duration,
+        price: unitPrice * repeats
       });
     }
   });
 
   const activeTypes = ['api', 'server', 'row'].filter(tp => groupedRows[tp].length > 0);
 
-  // Calculate total from categories to ensure 100% matching with the table
-  const totalAmount = Object.values(groupedRows).flat().reduce((sum, item) => sum + (item.price || 0), 0);
+  // Grand total must match the sum of all expanded rows
+  const totalAmount = Object.values(groupedRows)
+    .flat()
+    .reduce((sum, item) => sum + (item.price || 0), 0);
 
   // Seal Status Logic - Standardizing status values
   const rawStatus = (invoice.status || 'pending').toLowerCase();

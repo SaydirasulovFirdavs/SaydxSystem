@@ -177,34 +177,78 @@ export function InvoicePreview({
                             </tr>
                         </thead>
                         <tbody>
-                            {invoiceRows.length === 0 || (invoiceRows.length === 1 && !invoiceRows[0].title) ? (
-                                <tr>
-                                    <td colSpan={6} className="px-4 py-8 text-center text-slate-400 italic">{t('noServices')}</td>
-                                </tr>
-                            ) : (
-                                invoiceRows.map((row, idx) => {
-                                    const multiplier = Number(row.paidQuantity) || 1;
-                                    const rowSum = multiplier * (Number(row.unitPrice) || 0);
-                                    const endDate = row.startDate ? format(new Date(new Date(row.startDate).getTime() + (Number(row.quantity) || 1) * 24 * 60 * 60 * 1000), "dd.MM.yyyy") : "---";
+                            {(() => {
+                                const validRows = (invoiceRows || []).filter(r => r.title && r.title.trim());
+                                if (validRows.length === 0) {
+                                    return (
+                                        <tr>
+                                            <td colSpan={6} className="px-4 py-8 text-center text-slate-400 italic">{t('noServices')}</td>
+                                        </tr>
+                                    );
+                                }
+
+                                const expandedRows: any[] = [];
+                                validRows.forEach(row => {
+                                    const repeats = Math.max(1, Number(row.paidQuantity) || 1);
+                                    const duration = Math.max(1, Number(row.quantity) || 1);
+                                    const unitPrice = Number(row.unitPrice) || 0;
+                                    const type = (row.serviceType || 'row').toLowerCase();
+
+                                    if (row.startDate) {
+                                        let currentStart = new Date(row.startDate);
+                                        for (let i = 0; i < repeats; i++) {
+                                            const end = new Date(currentStart);
+                                            end.setDate(end.getDate() + duration);
+
+                                            expandedRows.push({
+                                                title: row.title,
+                                                subTitle: (type === 'api' || type === 'server') ? type.toUpperCase() : '',
+                                                startDate: currentStart,
+                                                endDate: end,
+                                                days: duration,
+                                                price: unitPrice
+                                            });
+                                            // Next start is this end
+                                            currentStart = new Date(end);
+                                        }
+                                    } else {
+                                        // Row with no start date - just repeat with placeholders if needed, 
+                                        // but usually we just show it as is with multiplier if no dates
+                                        expandedRows.push({
+                                            title: row.title,
+                                            subTitle: (type === 'api' || type === 'server') ? type.toUpperCase() : '',
+                                            startDate: null,
+                                            endDate: null,
+                                            days: duration,
+                                            price: unitPrice * repeats,
+                                            isMerged: repeats > 1
+                                        });
+                                    }
+                                });
+
+                                return expandedRows.map((row, idx) => {
+                                    const startFormatted = row.startDate ? format(row.startDate, "dd.MM.yyyy") : "---";
+                                    const endFormatted = row.endDate ? format(row.endDate, "dd.MM.yyyy") : "---";
+                                    
                                     return (
                                         <tr key={idx} className="border-t border-slate-50 hover:bg-slate-50/50 transition-colors">
                                             <td className="px-4 py-4 font-bold text-slate-300">{idx + 1}</td>
                                             <td className="px-4 py-4">
-                                                <p className="font-bold text-[#0f172a] uppercase">{row.title || '---'}</p>
-                                                {row.serviceType && row.serviceType !== 'row' && (
-                                                    <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">{row.serviceType}</span>
+                                                <p className="font-bold text-[#0f172a] uppercase">{row.title}</p>
+                                                {row.subTitle && (
+                                                    <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">{row.subTitle}</span>
                                                 )}
                                             </td>
-                                            <td className="px-4 py-4 text-center font-medium text-slate-500">{row.startDate ? format(new Date(row.startDate), "dd.MM.yyyy") : "---"}</td>
-                                            <td className="px-4 py-4 text-center font-bold text-[#0f172a]">{row.quantity || "---"}</td>
-                                            <td className="px-4 py-4 text-center font-black text-blue-600">{endDate}</td>
+                                            <td className="px-4 py-4 text-center font-medium text-slate-500">{startFormatted}</td>
+                                            <td className="px-4 py-4 text-center font-bold text-[#0f172a]">{row.days}</td>
+                                            <td className="px-4 py-4 text-center font-black text-blue-600">{endFormatted}</td>
                                             <td className="px-4 py-4 text-right font-black text-[#0f172a]">
-                                                {new Intl.NumberFormat("uz-UZ").format(rowSum)} {currency}
+                                                {new Intl.NumberFormat("uz-UZ").format(row.price)} {currency}
                                             </td>
                                         </tr>
                                     );
-                                })
-                            )}
+                                });
+                            })()}
                         </tbody>
                     </table>
                 </div>
