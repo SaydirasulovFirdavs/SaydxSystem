@@ -189,7 +189,7 @@ export function InvoicePreview({
                                     );
                                 }
 
-                                const groupedRows: Record<string, any[]> = { 'api': [], 'server': [], 'row': [] };
+                                const groupedRows: Record<string, any[]> = {};
                                 
                                 validRows.forEach(row => {
                                     const repeats = Math.max(1, Number(row.paidQuantity) || 1);
@@ -205,12 +205,18 @@ export function InvoicePreview({
                                         else if (tLow.includes('server')) targetType = 'server';
                                     }
 
+                                    // Group key: if not 'row', include title to separate distinct services
+                                    const groupKey = (targetType === 'row') ? 'row' : `${targetType.toUpperCase()}: ${String(row.title).toUpperCase()}`;
+                                    if (!groupedRows[groupKey]) {
+                                        groupedRows[groupKey] = [];
+                                    }
+
                                     if (row.startDate) {
                                         let currentStart = new Date(row.startDate);
                                         for (let i = 0; i < repeats; i++) {
                                             const end = new Date(currentStart);
                                             end.setDate(end.getDate() + duration);
-                                            groupedRows[targetType].push({
+                                            groupedRows[groupKey].push({
                                                 title: row.title,
                                                 subTitle: (targetType === 'api' || targetType === 'server') ? targetType.toUpperCase() : '',
                                                 startDate: currentStart,
@@ -221,7 +227,7 @@ export function InvoicePreview({
                                             currentStart = new Date(end);
                                         }
                                     } else {
-                                        groupedRows[targetType].push({
+                                        groupedRows[groupKey].push({
                                             title: row.title,
                                             subTitle: (targetType === 'api' || targetType === 'server') ? targetType.toUpperCase() : '',
                                             startDate: null,
@@ -232,26 +238,35 @@ export function InvoicePreview({
                                     }
                                 });
 
-                                const activeTypes = ['api', 'server', 'row'].filter(tp => groupedRows[tp].length > 0);
+                                const activeGroups = Object.keys(groupedRows).filter(gk => groupedRows[gk].length > 0);
+                                activeGroups.sort((a, b) => {
+                                    if (a === 'row') return 1;
+                                    if (b === 'row') return -1;
+                                    return a.localeCompare(b);
+                                });
+
                                 let globalIdx = 0;
 
-                                return activeTypes.map((type) => {
-                                    const rows = groupedRows[type];
+                                return activeGroups.map((groupKey) => {
+                                    const rows = groupedRows[groupKey];
                                     const categoryTotal = rows.reduce((sum, r) => sum + r.price, 0);
+                                    // Labels logic
+                                    const headerLabel = groupKey === 'row' ? t('services') : `${groupKey} ${t('services')}`;
+                                    const totalLabel = groupKey === 'row' ? t('subtotal') : `${groupKey} ${t('subtotal')}`;
 
                                     return (
-                                        <Fragment key={type}>
+                                        <Fragment key={groupKey}>
                                             {/* Category Heading */}
                                             <tr className="bg-slate-50/80">
                                                 <td colSpan={6} className="px-4 py-2 font-black text-blue-500 uppercase tracking-[0.2em] text-[8px]">
-                                                    {type === 'row' ? t('services') : `${type.toUpperCase()} ${t('services')}`}
+                                                    {headerLabel}
                                                 </td>
                                             </tr>
                                             {/* Category Items */}
                                             {rows.map((row, rIdx) => {
                                                 globalIdx++;
                                                 return (
-                                                    <tr key={`${type}-${rIdx}`} className="border-t border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                                    <tr key={`${groupKey}-${rIdx}`} className="border-t border-slate-50 hover:bg-slate-50/50 transition-colors">
                                                         <td className="px-4 py-3.5 font-bold text-slate-300">{globalIdx}</td>
                                                         <td className="px-4 py-3.5">
                                                             <p className="font-bold text-[#0f172a] uppercase">{row.title}</p>
@@ -271,7 +286,7 @@ export function InvoicePreview({
                                             {/* Category Subtotal */}
                                             <tr className="bg-slate-50/30">
                                                 <td colSpan={5} className="px-4 py-2 text-right font-black text-slate-400 uppercase tracking-widest text-[8px]">
-                                                    {type === 'row' ? t('subtotal') : `${type.toUpperCase()} ${t('subtotal')}`}:
+                                                    {totalLabel}:
                                                 </td>
                                                 <td className="px-4 py-2 text-right font-black text-blue-600">
                                                     {new Intl.NumberFormat("uz-UZ").format(categoryTotal)} {currency}

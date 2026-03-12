@@ -175,62 +175,69 @@ function buildInvoiceHtml(
 
   // --- Robust Row Expansion and Categorical Grouping ---
   const validRows = items.filter(r => r.title && String(r.title).trim());
-  const groupedRows: Record<string, any[]> = {
-    'api': [],
-    'server': [],
-    'row': []
-  };
+  const groupedRows: Record<string, any[]> = {};
 
-  validRows.forEach(row => {
-    const type = (row.serviceType || 'row').toLowerCase();
-    let targetType = (type === 'api' || type === 'server') ? type : 'row';
+    validRows.forEach(row => {
+      const type = (row.serviceType || 'row').toLowerCase();
+      let targetType = (type === 'api' || type === 'server') ? type : 'row';
 
-    // Auto-detect from title for better grouping
-    if (targetType === 'row' && row.title) {
-      const tLow = String(row.title).toLowerCase();
-      if (tLow.includes('api')) targetType = 'api';
-      else if (tLow.includes('server')) targetType = 'server';
-    }
+      // Auto-detect from title for better grouping
+      if (targetType === 'row' && row.title) {
+        const tLow = String(row.title).toLowerCase();
+        if (tLow.includes('api')) targetType = 'api';
+        else if (tLow.includes('server')) targetType = 'server';
+      }
 
-    const repeats = Math.max(1, Number(row.paidQuantity) || 1);
-    const duration = Math.max(1, Number(row.quantity) || 1);
-    const unitPrice = Number(row.unitPrice) || 0;
+      // Group key: if not 'row', include title to separate distinct services
+      const groupKey = (targetType === 'row') ? 'row' : `${targetType.toUpperCase()}: ${String(row.title).toUpperCase()}`;
+      if (!groupedRows[groupKey]) {
+        groupedRows[groupKey] = [];
+      }
 
-    if (row.startDate) {
-      let currentStart = new Date(row.startDate);
-      for (let i = 0; i < repeats; i++) {
-        const end = new Date(currentStart);
-        end.setDate(end.getDate() + duration);
+      const repeats = Math.max(1, Number(row.paidQuantity) || 1);
+      const duration = Math.max(1, Number(row.quantity) || 1);
+      const unitPrice = Number(row.unitPrice) || 0;
 
-        groupedRows[targetType].push({
+      if (row.startDate) {
+        let currentStart = new Date(row.startDate);
+        for (let i = 0; i < repeats; i++) {
+          const end = new Date(currentStart);
+          end.setDate(end.getDate() + duration);
+
+          groupedRows[groupKey].push({
+            title: row.title,
+            subTitle: (targetType === 'api' || targetType === 'server') ? targetType.toUpperCase() : '',
+            startDate: dateStr(currentStart),
+            endDate: dateStr(end),
+            days: duration,
+            price: unitPrice
+          });
+          currentStart = new Date(end);
+        }
+      } else {
+        groupedRows[groupKey].push({
           title: row.title,
           subTitle: (targetType === 'api' || targetType === 'server') ? targetType.toUpperCase() : '',
-          startDate: dateStr(currentStart),
-          endDate: dateStr(end),
+          startDate: '---',
+          endDate: '---',
           days: duration,
-          price: unitPrice
+          price: unitPrice * repeats
         });
-        currentStart = new Date(end);
       }
-    } else {
-      // No date - show as merged row with multiplier for total consistency
-      groupedRows[targetType].push({
-        title: row.title,
-        subTitle: (targetType === 'api' || targetType === 'server') ? targetType.toUpperCase() : '',
-        startDate: '---',
-        endDate: '---',
-        days: duration,
-        price: unitPrice * repeats
-      });
-    }
-  });
+    });
 
-  const activeTypes = ['api', 'server', 'row'].filter(tp => groupedRows[tp].length > 0);
+    const activeGroups = Object.keys(groupedRows).filter(gk => groupedRows[gk].length > 0);
+    // Ensure 'row' comes last if it exists
+    activeGroups.sort((a, b) => {
+      if (a === 'row') return 1;
+      if (b === 'row') return -1;
+      return a.localeCompare(b);
+    });
 
   // Grand total must match the sum of all expanded rows
   const totalAmount = Object.values(groupedRows)
     .flat()
-    .reduce((sum, item) => sum + (item.price || 0), 0);
+    .reduce((sum: number, item: any) => sum + (item.price || 0), 0);
 
   // Seal Status Logic - Standardizing status values
   const rawStatus = (invoice.status || 'pending').toLowerCase();
@@ -399,10 +406,13 @@ function buildInvoiceHtml(
             </tr>
           </thead>
           <tbody>
-            ${activeTypes.length === 0 ? `<tr><td colspan="6" style="padding: 40px; text-align: center; color: #94a3b8; font-style: italic; font-weight: 700;">${t('noServices', lang)}</td></tr>` : ''}
-            ${activeTypes.map(type => {
-    const rows = groupedRows[type];
+            ${activeGroups.length === 0 ? `<tr><td colspan="6" style="padding: 40px; text-align: center; color: #94a3b8; font-style: italic; font-weight: 700;">${t('noServices', lang)}</td></tr>` : ''}
+            ${activeGroups.map(groupKey => {
+    const rows = groupedRows[groupKey];
     const categoryTotal = rows.reduce((sum, r) => sum + r.price, 0);
+    // Labels logic
+    const headerLabel = groupKey === 'row' ? t('services', lang) : `${groupKey} ${t('services', lang)}`;
+    const totalLabel = groupKey === 'row' ? t('subtotal', lang) : `${groupKey} ${t('subtotal', lang)}`;
 
     const rowsHtml = rows.map((row: any, idx: number) => `
                 <tr class="item-row">
@@ -419,10 +429,10 @@ function buildInvoiceHtml(
               `).join('');
 
     return `
-                <tr><td colspan="6" class="cat-header">${type === 'row' ? t('services', lang) : `${type.toUpperCase()} ${t('services', lang)}`}</td></tr>
+                <tr><td colspan="6" class="cat-header">${headerLabel}</td></tr>
                 ${rowsHtml}
                 <tr class="cat-total-row">
-                  <td colspan="5" class="cat-total-label">${type === 'row' ? t('subtotal', lang) : `${type.toUpperCase()} ${t('subtotal', lang)}`}:</td>
+                  <td colspan="5" class="cat-total-label">${totalLabel}:</td>
                   <td class="cat-total-val">${formatAmount(categoryTotal, currency)}</td>
                 </tr>
               `;
