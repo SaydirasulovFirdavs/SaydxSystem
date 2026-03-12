@@ -95,6 +95,7 @@ import EmployeeDetails from "@/pages/EmployeeDetails";
 import MyTasks from "@/pages/MyTasks";
 
 import Salaries from "@/pages/Salaries";
+import Contracts from "@/pages/Contracts";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -128,6 +129,7 @@ function Router() {
 
       {isAdmin && <Route path="/finance" component={Finance} />}
       {isAdmin && <Route path="/invoices" component={Invoices} />}
+      {isAdmin && <Route path="/contracts" component={Contracts} />}
       {isAdmin && <Route path="/analytics" component={Analytics} />}
       {isAdmin && <Route path="/employees" component={Employees} />}
       {isAdmin && <Route path="/employees/:id" component={EmployeeDetails} />}

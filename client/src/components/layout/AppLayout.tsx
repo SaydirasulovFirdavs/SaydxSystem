@@ -18,7 +18,8 @@ import {
   UserCog,
   AlertTriangle,
   Clock,
-  AlertOctagon
+  AlertOctagon,
+  ScrollText
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
@@ -121,6 +122,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     ...(isAdmin ? [
       { name: "Moliya", path: "/finance", icon: Wallet },
       { name: "Hisob-faktura", path: "/invoices", icon: FileText },
+      { name: "Shartnoma", path: "/contracts", icon: ScrollText },
       { name: "Analitika", path: "/analytics", icon: BarChart3 },
     ] : []),
     { name: "Kalendar", path: "/calendar", icon: Calendar },
