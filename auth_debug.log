@@ -73,3 +73,5 @@
 [2026-03-10T11:57:47.881Z] AUTH: Path=/api/employees isAuthenticated=true UserID=f1509517-bfaf-4c64-96f5-ac66dfff5c2b Role=admin
 [2026-03-10T11:57:48.142Z] AUTH: Path=/api/projects/6/tasks isAuthenticated=true UserID=f1509517-bfaf-4c64-96f5-ac66dfff5c2b Role=admin
 [2026-03-10T11:57:48.397Z] AUTH: Path=/api/projects/6 isAuthenticated=true UserID=f1509517-bfaf-4c64-96f5-ac66dfff5c2b Role=admin
+[2026-03-10T12:51:55.401Z] AUTH: Path=/api/auth/user isAuthenticated=false UserID=undefined Role=undefined
+[2026-03-10T12:52:00.551Z] AUTH: Path=/api/auth/user isAuthenticated=false UserID=undefined Role=undefined

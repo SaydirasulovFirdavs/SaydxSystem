@@ -58,6 +58,23 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
         }
     });
 
+    app.get("/api/invoices/verify/:invoiceNumber", isAuthenticated, async (req, res) => {
+        try {
+            const invoice = await storage.getInvoiceByNumber(req.params.invoiceNumber);
+            if (!invoice) return res.json({ notFound: true });
+            res.json({
+                invoice: {
+                    clientName: invoice.clientName,
+                    amount: invoice.amount,
+                    currency: invoice.currency
+                }
+            });
+        } catch (err) {
+            console.error("Verify invoice error:", err);
+            res.status(500).json({ message: "Tekshirishda xato yuz berdi" });
+        }
+    });
+
     app.post(api.invoices.create.path, isAuthenticated, async (req, res) => {
         try {
             const input = api.invoices.create.input.extend({

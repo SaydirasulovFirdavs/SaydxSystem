@@ -234,6 +234,20 @@ export const api = {
         200: z.object({ url: z.string() }),
         404: errorSchemas.notFound,
       }
+    },
+    verify: {
+      method: 'GET' as const,
+      path: '/api/invoices/verify/:invoiceNumber' as const,
+      responses: {
+        200: z.object({
+          invoice: z.object({
+            clientName: z.string().optional().nullable(),
+            amount: z.string(),
+            currency: z.string(),
+          }).optional(),
+          notFound: z.boolean().optional(),
+        }),
+      }
     }
   },
   ai: {
