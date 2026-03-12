@@ -13,8 +13,12 @@ import {
   tasks,
   timeEntries,
   transactions,
-  invoices
+  invoices,
+  contracts,
+  insertContractSchema,
 } from './schema.js';
+
+export type Contract = typeof contracts.$inferSelect;
 
 export const errorSchemas = {
   validation: z.object({
@@ -259,6 +263,32 @@ export const api = {
           riskLevel: z.string(),
           recommendation: z.string(),
         }),
+        404: errorSchemas.notFound,
+      }
+    }
+  },
+  contracts: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/contracts' as const,
+      responses: {
+        200: z.array(z.custom<Contract>()),
+      }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/contracts' as const,
+      input: insertContractSchema,
+      responses: {
+        201: z.custom<Contract>(),
+        400: errorSchemas.validation,
+      }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/contracts/:id' as const,
+      responses: {
+        204: z.undefined(),
         404: errorSchemas.notFound,
       }
     }

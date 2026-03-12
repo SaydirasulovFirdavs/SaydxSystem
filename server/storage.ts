@@ -12,6 +12,7 @@ import {
   type InvoiceItem, type InsertInvoiceItem,
   type InvoiceSettings, type UpdateInvoiceSettings,
   salaries, type Salary, type InsertSalary,
+  contracts, type Contract, type InsertContract,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -68,6 +69,11 @@ export interface IStorage {
   deleteSalary(id: number): Promise<void>;
   // Time stats
   getTimeEntriesBetween(start: Date, end: Date): Promise<TimeEntry[]>;
+  // Contracts
+  getContracts(): Promise<Contract[]>;
+  getContract(id: number): Promise<Contract | undefined>;
+  createContract(contract: InsertContract): Promise<Contract>;
+  deleteContract(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -388,6 +394,26 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSalary(id: number): Promise<void> {
     await db.delete(salaries).where(eq(salaries.id, id));
+  }
+
+  // Contracts
+  async getContracts(): Promise<Contract[]> {
+    return await db.select().from(contracts).orderBy(desc(contracts.createdAt));
+  }
+
+  async getContract(id: number): Promise<Contract | undefined> {
+    const [row] = await db.select().from(contracts).where(eq(contracts.id, id));
+    return row;
+  }
+
+  async createContract(contract: InsertContract): Promise<Contract> {
+    const [row] = await db.insert(contracts).values(contract).returning();
+    if (!row) throw new Error("Failed to create contract");
+    return row;
+  }
+
+  async deleteContract(id: number): Promise<void> {
+    await db.delete(contracts).where(eq(contracts.id, id));
   }
 }
 

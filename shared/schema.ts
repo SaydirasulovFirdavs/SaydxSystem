@@ -227,6 +227,21 @@ export const salaries = pgTable("salaries", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const contracts = pgTable("contracts", {
+  id: serial("id").primaryKey(),
+  contractNumber: text("contract_number").notNull(),
+  clientId: integer("client_id").references(() => clients.id),
+  projectId: integer("project_id").references(() => projects.id),
+  title: text("title").notNull(),
+  amount: numeric("amount").notNull(),
+  currency: text("currency").default("UZS").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  status: text("status").default("active").notNull(), // active, completed, cancelled
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // --- Relations ---
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -267,6 +282,11 @@ export const salariesRelations = relations(salaries, ({ one }) => ({
   user: one(users, { fields: [salaries.userId], references: [users.id] }),
 }));
 
+export const contractsRelations = relations(contracts, ({ one }) => ({
+  client: one(clients, { fields: [contracts.clientId], references: [clients.id] }),
+  project: one(projects, { fields: [contracts.projectId], references: [projects.id] }),
+}));
+
 // --- Zod Schemas ---
 
 export const insertClientSchema = createInsertSchema(clients).omit({ id: true, createdAt: true });
@@ -285,6 +305,12 @@ export const insertTransactionSchema = createInsertSchema(transactions)
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true });
 export const insertInvoiceItemSchema = createInsertSchema(invoiceItems).omit({ id: true, createdAt: true });
 export const insertSalarySchema = createInsertSchema(salaries).omit({ id: true, createdAt: true });
+export const insertContractSchema = createInsertSchema(contracts)
+  .omit({ id: true, createdAt: true })
+  .extend({
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date(),
+  });
 
 export const paymentDetailLineSchema = z.object({ title: z.string(), value: z.string() });
 export const updateInvoiceSettingsSchema = z.object({
@@ -333,3 +359,6 @@ export type UpdateInvoiceSettings = z.infer<typeof updateInvoiceSettingsSchema>;
 
 export type Salary = typeof salaries.$inferSelect;
 export type InsertSalary = z.infer<typeof insertSalarySchema>;
+
+export type Contract = typeof contracts.$inferSelect;
+export type InsertContract = z.infer<typeof insertContractSchema>;

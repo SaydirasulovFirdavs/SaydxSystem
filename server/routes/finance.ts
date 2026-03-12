@@ -419,4 +419,41 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
             res.status(500).json({ message: "Sozlamalarni saqlashda xato. Qayta urinib ko'ring." });
         }
     });
+
+    // --- Contracts ---
+    app.get(api.contracts.list.path, isAuthenticated, async (req, res) => {
+        const list = await storage.getContracts();
+        res.json(list);
+    });
+
+    app.post(api.contracts.create.path, isAuthenticated, async (req, res) => {
+        try {
+            const input = api.contracts.create.input.extend({
+                clientId: z.coerce.number().optional(),
+                projectId: z.coerce.number().optional(),
+                amount: z.union([z.string(), z.number()]).transform(v => String(v)),
+                startDate: z.union([z.string(), z.date(), z.number()]).transform(v => new Date(v)),
+                endDate: z.union([z.string(), z.date(), z.number()]).transform(v => new Date(v)),
+            }).parse(req.body);
+            const contract = await storage.createContract(input);
+            res.status(201).json(contract);
+        } catch (err) {
+            if (err instanceof z.ZodError) {
+                return res.status(400).json({ message: err.errors[0].message, field: err.errors[0].path.join('.') });
+            }
+            console.error("Create contract error:", err);
+            res.status(500).json({ message: "Failed to create contract" });
+        }
+    });
+
+    app.delete(api.contracts.delete.path, isAuthenticated, isAdmin, async (req, res) => {
+        try {
+            const id = Number(req.params.id);
+            if (isNaN(id)) return res.status(400).json({ message: "Invalid contract ID" });
+            await storage.deleteContract(id);
+            res.status(204).end();
+        } catch (err) {
+            res.status(500).json({ message: "Failed to delete contract" });
+        }
+    });
 }
