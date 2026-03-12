@@ -243,10 +243,10 @@ export default function Invoices() {
 
       <Dialog open={isInvDialogOpen} onOpenChange={setIsInvDialogOpen}>
         <DialogContent className={`glass-panel border-white/10 p-0 flex flex-col overflow-hidden transition-all ${isFullScreen ? 'w-screen h-screen max-w-none m-0 rounded-none' : 'w-[95vw] max-w-7xl h-[90vh]'}`}>
-          <DialogHeader className="p-6 pb-2 border-b border-white/10">
-            <div className="flex justify-between items-center w-full pr-8">
-              <DialogTitle className="text-white">{editingInvoiceId ? "Tahrirlash" : "Yangi faktura"}</DialogTitle>
-              <Button variant="ghost" size="icon" onClick={() => setIsFullScreen(!isFullScreen)} className="text-white/50 hover:text-white">
+          <DialogHeader className="p-4 border-b border-white/5 bg-black/60 relative flex flex-row items-center justify-between">
+            <DialogTitle className="text-white text-lg font-bold tracking-tight">{editingInvoiceId ? "Tahrirlash" : "Yangi faktura"}</DialogTitle>
+            <div className="flex items-center gap-2 mr-8">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setIsFullScreen(!isFullScreen)} className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all flex items-center justify-center">
                 {isFullScreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
               </Button>
             </div>
@@ -354,29 +354,29 @@ export default function Invoices() {
                   
                   <div className="space-y-3">
                     {invoiceRows.map((row, i) => (
-                      <div key={i} className="p-3 bg-white/5 rounded-xl border border-white/5 relative group hover:border-white/10 transition-colors">
-                        <Button type="button" variant="ghost" size="icon" onClick={() => setInvoiceRows(prev => prev.filter((_, j) => j !== i))} className="absolute -top-1.5 -right-1.5 h-5 w-5 bg-rose-500 shadow-lg rounded-full text-white opacity-0 group-hover:opacity-100 transition-all hover:scale-110 z-10">
+                      <div key={i} className="p-3 pb-5 bg-white/5 rounded-xl border border-white/5 relative group hover:border-white/10 transition-colors">
+                        <Button type="button" variant="ghost" size="icon" onClick={() => setInvoiceRows(prev => prev.filter((_, j) => j !== i))} className="absolute -top-1 -right-1 h-5 w-5 bg-rose-500 shadow-lg rounded-full text-white opacity-0 group-hover:opacity-100 transition-all hover:scale-110 z-20 flex items-center justify-center">
                           <X className="w-3 h-3" />
                         </Button>
-                        <div className="grid grid-cols-12 gap-2">
+                        <div className="grid grid-cols-12 gap-x-2 gap-y-2">
                           <div className="col-span-4 space-y-1">
                             <label className="text-[8px] font-bold text-white/30 uppercase pl-1">Xizmat nomi</label>
                             <Input value={row.title} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} placeholder="Xizmat nomi" className="glass-input h-8 text-[11px]" />
                           </div>
-                          <div className="col-span-3 space-y-1">
-                            <label className="text-[8px] font-bold text-white/30 uppercase pl-1">Boshlanish sanasi</label>
-                            <Input type="date" value={row.startDate || ""} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, startDate: e.target.value } : x))} className="glass-input h-8 text-[11px] date-picker-white-icon" />
+                          <div className="col-span-2 space-y-1">
+                            <label className="text-[8px] font-bold text-white/30 uppercase pl-1 overflow-hidden truncate">Boshlanish</label>
+                            <Input type="date" value={row.startDate || ""} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, startDate: e.target.value } : x))} className="glass-input h-8 text-[10px] date-picker-white-icon px-1" />
                           </div>
                           <div className="col-span-2 space-y-1 text-center">
-                            <label className="text-[8px] font-bold text-white/30 uppercase">Kuni necha</label>
+                            <label className="text-[8px] font-bold text-white/30 uppercase leading-none block h-4">Kuni necha</label>
                             <Input type="number" value={row.quantity} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, quantity: e.target.value } : x))} placeholder="20" className="glass-input h-8 text-[11px] text-center" />
                           </div>
                           <div className="col-span-2 space-y-1 text-center font-bold">
-                            <label className="text-[8px] font-bold text-white/30 uppercase">To'lov (nechtasi)</label>
+                            <label className="text-[8px] font-bold text-white/30 uppercase leading-none block h-4">To'lov (nechtasi)</label>
                             <Input type="number" value={row.paidQuantity} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, paidQuantity: e.target.value } : x))} placeholder="5" className="glass-input h-8 text-[11px] text-center border-amber-500/20" />
                           </div>
-                          <div className="col-span-1 space-y-1 text-right">
-                            <label className="text-[8px] font-bold text-white/30 uppercase pr-1">Oy / Narxi</label>
+                          <div className="col-span-2 space-y-1 text-right">
+                            <label className="text-[8px] font-bold text-white/30 uppercase pr-1 leading-none block h-4">Oy / Narxi</label>
                             <Input type="number" value={row.unitPrice} onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, unitPrice: e.target.value } : x))} placeholder="15" className="glass-input h-8 text-[11px] text-right" />
                           </div>
                           <div className="col-span-12 mt-1">
