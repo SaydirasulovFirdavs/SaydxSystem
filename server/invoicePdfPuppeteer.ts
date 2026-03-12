@@ -62,8 +62,8 @@ const T: Record<string, Record<Lang, string>> = {
   start: { uz: "BOSHLANISH", en: "START", ru: "НАЧАЛО" },
   days: { uz: "KUN", en: "DAYS", ru: "ДНЕЙ" },
   end: { uz: "TUGASH", en: "END", ru: "ОКОНЧАНИЕ" },
-  price: { uz: "NARXI (SUMMA)", en: "PRICE (AMOUNT)", ru: "ЦЕНА (СУММА)" },
-  services: { uz: "XIZMATLARI", en: "SERVICES", ru: "УСЛУГИ" },
+  price: { uz: "NARXI (SUMMA)", en: "PRICE (AMOUNT)", ru: "Цена (Сумма)" },
+  services: { uz: "XIZMATLAR", en: "SERVICES", ru: "УСЛУГИ" },
   subtotal: { uz: "JAMI", en: "SUBTOTAL", ru: "ИТОГО" },
   paymentDetails: { uz: "To'lov Rekvizitlari", en: "Payment Details", ru: "Реквизиты оплаты" },
   totalServices: { uz: "Umumiy Xizmatlar", en: "Total Services", ru: "Всего услуг" },
@@ -183,7 +183,14 @@ function buildInvoiceHtml(
 
   validRows.forEach(row => {
     const type = (row.serviceType || 'row').toLowerCase();
-    const targetType = (type === 'api' || type === 'server') ? type : 'row';
+    let targetType = (type === 'api' || type === 'server') ? type : 'row';
+
+    // Auto-detect from title for better grouping
+    if (targetType === 'row' && row.title) {
+      const tLow = String(row.title).toLowerCase();
+      if (tLow.includes('api')) targetType = 'api';
+      else if (tLow.includes('server')) targetType = 'server';
+    }
 
     const repeats = Math.max(1, Number(row.paidQuantity) || 1);
     const duration = Math.max(1, Number(row.quantity) || 1);
@@ -412,10 +419,10 @@ function buildInvoiceHtml(
               `).join('');
 
     return `
-                <tr><td colspan="6" class="cat-header">${type.toUpperCase()} ${t('services', lang)}</td></tr>
+                <tr><td colspan="6" class="cat-header">${type === 'row' ? t('services', lang) : `${type.toUpperCase()} ${t('services', lang)}`}</td></tr>
                 ${rowsHtml}
                 <tr class="cat-total-row">
-                  <td colspan="5" class="cat-total-label">${type.toUpperCase()} ${t('subtotal', lang)}:</td>
+                  <td colspan="5" class="cat-total-label">${type === 'row' ? t('subtotal', lang) : `${type.toUpperCase()} ${t('subtotal', lang)}`}:</td>
                   <td class="cat-total-val">${formatAmount(categoryTotal, currency)}</td>
                 </tr>
               `;

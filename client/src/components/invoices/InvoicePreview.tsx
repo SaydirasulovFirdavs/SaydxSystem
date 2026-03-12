@@ -60,7 +60,7 @@ export function InvoicePreview({
             contractDetails: { uz: "Shartnoma ma'lumotlari", en: "Contract Details", ru: "Данные договора" },
             contractParty: { uz: "Shartnoma tomoni", en: "Contracting Party", ru: "Сторона договора" },
             city: { uz: "Toshkent", en: "Tashkent", ru: "Ташкент" },
-            services: { uz: "XIZMATLARI", en: "SERVICES", ru: "УСЛУГИ" },
+            services: { uz: "XIZMATLAR", en: "SERVICES", ru: "УСЛУГИ" },
             subtotal: { uz: "JAMI", en: "SUBTOTAL", ru: "ИТОГО" },
         };
         return T[key]?.[language] || key;
@@ -196,7 +196,14 @@ export function InvoicePreview({
                                     const duration = Math.max(1, Number(row.quantity) || 1);
                                     const unitPrice = Number(row.unitPrice) || 0;
                                     const type = (row.serviceType || 'row').toLowerCase();
-                                    const targetType = (type === 'api' || type === 'server') ? type : 'row';
+                                    let targetType = (type === 'api' || type === 'server') ? type : 'row';
+                                    
+                                    // Auto-detect from title for better grouping
+                                    if (targetType === 'row' && row.title) {
+                                        const tLow = row.title.toLowerCase();
+                                        if (tLow.includes('api')) targetType = 'api';
+                                        else if (tLow.includes('server')) targetType = 'server';
+                                    }
 
                                     if (row.startDate) {
                                         let currentStart = new Date(row.startDate);
@@ -237,7 +244,7 @@ export function InvoicePreview({
                                             {/* Category Heading */}
                                             <tr className="bg-slate-50/80">
                                                 <td colSpan={6} className="px-4 py-2 font-black text-blue-500 uppercase tracking-[0.2em] text-[8px]">
-                                                    {type.toUpperCase()} {t('services')}
+                                                    {type === 'row' ? t('services') : `${type.toUpperCase()} ${t('services')}`}
                                                 </td>
                                             </tr>
                                             {/* Category Items */}
@@ -264,7 +271,7 @@ export function InvoicePreview({
                                             {/* Category Subtotal */}
                                             <tr className="bg-slate-50/30">
                                                 <td colSpan={5} className="px-4 py-2 text-right font-black text-slate-400 uppercase tracking-widest text-[8px]">
-                                                    {type.toUpperCase()} {t('subtotal')}:
+                                                    {type === 'row' ? t('subtotal') : `${type.toUpperCase()} ${t('subtotal')}`}:
                                                 </td>
                                                 <td className="px-4 py-2 text-right font-black text-blue-600">
                                                     {new Intl.NumberFormat("uz-UZ").format(categoryTotal)} {currency}
