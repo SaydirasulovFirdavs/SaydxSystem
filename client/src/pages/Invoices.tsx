@@ -669,7 +669,12 @@ export default function Invoices() {
               onDelete={id => window.confirm("O'chirishni xohlaysizmi?") && deleteInvoice.mutate(id)}
               onAddItems={id => setItemsDialogInvId(id)}
               onDownloadPdf={handleDownloadPdf}
-              onStatusChange={(id, status) => updateInvoice.mutate({ id, status })}
+              onStatusChange={(id, status) => updateInvoice.mutate({ id, status }, {
+                onError: (err: any) => alert("Xatolik: " + (err.message || "Statusni yangilab bo'lmadi")),
+                onSuccess: () => {
+                  // Optional: Refresh PDF generating ID if we want to show loading
+                }
+              })}
               pdfGeneratingId={pdfGeneratingId}
             />
           ))}

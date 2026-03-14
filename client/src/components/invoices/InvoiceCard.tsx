@@ -80,7 +80,12 @@ export function InvoiceCard({
                             <div className="flex items-center gap-2">
                                 <select
                                     value={invoice.status || "pending"}
-                                    onChange={(e) => onStatusChange(invoice.id, e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onChange={(e) => {
+                                        e.stopPropagation();
+                                        onStatusChange(invoice.id, e.target.value);
+                                    }}
                                     className={`appearance-none px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all cursor-pointer outline-none hover:scale-105 active:scale-95 ${statusColors[invoice.status || 'pending']} ${statusGlow[invoice.status || 'pending']}`}
                                 >
                                     <option value="paid" className="bg-slate-900 text-emerald-400">{tStatus("paid", invoice.language)}</option>
