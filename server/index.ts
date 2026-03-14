@@ -67,8 +67,6 @@ app.use((req, res, next) => {
 import { checkAndFixSchema } from "./db_fix";
 
 (async () => {
-  log("Starting database migration check...");
-  await checkAndFixSchema();
   await setupAuth(app);
   await registerRoutes(httpServer, app);
 
@@ -107,6 +105,10 @@ import { checkAndFixSchema } from "./db_fix";
     },
     () => {
       log(`serving on port ${port}`);
+      // Run database migration check in the background after startup
+      checkAndFixSchema().catch(err => {
+        console.error("[migration] Background migration failed:", err);
+      });
     },
   );
 })();
