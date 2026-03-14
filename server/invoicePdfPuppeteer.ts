@@ -368,13 +368,14 @@ function buildInvoiceHtml(
 
     .footer-auth { margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; page-break-inside: avoid; }
     .auth-seal {
-      width: 135px; height: 135px; 
-      border: 3.5px double #000080; border-radius: 50%;
+      width: 140px; height: 140px; 
+      border: 4px double #000080; border-radius: 50%;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      transform: rotate(-10deg); color: #000080; position: relative;
-      background: rgba(0, 0, 128, 0.02);
+      transform: rotate(-12deg); color: #000080; position: relative;
+      background: rgba(0, 0, 128, 0.01);
       overflow: visible;
-      box-shadow: 0 0 0 1.5px #000080 inset;
+      box-shadow: 0 0 0 2px #000080 inset;
+      backdrop-filter: blur(0.5px);
     }
     .signature-area { text-align: right; }
     .signature-img { height: 50px; mix-blend-mode: multiply; margin-bottom: 5px; }

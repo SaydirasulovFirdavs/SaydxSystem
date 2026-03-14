@@ -78,9 +78,15 @@ export function InvoiceCard({
                             </div>
                             
                             <div className="flex items-center gap-2">
-                                <span className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${statusColors[invoice.status || 'pending']} ${statusGlow[invoice.status || 'pending']}`}>
-                                    {tStatus(invoice.status || "pending", invoice.language)}
-                                </span>
+                                <select
+                                    value={invoice.status || "pending"}
+                                    onChange={(e) => onStatusChange(invoice.id, e.target.value)}
+                                    className={`appearance-none px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all cursor-pointer outline-none hover:scale-105 active:scale-95 ${statusColors[invoice.status || 'pending']} ${statusGlow[invoice.status || 'pending']}`}
+                                >
+                                    <option value="paid" className="bg-slate-900 text-emerald-400">{tStatus("paid", invoice.language)}</option>
+                                    <option value="pending" className="bg-slate-900 text-amber-400">{tStatus("pending", invoice.language)}</option>
+                                    <option value="unpaid" className="bg-slate-900 text-rose-400">{tStatus("unpaid", invoice.language)}</option>
+                                </select>
                             </div>
                         </div>
 
