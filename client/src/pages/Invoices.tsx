@@ -182,6 +182,7 @@ export default function Invoices() {
       contractStartDate: contractStartDateForm ? new Date(contractStartDateForm) : undefined,
       contractEndDate: contractEndDateForm ? new Date(contractEndDateForm) : undefined,
       language: languageForm,
+      verificationToken: verificationTokenForm || undefined,
     };
 
     try {
