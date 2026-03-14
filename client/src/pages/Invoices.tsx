@@ -45,6 +45,7 @@ export default function Invoices() {
   const [statusForm, setStatusForm] = useState<"paid" | "pending" | "unpaid">("pending");
   const [languageForm, setLanguageForm] = useState<"uz" | "en" | "ru">("uz");
   const [paidAmountForm, setPaidAmountForm] = useState<string>("0");
+  const [verificationTokenForm, setVerificationTokenForm] = useState<string>("");
   const [invoiceRows, setInvoiceRows] = useState<any[]>([{ title: "", quantity: 1, paidQuantity: 1, unitPrice: "", serviceType: "row" }]);
 
   // Verification states
@@ -73,6 +74,7 @@ export default function Invoices() {
     setStatusForm("pending");
     setLanguageForm("uz");
     setPaidAmountForm("0");
+    setVerificationTokenForm("");
     setInvoiceRows([{ title: "", quantity: 1, paidQuantity: 1, unitPrice: "", serviceType: "row" }]);
   }, []);
 
@@ -101,6 +103,7 @@ export default function Invoices() {
     setFormCurrency(inv.currency || "UZS");
     setLanguageForm(inv.language || "uz");
     setPaidAmountForm(inv.paidAmount || "0");
+    setVerificationTokenForm(inv.verificationToken || "");
 
     try {
       const res = await fetch(`/api/invoices/${inv.id}/items`, { credentials: "include" });
@@ -508,6 +511,7 @@ export default function Invoices() {
                   invoiceRows={invoiceRows}
                   totalFromRows={totalFromRows}
                   paidAmount={paidAmountForm}
+                  verificationToken={verificationTokenForm}
                   settings={invoiceSettings}
                 />
               )}

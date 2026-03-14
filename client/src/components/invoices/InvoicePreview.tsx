@@ -1,4 +1,5 @@
-import React, { Fragment } from "react";
+import React, { useState, useEffect, Fragment } from "react";
+import QRCode from "qrcode";
 import { format } from "date-fns";
 import type { InvoiceSettingsType, PaymentDetailLine } from "./InvoiceSettingsForm";
 
@@ -18,6 +19,7 @@ type InvoicePreviewProps = {
     invoiceRows: any[];
     totalFromRows: number;
     paidAmount?: string | number;
+    verificationToken?: string;
     settings: InvoiceSettingsType;
 };
 
@@ -36,9 +38,27 @@ export function InvoicePreview({
     contractEndDate,
     invoiceRows,
     totalFromRows,
-    paidAmount = 0,
+    paidAmount = "0",
+    verificationToken,
     settings,
 }: InvoicePreviewProps) {
+    const [qrDataUri, setQrDataUri] = useState<string>("");
+
+    useEffect(() => {
+        if (verificationToken) {
+            const qrUrl = `${window.location.origin}/verify-invoice/${verificationToken}`;
+            QRCode.toDataURL(qrUrl, {
+                margin: 0,
+                width: 100,
+                color: {
+                    dark: "#0f172a",
+                    light: "#ffffff00"
+                }
+            }).then(setQrDataUri).catch(console.error);
+        } else {
+            setQrDataUri("");
+        }
+    }, [verificationToken]);
     const t = (key: string) => {
         const T: Record<string, Record<string, string>> = {
             officialInvoice: { uz: "RASMIY HISOB-FAKTURA", en: "OFFICIAL INVOICE", ru: "ОФИЦИАЛЬНЫЙ СЧЁТ" },
@@ -350,6 +370,16 @@ export function InvoicePreview({
                             <span className="text-[7px] mt-1 font-mono opacity-50">{invoiceNum}</span>
                         </div>
                     </div>
+
+                    {qrDataUri && (
+                        <div className="flex flex-col items-center">
+                            <img src={qrDataUri} alt="QR Code" className="w-16 h-16" />
+                            <span className="text-[7px] font-black uppercase text-slate-400 mt-1 tracking-widest text-center">
+                                {language === 'uz' ? 'Haqiqiyligini tekshirish' : language === 'en' ? 'Verify Authenticity' : 'Проверить подлинность'}
+                            </span>
+                        </div>
+                    )}
+
                     <div className="text-right space-y-2">
                         <div className="relative inline-block">
                             <img src="/imzo.PNG" alt="Signature" className="h-14 w-auto mix-blend-multiply opacity-90" />

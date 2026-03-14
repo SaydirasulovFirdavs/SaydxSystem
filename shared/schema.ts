@@ -150,6 +150,7 @@ export const invoices = pgTable("invoices", {
   dueDate: timestamp("due_date").notNull(),
   pdfUrl: text("pdf_url"),
   paidAmount: numeric("paid_amount").default("0").notNull(),
+  verificationToken: text("verification_token").unique().notNull(),
   paymentTerms: text("payment_terms"),
   clientName: text("client_name"),
   company: text("company"),
@@ -314,7 +315,12 @@ export const insertTimeEntrySchema = createInsertSchema(timeEntries).omit({ id: 
 export const insertTransactionSchema = createInsertSchema(transactions)
   .omit({ id: true })
   .extend({ date: z.coerce.date().optional() });
-export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true });
+export const insertInvoiceSchema = createInsertSchema(invoices, {
+  dueDate: z.coerce.date(),
+  amount: z.string(),
+  paidAmount: z.string(),
+  verificationToken: z.string().optional(),
+}).omit({ id: true, createdAt: true });
 export const insertInvoiceItemSchema = createInsertSchema(invoiceItems).omit({ id: true, createdAt: true });
 export const insertSalarySchema = createInsertSchema(salaries).omit({ id: true, createdAt: true });
 export const insertContractSchema = createInsertSchema(contracts)

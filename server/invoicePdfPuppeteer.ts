@@ -12,6 +12,7 @@ export type InvoiceForPdf = {
   createdAt: Date;
   projectId: number;
   paidAmount?: string;
+  verificationToken: string;
 };
 
 export type InvoiceItemForPdf = {
@@ -42,6 +43,8 @@ export type InvoiceSettingsForPdf = {
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { format } from "date-fns";
+import QRCode from "qrcode";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const UPLOAD_DIR = path.join(__dirname, "..", "uploads", "invoices");
@@ -154,7 +157,8 @@ function buildInvoiceHtml(
   project: ProjectForPdf,
   settings: InvoiceSettingsForPdf,
   baseUrl: string,
-  lang: Lang = "uz"
+  lang: Lang = "uz",
+  qrCodeDataUri: string
 ) {
   const s = getSettings(settings, lang);
   const dateStr = (d: string | Date | null) => {
@@ -281,6 +285,36 @@ function buildInvoiceHtml(
     .header-accent { position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: rgba(255,255,255,0.05); border-radius: 50%; transform: translate(50%, -50%); }
 
     .content { padding: 30px 0; }
+    .footer-auth {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #f1f5f9;
+        position: relative;
+      }
+      .qr-code-box {
+        position: absolute;
+        left: 50%;
+        bottom: 10px;
+        transform: translateX(-50%);
+        text-align: center;
+      }
+      .qr-code-img {
+        width: 80px;
+        height: 80px;
+        display: block;
+        margin: 0 auto;
+      }
+      .qr-help-text {
+        font-size: 7px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-top: 4px;
+      }
     .dates-row { 
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 30px;
@@ -479,6 +513,12 @@ function buildInvoiceHtml(
           </div>
           <div style="font-size: 8px; font-weight: 700; margin-top: 8px; opacity: 0.8; letter-spacing: 0.02em;">${esc(invoice.invoiceNumber)}</div>
         </div>
+        
+        <div class="qr-code-box">
+          <img src="${qrCodeDataUri}" class="qr-code-img" alt="QR Code">
+          <div class="qr-help-text">${lang === 'uz' ? 'Haqiqiyligini tekshirish' : lang === 'en' ? 'Verify Authenticity' : 'Проверить подлинность'}</div>
+        </div>
+
         <div class="signature-area">
           <img src="${esc(imzoUrl)}" class="signature-img" alt="Signature">
           <p class="signatory-name">${esc(s.authorizedName)}</p>
@@ -523,7 +563,17 @@ export async function generateInvoicePdfPuppeteer(
     }
   } catch (e) { }
 
-  const html = buildInvoiceHtml(invoice, items, project, settings, baseUrl, lang);
+  const qrUrl = `https://saydxsystem-production.up.railway.app/verify-invoice/${invoice.verificationToken}`;
+  const qrCodeDataUri = await QRCode.toDataURL(qrUrl, {
+    margin: 0,
+    width: 100,
+    color: {
+      dark: "#0f172a",
+      light: "#ffffff00"
+    }
+  });
+
+  const html = buildInvoiceHtml(invoice, items, project, settings, baseUrl, lang, qrCodeDataUri);
 
   const puppeteer = await import("puppeteer");
   const browser = await puppeteer.default.launch({

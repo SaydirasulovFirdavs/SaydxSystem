@@ -76,6 +76,29 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
         }
     });
 
+    app.get("/api/public/verify-invoice/:token", async (req, res) => {
+        try {
+            const invoice = await storage.getInvoiceByToken(req.params.token);
+            if (!invoice) return res.status(404).json({ message: "Hisob-faktura topilmadi yoki belgi noto'g'ri." });
+
+            res.json({
+                invoice: {
+                    invoiceNumber: invoice.invoiceNumber,
+                    clientName: invoice.clientName,
+                    amount: invoice.amount,
+                    currency: invoice.currency,
+                    dueDate: invoice.dueDate,
+                    status: invoice.status,
+                    company: invoice.company,
+                    createdAt: invoice.createdAt
+                }
+            });
+        } catch (err) {
+            console.error("Public verify invoice error:", err);
+            res.status(500).json({ message: "Ichki server xatosi" });
+        }
+    });
+
     app.post(api.invoices.create.path, isAuthenticated, async (req, res) => {
         try {
             const input = api.invoices.create.input.extend({
@@ -301,6 +324,7 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
                     currency: invoice.currency,
                     status: invoice.status ?? undefined,
                     paidAmount: invoice.paidAmount,
+                    verificationToken: invoice.verificationToken,
                     paymentTerms: invoice.paymentTerms ?? undefined,
                     clientName: invoice.clientName ?? undefined,
                     company: invoice.company ?? undefined,

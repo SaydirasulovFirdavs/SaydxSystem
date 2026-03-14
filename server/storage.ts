@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { eq, desc, sql, and, gte, lte, like } from "drizzle-orm";
+import { randomBytes } from "crypto";
 import {
   clients, companies, projects, tasks, timeEntries, transactions, invoices, invoiceItems, invoiceSettings, financeSettings, users,
   type Client, type InsertClient,
@@ -52,6 +53,7 @@ export interface IStorage {
   getInvoices(): Promise<Invoice[]>;
   getInvoice(id: number): Promise<Invoice | undefined>;
   getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined>;
+  getInvoiceByToken(token: string): Promise<Invoice | undefined>;
   getNextInvoiceNumber(): Promise<string>;
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
   updateInvoice(id: number, updates: { status?: string; amount?: string }): Promise<Invoice | undefined>;
@@ -257,7 +259,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
-    const rows = await db.insert(invoices).values(invoice).returning();
+    const token = randomBytes(16).toString("hex");
+    const rows = await db.insert(invoices).values({ ...invoice, verificationToken: token }).returning();
     const newInvoice = rows[0];
     if (!newInvoice) throw new Error("Failed to create invoice");
     return newInvoice;
@@ -273,6 +276,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(invoices)
       .where(eq(invoices.invoiceNumber, invoiceNumber));
+    return invoice;
+  }
+
+  async getInvoiceByToken(token: string): Promise<Invoice | undefined> {
+    const [invoice] = await db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.verificationToken, token));
     return invoice;
   }
 
