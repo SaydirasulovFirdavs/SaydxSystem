@@ -22,6 +22,40 @@ async function checkAndFixSchema() {
       console.log("All columns already exist.");
     }
 
+    // Check for contracts table columns
+    const checkContractsResult = await db.execute(sql`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'contracts' AND column_name IN (
+        'verification_token', 'work_method', 'advance_payment', 
+        'remaining_amount', 'contract_type', 'technical_assignment_url',
+        'assigned_employee_id', 'payment_type', 'pdf_url'
+      );
+    `);
+
+    const existingContractColumns = checkContractsResult.rows.map((r: any) => r.column_name);
+    console.log("Existing columns in 'contracts':", JSON.stringify(existingContractColumns));
+
+    const contractUpdates = [
+      { name: "verification_token", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS verification_token TEXT` },
+      { name: "work_method", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS work_method TEXT DEFAULT 'offline'` },
+      { name: "advance_payment", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS advance_payment NUMERIC DEFAULT '0'` },
+      { name: "remaining_amount", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS remaining_amount NUMERIC DEFAULT '0'` },
+      { name: "contract_type", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS contract_type TEXT` },
+      { name: "technical_assignment_url", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS technical_assignment_url TEXT` },
+      { name: "assigned_employee_id", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS assigned_employee_id VARCHAR REFERENCES users(id)` },
+      { name: "payment_type", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS payment_type TEXT` },
+      { name: "pdf_url", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS pdf_url TEXT` },
+    ];
+
+    for (const update of contractUpdates) {
+      if (!existingContractColumns.includes(update.name)) {
+        console.log(`Adding missing column '${update.name}' to 'contracts'...`);
+        await db.execute(update.sql);
+        console.log(`Column '${update.name}' added successfully!`);
+      }
+    }
+
   } catch (err) {
     console.error("Database operation failed:", err);
   }
