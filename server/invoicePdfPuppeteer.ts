@@ -500,9 +500,21 @@ function buildInvoiceHtml(
             <span>-${formatAmount(Number(invoice.paidAmount), currency)}</span>
           </div>
           ` : ''}
+          ${Number(invoice.vatRate || 0) > 0 ? `
+          <div class="total-line" style="color: #059669; font-weight: 700;">
+            <span>QQS (${invoice.vatRate}%):</span>
+            <span>+${formatAmount(totalAmount * (Number(invoice.vatRate) / 100), currency)}</span>
+          </div>
+          ` : ''}
+          ${Number(invoice.discountRate || 0) > 0 ? `
+          <div class="total-line" style="color: #dc2626; font-weight: 700;">
+            <span>${lang === 'uz' ? "Chegirma" : lang === 'en' ? "Discount" : "Скидка"} (${invoice.discountRate}%):</span>
+            <span>-${formatAmount(totalAmount * (Number(invoice.discountRate) / 100), currency)}</span>
+          </div>
+          ` : ''}
           <div class="grand-total-row">
             <span class="grand-label">${t('grandTotal', lang)}</span>
-            <span class="grand-value">${formatAmount(Math.max(0, totalAmount - Number(invoice.paidAmount || 0)), currency)}</span>
+            <span class="grand-value">${formatAmount(Math.max(0, totalAmount + (totalAmount * (Number(invoice.vatRate || 0) / 100)) - (totalAmount * (Number(invoice.discountRate || 0) / 100)) - Number(invoice.paidAmount || 0)), currency)}</span>
           </div>
         </div>
       </div>
