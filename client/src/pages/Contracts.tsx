@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ScrollText, Plus, Trash2, Calendar, DollarSign, User, Briefcase, FileText, Globe, UserCheck, CreditCard } from "lucide-react";
+import { ScrollText, Plus, Trash2, Calendar, DollarSign, User, Briefcase, FileText, Globe, UserCheck, CreditCard, ShieldCheck, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useContracts } from "@/hooks/use-contracts";
 import { useProjects } from "@/hooks/use-projects";
@@ -24,6 +24,10 @@ export default function Contracts() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const [isOpen, setIsOpen] = useState(false);
+  const [isVerifyOpen, setIsVerifyOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [verifyNumber, setVerifyNumber] = useState("");
 
   // Form states for calculations
   const [amount, setAmount] = useState<string>("0");
@@ -96,12 +100,47 @@ export default function Contracts() {
         </div>
         
         {isAdmin && (
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90 text-background px-8 rounded-2xl font-black h-12 shadow-lg shadow-primary/20 transition-all active:scale-95">
-                <Plus className="w-5 h-5 mr-2 stroke-[3px]" /> Yangi shartnoma
-              </Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-2 p-1.5 bg-black/40 border border-white/10 rounded-2xl backdrop-blur-xl">
+             {/* Verify Dialog */}
+             <Dialog open={isVerifyOpen} onOpenChange={setIsVerifyOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 h-11 px-5 rounded-xl transition-all hover:bg-emerald-500/20">
+                  <ShieldCheck className="w-5 h-5 mr-2" /> Tekshirish
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="glass-panel border-white/10 sm:max-w-md p-0 overflow-hidden">
+                <div className="p-6 bg-slate-900 border-b border-white/10 text-center">
+                  <h2 className="text-white font-bold">Shartnomani tekshirish</h2>
+                </div>
+                <div className="p-6 space-y-4">
+                  <Input 
+                    value={verifyNumber} 
+                    onChange={e => setVerifyNumber(e.target.value.toUpperCase())} 
+                    placeholder="SH-..." 
+                    className="glass-input" 
+                  />
+                  <p className="text-white/40 text-xs text-center italic">Haqiqiylikni tekshirish uchun shartnoma raqamini kiriting.</p>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Preview Button (Placeholder) */}
+            <Button variant="ghost" onClick={() => setIsPreviewOpen(true)} className="text-blue-400 h-11 px-4 hover:bg-blue-400/10">
+              <FileText className="w-5 h-5" />
+            </Button>
+
+            {/* Settings Button (Placeholder) */}
+            <Button variant="ghost" onClick={() => setIsSettingsOpen(true)} className="text-amber-400 h-11 px-4 hover:bg-amber-400/10">
+              <Settings className="w-5 h-5" />
+            </Button>
+
+            {/* New Contract Dialog */}
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-primary hover:bg-primary/90 text-background h-11 px-8 rounded-xl font-black shadow-lg shadow-primary/20 transition-all active:scale-95">
+                  <Plus className="w-5 h-5 mr-2 stroke-[3px]" /> Yangi
+                </Button>
+              </DialogTrigger>
             <DialogContent className="glass-panel border-white/10 max-w-3xl overflow-hidden max-h-[95vh] overflow-y-auto custom-scrollbar">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
               <DialogHeader>
@@ -275,8 +314,9 @@ export default function Contracts() {
               </form>
             </DialogContent>
           </Dialog>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
 
       {contracts.length === 0 ? (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-panel rounded-[3rem] p-16 border border-white/5 text-center relative overflow-hidden group">
