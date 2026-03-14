@@ -1,7 +1,7 @@
 import "dotenv/config";
 import fs from "fs";
 fs.appendFileSync("server_startup.log", `[${new Date().toISOString()}] server/index.ts is starting... TEST RESTART AGAIN\n`);
-// TRIGGER RESTART 12:55
+// TRIGGER RESTART 20:32 (Force rebuild for DB sync fix)
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
