@@ -253,6 +253,7 @@ export const contracts = pgTable("contracts", {
   paymentType: text("payment_type"), // To'lov turi
   pdfUrl: text("pdf_url"),
   verificationToken: text("verification_token"),
+  title: text("title"),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -340,6 +341,7 @@ export const insertContractSchema = createInsertSchema(contracts)
     technicalAssignmentUrl: z.string().optional().nullable(),
     assignedEmployeeId: z.string().optional().nullable(),
     paymentType: z.string().optional().nullable(),
+    title: z.string().optional().nullable(),
   });
 
 export const paymentDetailLineSchema = z.object({ title: z.string(), value: z.string() });

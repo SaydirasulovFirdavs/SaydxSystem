@@ -123,6 +123,7 @@ export default function Contracts() {
       assignedEmployeeId: getVal("assignedEmployeeId"),
       paymentType: getVal("paymentType"),
       description: getVal("description"),
+      title: getVal("contractType") || fd.get("contractNumber") as string,
       status: "active",
     };
 

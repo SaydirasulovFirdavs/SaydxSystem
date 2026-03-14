@@ -29,7 +29,7 @@ async function checkAndFixSchema() {
       WHERE table_name = 'contracts' AND column_name IN (
         'verification_token', 'work_method', 'advance_payment', 
         'remaining_amount', 'contract_type', 'technical_assignment_url',
-        'assigned_employee_id', 'payment_type', 'pdf_url'
+        'assigned_employee_id', 'payment_type', 'pdf_url', 'title'
       );
     `);
 
@@ -46,6 +46,7 @@ async function checkAndFixSchema() {
       { name: "assigned_employee_id", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS assigned_employee_id VARCHAR REFERENCES users(id)` },
       { name: "payment_type", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS payment_type TEXT` },
       { name: "pdf_url", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS pdf_url TEXT` },
+      { name: "title", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS title TEXT` },
     ];
 
     for (const update of contractUpdates) {
@@ -55,6 +56,11 @@ async function checkAndFixSchema() {
         console.log(`Column '${update.name}' added successfully!`);
       }
     }
+
+    // Explicitly make 'title' nullable to resolve existing constraints
+    console.log("Ensuring 'title' column in 'contracts' is nullable...");
+    await db.execute(sql`ALTER TABLE contracts ALTER COLUMN title DROP NOT NULL`);
+    console.log("'title' column adjusted.");
 
   } catch (err) {
     console.error("Database operation failed:", err);
