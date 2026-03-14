@@ -328,6 +328,8 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
                     currency: invoice.currency,
                     status: invoice.status ?? undefined,
                     paidAmount: invoice.paidAmount,
+                    vatRate: invoice.vatRate,
+                    discountRate: invoice.discountRate,
                     verificationToken: invoice.verificationToken,
                     paymentTerms: invoice.paymentTerms ?? undefined,
                     clientName: invoice.clientName ?? undefined,
