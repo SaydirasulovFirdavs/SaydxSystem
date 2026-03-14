@@ -44,6 +44,7 @@ export default function Invoices() {
   const [formCurrency, setFormCurrency] = useState<"UZS" | "USD">("UZS");
   const [statusForm, setStatusForm] = useState<"paid" | "pending" | "unpaid">("pending");
   const [languageForm, setLanguageForm] = useState<"uz" | "en" | "ru">("uz");
+  const [paidAmountForm, setPaidAmountForm] = useState<string>("0");
   const [invoiceRows, setInvoiceRows] = useState<any[]>([{ title: "", quantity: 1, paidQuantity: 1, unitPrice: "", serviceType: "row" }]);
 
   // Verification states
@@ -71,6 +72,7 @@ export default function Invoices() {
     setContractEndDateForm("");
     setStatusForm("pending");
     setLanguageForm("uz");
+    setPaidAmountForm("0");
     setInvoiceRows([{ title: "", quantity: 1, paidQuantity: 1, unitPrice: "", serviceType: "row" }]);
   }, []);
 
@@ -98,6 +100,7 @@ export default function Invoices() {
     setStatusForm(inv.status || "pending");
     setFormCurrency(inv.currency || "UZS");
     setLanguageForm(inv.language || "uz");
+    setPaidAmountForm(inv.paidAmount || "0");
 
     try {
       const res = await fetch(`/api/invoices/${inv.id}/items`, { credentials: "include" });
@@ -149,6 +152,7 @@ export default function Invoices() {
   };
 
   const totalFromRows = invoiceRows.reduce((s, r) => s + (Number(r.paidQuantity) || 1) * (Number(r.unitPrice) || 0), 0);
+  const finalTotal = Math.max(0, totalFromRows - (Number(paidAmountForm) || 0));
 
   const handleSaveInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,6 +161,7 @@ export default function Invoices() {
     const invoiceData = {
       projectId: Number(projectIdForm),
       amount: String(totalFromRows),
+      paidAmount: paidAmountForm,
       dueDate: new Date(dueDateForm),
       currency: formCurrency,
       status: statusForm,
@@ -458,14 +463,29 @@ export default function Invoices() {
                 </div>
 
                 {/* Footer total - Enhanced Typography */}
-                <div className="pt-8 mt-6 border-t border-white/10 flex justify-between items-center px-4">
-                  <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Umumiy hisob:</span>
-                  <div className="text-right flex items-baseline gap-2">
-                    <span className="text-sm font-bold text-white/30">$</span>
-                    <span className="text-3xl font-black text-white tracking-tighter leading-none">
-                      {new Intl.NumberFormat().format(totalFromRows)}
-                    </span>
-                    <span className="text-[11px] font-bold text-white/30 uppercase">{formCurrency}</span>
+                <div className="pt-8 mt-6 border-t border-white/10 space-y-4 px-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Oldindan to'lov:</span>
+                    <div className="flex items-center gap-2">
+                       <span className="text-sm font-bold text-white/30">$</span>
+                       <Input 
+                         type="number" 
+                         value={paidAmountForm} 
+                         onChange={e => setPaidAmountForm(e.target.value)}
+                         className="glass-input h-8 w-32 text-right text-sm font-bold"
+                       />
+                       <span className="text-[11px] font-bold text-white/30 uppercase">{formCurrency}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Umumiy hisob:</span>
+                    <div className="text-right flex items-baseline gap-2">
+                      <span className="text-sm font-bold text-white/30">$</span>
+                      <span className="text-3xl font-black text-white tracking-tighter leading-none">
+                        {new Intl.NumberFormat().format(finalTotal)}
+                      </span>
+                      <span className="text-[11px] font-bold text-white/30 uppercase">{formCurrency}</span>
+                    </div>
                   </div>
                 </div>
               </form>
@@ -487,6 +507,7 @@ export default function Invoices() {
                   contractEndDate={contractEndDateForm}
                   invoiceRows={invoiceRows}
                   totalFromRows={totalFromRows}
+                  paidAmount={paidAmountForm}
                   settings={invoiceSettings}
                 />
               )}

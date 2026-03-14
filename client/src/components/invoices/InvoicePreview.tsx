@@ -17,6 +17,7 @@ type InvoicePreviewProps = {
     contractEndDate?: string;
     invoiceRows: any[];
     totalFromRows: number;
+    paidAmount?: string | number;
     settings: InvoiceSettingsType;
 };
 
@@ -35,6 +36,7 @@ export function InvoicePreview({
     contractEndDate,
     invoiceRows,
     totalFromRows,
+    paidAmount = 0,
     settings,
 }: InvoicePreviewProps) {
     const t = (key: string) => {
@@ -321,9 +323,17 @@ export function InvoicePreview({
                             <span className="text-slate-400 font-bold">{t('totalServices')}</span>
                             <span className="font-black text-[#0f172a]">{new Intl.NumberFormat("uz-UZ").format(totalFromRows)} {currency}</span>
                         </div>
+                        {Number(paidAmount) > 0 && (
+                            <div className="flex justify-between text-xs text-rose-500 font-bold">
+                                <span>{language === 'uz' ? "Oldindan to'lov" : language === 'en' ? "Advance Payment" : "Аванс"}:</span>
+                                <span>-{new Intl.NumberFormat("uz-UZ").format(Number(paidAmount))} {currency}</span>
+                            </div>
+                        )}
                         <div className="pt-2 border-t border-slate-100 flex justify-between items-center">
                             <span className="text-sm font-black text-slate-400 uppercase tracking-tighter">{t('grandTotal')}</span>
-                            <span className="text-2xl font-black text-blue-600 tracking-tighter">{new Intl.NumberFormat("uz-UZ").format(totalFromRows)} {currency}</span>
+                            <span className="text-2xl font-black text-blue-600 tracking-tighter">
+                                {new Intl.NumberFormat("uz-UZ").format(Math.max(0, totalFromRows - Number(paidAmount)))} {currency}
+                            </span>
                         </div>
                     </div>
                 </div>

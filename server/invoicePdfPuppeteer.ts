@@ -11,6 +11,7 @@ export type InvoiceForPdf = {
   dueDate: Date;
   createdAt: Date;
   projectId: number;
+  paidAmount?: string;
 };
 
 export type InvoiceItemForPdf = {
@@ -457,9 +458,15 @@ function buildInvoiceHtml(
             <span style="font-weight: 700;">${t('totalServices', lang)}</span>
             <span style="font-weight: 900; color: #0f172a;">${formatAmount(totalAmount, currency)}</span>
           </div>
+          ${Number(invoice.paidAmount || 0) > 0 ? `
+          <div class="total-line" style="color: #dc2626; font-weight: 700;">
+            <span>${lang === 'uz' ? "Oldindan to'lov" : lang === 'en' ? "Advance Payment" : "Аванс"}</span>
+            <span>-${formatAmount(Number(invoice.paidAmount), currency)}</span>
+          </div>
+          ` : ''}
           <div class="grand-total-row">
             <span class="grand-label">${t('grandTotal', lang)}</span>
-            <span class="grand-value">${formatAmount(totalAmount, currency)}</span>
+            <span class="grand-value">${formatAmount(Math.max(0, totalAmount - Number(invoice.paidAmount || 0)), currency)}</span>
           </div>
         </div>
       </div>

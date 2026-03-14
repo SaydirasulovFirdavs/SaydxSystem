@@ -149,6 +149,7 @@ export const invoices = pgTable("invoices", {
   status: text("status").default("pending").notNull(), // paid | pending | unpaid — To'langan | Kutilmoqda | To'lanmadi
   dueDate: timestamp("due_date").notNull(),
   pdfUrl: text("pdf_url"),
+  paidAmount: numeric("paid_amount").default("0").notNull(),
   paymentTerms: text("payment_terms"),
   clientName: text("client_name"),
   company: text("company"),

@@ -88,6 +88,7 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
                 contractStartDate: z.union([z.string(), z.date(), z.number()]).optional().transform(v => v ? new Date(v) : undefined),
                 contractEndDate: z.union([z.string(), z.date(), z.number()]).optional().transform(v => v ? new Date(v) : undefined),
                 language: z.enum(["uz", "en", "ru"]).optional().default("uz"),
+                paidAmount: z.union([z.string(), z.number()]).optional().default("0").transform(v => String(v)),
             }).parse(req.body);
             const projectId = Number(input.projectId);
             if (!projectId || projectId < 1) {
@@ -129,6 +130,7 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
                 contractStartDate: z.union([z.string(), z.date(), z.number()]).optional().transform(v => v ? new Date(v) : undefined),
                 contractEndDate: z.union([z.string(), z.date(), z.number()]).optional().transform(v => v ? new Date(v) : undefined),
                 language: z.enum(["uz", "en", "ru"]).optional(),
+                paidAmount: z.union([z.string(), z.number()]).optional().transform(v => String(v)),
             }).parse(req.body);
 
             const updated = await storage.updateInvoice(Number(req.params.id), input);
@@ -298,6 +300,7 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
                     amount: invoice.amount,
                     currency: invoice.currency,
                     status: invoice.status ?? undefined,
+                    paidAmount: invoice.paidAmount,
                     paymentTerms: invoice.paymentTerms ?? undefined,
                     clientName: invoice.clientName ?? undefined,
                     company: invoice.company ?? undefined,
