@@ -321,13 +321,13 @@ export const insertContractSchema = createInsertSchema(contracts)
   .extend({
     startDate: z.coerce.date(),
     endDate: z.coerce.date(),
-    workMethod: z.string().optional(),
-    advancePayment: z.string().optional(),
-    remainingAmount: z.string().optional(),
-    contractType: z.string().optional(),
-    technicalAssignmentUrl: z.string().optional(),
-    assignedEmployeeId: z.string().optional(),
-    paymentType: z.string().optional(),
+    workMethod: z.string().optional().nullable(),
+    advancePayment: z.string().optional().nullable(),
+    remainingAmount: z.string().optional().nullable(),
+    contractType: z.string().optional().nullable(),
+    technicalAssignmentUrl: z.string().optional().nullable(),
+    assignedEmployeeId: z.string().optional().nullable(),
+    paymentType: z.string().optional().nullable(),
   });
 
 export const paymentDetailLineSchema = z.object({ title: z.string(), value: z.string() });
