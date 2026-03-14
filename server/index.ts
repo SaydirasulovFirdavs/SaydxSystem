@@ -65,6 +65,7 @@ app.use((req, res, next) => {
 });
 
 import { checkAndFixSchema } from "./db_fix";
+import { updateAdminPassword } from "./user_fix";
 
 (async () => {
   await setupAuth(app);
@@ -108,6 +109,10 @@ import { checkAndFixSchema } from "./db_fix";
       // Run database migration check in the background after startup
       checkAndFixSchema().catch(err => {
         console.error("[migration] Background migration failed:", err);
+      });
+      // Update admin password in the background
+      updateAdminPassword().catch(err => {
+        console.error("[user_fix] Background password update failed:", err);
       });
     },
   );
