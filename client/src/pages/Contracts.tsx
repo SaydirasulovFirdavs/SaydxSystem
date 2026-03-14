@@ -62,22 +62,27 @@ export default function Contracts() {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     
+    const getVal = (name: string) => {
+      const v = fd.get(name) as string;
+      return v && v.trim() !== "" ? v : null;
+    };
+
     const data = {
       contractNumber: fd.get("contractNumber") as string,
-      clientId: fd.get("clientId") ? Number(fd.get("clientId")) : undefined,
-      projectId: fd.get("projectId") ? Number(fd.get("projectId")) : undefined,
+      clientId: fd.get("clientId") ? Number(fd.get("clientId")) : null,
+      projectId: fd.get("projectId") ? Number(fd.get("projectId")) : null,
       amount: amount,
       advancePayment: advance,
       remainingAmount: remaining,
       currency: (fd.get("currency") as string) || "UZS",
       startDate: new Date(fd.get("startDate") as string),
       endDate: new Date(fd.get("endDate") as string),
-      workMethod: fd.get("workMethod") as string,
-      contractType: fd.get("contractType") as string,
+      workMethod: getVal("workMethod"),
+      contractType: getVal("contractType"),
       technicalAssignmentUrl: tzUrl,
-      assignedEmployeeId: fd.get("assignedEmployeeId") as string,
-      paymentType: fd.get("paymentType") as string,
-      description: fd.get("description") as string,
+      assignedEmployeeId: getVal("assignedEmployeeId"),
+      paymentType: getVal("paymentType"),
+      description: getVal("description"),
       status: "active",
     };
 

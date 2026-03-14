@@ -430,12 +430,13 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
     app.post(api.contracts.create.path, isAuthenticated, async (req, res) => {
         try {
             const input = api.contracts.create.input.extend({
-                clientId: z.coerce.number().optional().nullable(),
-                projectId: z.coerce.number().optional().nullable(),
+                clientId: z.preprocess(v => v === "" ? null : v, z.coerce.number().optional().nullable()),
+                projectId: z.preprocess(v => v === "" ? null : v, z.coerce.number().optional().nullable()),
                 amount: z.union([z.string(), z.number()]).transform(v => String(v)),
                 startDate: z.union([z.string(), z.date(), z.number()]).transform(v => new Date(v)),
                 endDate: z.union([z.string(), z.date(), z.number()]).transform(v => new Date(v)),
-                technicalAssignmentUrl: z.string().optional().nullable(),
+                technicalAssignmentUrl: z.preprocess(v => v === "" ? null : v, z.string().optional().nullable()),
+                assignedEmployeeId: z.preprocess(v => v === "" ? null : v, z.string().optional().nullable()),
             }).parse(req.body);
             const contract = await storage.createContract(input);
             res.status(201).json(contract);
