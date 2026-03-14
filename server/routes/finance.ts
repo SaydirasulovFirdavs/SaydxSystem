@@ -155,9 +155,9 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
                 contractStartDate: z.union([z.string(), z.date(), z.number()]).optional().transform(v => v ? new Date(v) : undefined),
                 contractEndDate: z.union([z.string(), z.date(), z.number()]).optional().transform(v => v ? new Date(v) : undefined),
                 language: z.enum(["uz", "en", "ru"]).optional(),
-                paidAmount: z.union([z.string(), z.number()]).optional().transform(v => String(v)),
-                vatRate: z.union([z.string(), z.number()]).optional().transform(v => String(v)),
-                discountRate: z.union([z.string(), z.number()]).optional().transform(v => String(v)),
+                paidAmount: z.union([z.string(), z.number()]).optional().transform(v => v !== undefined ? String(v) : undefined),
+                vatRate: z.union([z.string(), z.number()]).optional().transform(v => v !== undefined ? String(v) : undefined),
+                discountRate: z.union([z.string(), z.number()]).optional().transform(v => v !== undefined ? String(v) : undefined),
             }).parse(req.body);
 
             const updated = await storage.updateInvoice(Number(req.params.id), input);
