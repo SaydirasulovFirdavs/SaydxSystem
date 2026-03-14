@@ -163,6 +163,8 @@ export const invoices = pgTable("invoices", {
   contractEndDate: timestamp("contract_end_date"),
   /** PDF til: uz | en | ru */
   language: text("language").default("uz"),
+  vatRate: numeric("vat_rate").default("0").notNull(),
+  discountRate: numeric("discount_rate").default("0").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -320,6 +322,8 @@ export const insertInvoiceSchema = createInsertSchema(invoices, {
   amount: z.string(),
   paidAmount: z.string(),
   verificationToken: z.string().optional(),
+  vatRate: z.string().optional(),
+  discountRate: z.string().optional(),
 }).omit({ id: true, createdAt: true });
 export const insertInvoiceItemSchema = createInsertSchema(invoiceItems).omit({ id: true, createdAt: true });
 export const insertSalarySchema = createInsertSchema(salaries).omit({ id: true, createdAt: true });

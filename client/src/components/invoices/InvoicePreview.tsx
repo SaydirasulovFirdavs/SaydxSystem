@@ -19,6 +19,8 @@ type InvoicePreviewProps = {
     invoiceRows: any[];
     totalFromRows: number;
     paidAmount?: string | number;
+    vatRate?: string | number;
+    discountRate?: string | number;
     verificationToken?: string;
     settings: InvoiceSettingsType;
 };
@@ -39,6 +41,8 @@ export function InvoicePreview({
     invoiceRows,
     totalFromRows,
     paidAmount = "0",
+    vatRate = "0",
+    discountRate = "0",
     verificationToken,
     settings,
 }: InvoicePreviewProps) {
@@ -349,10 +353,22 @@ export function InvoicePreview({
                                 <span>-{new Intl.NumberFormat("uz-UZ").format(Number(paidAmount))} {currency}</span>
                             </div>
                         )}
+                        {Number(vatRate) > 0 && (
+                            <div className="flex justify-between text-xs text-emerald-600 font-bold">
+                                <span>QQS ({vatRate}%):</span>
+                                <span>+{new Intl.NumberFormat("uz-UZ").format(totalFromRows * (Number(vatRate) / 100))} {currency}</span>
+                            </div>
+                        )}
+                        {Number(discountRate) > 0 && (
+                            <div className="flex justify-between text-xs text-rose-500 font-bold">
+                                <span>{language === 'uz' ? "Chegirma" : language === 'en' ? "Discount" : "Скидка"} ({discountRate}%):</span>
+                                <span>-{new Intl.NumberFormat("uz-UZ").format(totalFromRows * (Number(discountRate) / 100))} {currency}</span>
+                            </div>
+                        )}
                         <div className="pt-2 border-t border-slate-100 flex justify-between items-center">
                             <span className="text-sm font-black text-slate-400 uppercase tracking-tighter">{t('grandTotal')}</span>
                             <span className="text-2xl font-black text-blue-600 tracking-tighter">
-                                {new Intl.NumberFormat("uz-UZ").format(Math.max(0, totalFromRows - Number(paidAmount)))} {currency}
+                                {new Intl.NumberFormat("uz-UZ").format(Math.max(0, totalFromRows + (totalFromRows * (Number(vatRate) / 100)) - (totalFromRows * (Number(discountRate) / 100)) - Number(paidAmount)))} {currency}
                             </span>
                         </div>
                     </div>

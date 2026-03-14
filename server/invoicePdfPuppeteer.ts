@@ -12,6 +12,8 @@ export type InvoiceForPdf = {
   createdAt: Date;
   projectId: number;
   paidAmount?: string;
+  vatRate?: string;
+  discountRate?: string;
   verificationToken: string;
 };
 

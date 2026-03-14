@@ -45,6 +45,8 @@ export default function Invoices() {
   const [statusForm, setStatusForm] = useState<"paid" | "pending" | "unpaid">("pending");
   const [languageForm, setLanguageForm] = useState<"uz" | "en" | "ru">("uz");
   const [paidAmountForm, setPaidAmountForm] = useState<string>("0");
+  const [vatRateForm, setVatRateForm] = useState<string>("0");
+  const [discountRateForm, setDiscountRateForm] = useState<string>("0");
   const [verificationTokenForm, setVerificationTokenForm] = useState<string>("");
   const [invoiceRows, setInvoiceRows] = useState<any[]>([{ title: "", quantity: 1, paidQuantity: 1, unitPrice: "", serviceType: "row" }]);
 
@@ -74,6 +76,8 @@ export default function Invoices() {
     setStatusForm("pending");
     setLanguageForm("uz");
     setPaidAmountForm("0");
+    setVatRateForm("0");
+    setDiscountRateForm("0");
     setVerificationTokenForm("");
     setInvoiceRows([{ title: "", quantity: 1, paidQuantity: 1, unitPrice: "", serviceType: "row" }]);
   }, []);
@@ -109,6 +113,8 @@ export default function Invoices() {
     setFormCurrency(inv.currency || "UZS");
     setLanguageForm(inv.language || "uz");
     setPaidAmountForm(inv.paidAmount || "0");
+    setVatRateForm(inv.vatRate || "0");
+    setDiscountRateForm(inv.discountRate || "0");
     setVerificationTokenForm(inv.verificationToken || "");
 
     try {
@@ -161,7 +167,9 @@ export default function Invoices() {
   };
 
   const totalFromRows = invoiceRows.reduce((s, r) => s + (Number(r.paidQuantity) || 1) * (Number(r.unitPrice) || 0), 0);
-  const finalTotal = Math.max(0, totalFromRows - (Number(paidAmountForm) || 0));
+  const vatAmount = totalFromRows * (Number(vatRateForm) / 100);
+  const discountAmount = totalFromRows * (Number(discountRateForm) / 100);
+  const finalTotal = Math.max(0, totalFromRows + vatAmount - discountAmount - (Number(paidAmountForm) || 0));
 
   const handleSaveInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,6 +191,8 @@ export default function Invoices() {
       contractEndDate: contractEndDateForm ? new Date(contractEndDateForm) : undefined,
       language: languageForm,
       verificationToken: verificationTokenForm || undefined,
+      vatRate: vatRateForm,
+      discountRate: discountRateForm,
     };
 
     try {
@@ -487,6 +497,32 @@ export default function Invoices() {
                        <span className="text-[11px] font-bold text-white/30 uppercase">{formCurrency}</span>
                     </div>
                   </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-emerald-400/60 uppercase tracking-[0.3em]">QQS (Qo'shimcha qiymat solig'i) %:</span>
+                    <div className="flex items-center gap-2">
+                       <Input 
+                         type="number" 
+                         value={vatRateForm} 
+                         onChange={e => setVatRateForm(e.target.value)}
+                         className="glass-input h-8 w-16 text-center text-sm font-bold border-emerald-500/20 bg-emerald-500/5 text-emerald-400"
+                       />
+                       <span className="text-[11px] font-bold text-emerald-400/40 uppercase">%</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-rose-400/60 uppercase tracking-[0.3em]">Chegirma (Discount) %:</span>
+                    <div className="flex items-center gap-2">
+                       <Input 
+                         type="number" 
+                         value={discountRateForm} 
+                         onChange={e => setDiscountRateForm(e.target.value)}
+                         className="glass-input h-8 w-16 text-center text-sm font-bold border-rose-500/20 bg-rose-500/5 text-rose-400"
+                       />
+                       <span className="text-[11px] font-bold text-rose-400/40 uppercase">%</span>
+                    </div>
+                  </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Umumiy hisob:</span>
                     <div className="text-right flex items-baseline gap-2">
@@ -518,6 +554,8 @@ export default function Invoices() {
                   invoiceRows={invoiceRows}
                   totalFromRows={totalFromRows}
                   paidAmount={paidAmountForm}
+                  vatRate={vatRateForm}
+                  discountRate={discountRateForm}
                   verificationToken={verificationTokenForm}
                   settings={invoiceSettings}
                 />
