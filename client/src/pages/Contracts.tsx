@@ -62,7 +62,7 @@ export default function Contracts() {
     setIsVerifying(true);
     setVerifiedContract(null);
     try {
-      const res = await fetch(`/api/contracts/verify/${verifyNumber}`);
+      const res = await fetch(`/api/contracts/verify/${encodeURIComponent(verifyNumber)}`);
       const data = await res.json();
       if (data.notFound) {
         setVerifiedContract({ notFound: true });

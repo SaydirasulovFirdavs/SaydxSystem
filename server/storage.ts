@@ -468,14 +468,42 @@ export class DatabaseStorage implements IStorage {
     return row;
   }
 
-  async getContractByNumber(contractNumber: string): Promise<Contract | undefined> {
-    const [row] = await db.select().from(contracts).where(eq(contracts.contractNumber, contractNumber));
-    return row;
+  async getContractByNumber(contractNumber: string): Promise<any> {
+    const [row] = await db
+      .select({
+        contract: contracts,
+        client: clients,
+      })
+      .from(contracts)
+      .leftJoin(clients, eq(contracts.clientId, clients.id))
+      .where(eq(contracts.contractNumber, contractNumber));
+    
+    if (!row) return undefined;
+    
+    return {
+      ...row.contract,
+      clientName: row.client?.name,
+      company: row.client?.company,
+    };
   }
 
-  async getContractByToken(token: string): Promise<Contract | undefined> {
-    const [row] = await db.select().from(contracts).where(eq(contracts.verificationToken, token));
-    return row;
+  async getContractByToken(token: string): Promise<any> {
+    const [row] = await db
+      .select({
+        contract: contracts,
+        client: clients,
+      })
+      .from(contracts)
+      .leftJoin(clients, eq(contracts.clientId, clients.id))
+      .where(eq(contracts.verificationToken, token));
+    
+    if (!row) return undefined;
+    
+    return {
+      ...row.contract,
+      clientName: row.client?.name,
+      company: row.client?.company,
+    };
   }
 
   async updateContract(id: number, updates: Partial<InsertContract>): Promise<Contract | undefined> {

@@ -579,6 +579,7 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
             res.json({
                 contract: {
                     contractNumber: contract.contractNumber,
+                    clientName: contract.clientName,
                     amount: contract.amount,
                     currency: contract.currency,
                     status: contract.status,
@@ -599,6 +600,7 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
             res.json({
                 contract: {
                     contractNumber: contract.contractNumber,
+                    clientName: contract.clientName,
                     amount: contract.amount,
                     currency: contract.currency,
                     startDate: contract.startDate,
