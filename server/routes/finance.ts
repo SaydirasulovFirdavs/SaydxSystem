@@ -433,8 +433,16 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
                 clientId: z.preprocess(v => v === "" ? null : v, z.coerce.number().optional().nullable()),
                 projectId: z.preprocess(v => v === "" ? null : v, z.coerce.number().optional().nullable()),
                 amount: z.union([z.string(), z.number()]).transform(v => String(v)),
-                startDate: z.union([z.string(), z.date(), z.number()]).transform(v => new Date(v)),
-                endDate: z.union([z.string(), z.date(), z.number()]).transform(v => new Date(v)),
+                startDate: z.union([z.string(), z.date(), z.number()]).transform(v => {
+                    const d = new Date(v);
+                    if (isNaN(d.getTime())) throw new Error("Yaroqsiz boshlanish sanasi");
+                    return d;
+                }),
+                endDate: z.union([z.string(), z.date(), z.number()]).transform(v => {
+                    const d = new Date(v);
+                    if (isNaN(d.getTime())) throw new Error("Yaroqsiz tugash sanasi");
+                    return d;
+                }),
                 technicalAssignmentUrl: z.preprocess(v => v === "" ? null : v, z.string().optional().nullable()),
                 assignedEmployeeId: z.preprocess(v => v === "" ? null : v, z.string().optional().nullable()),
             }).parse(req.body);
@@ -445,7 +453,7 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
                 return res.status(400).json({ message: err.errors[0].message, field: err.errors[0].path.join('.') });
             }
             console.error("Create contract error:", err);
-            res.status(500).json({ message: "Failed to create contract" });
+            res.status(500).json({ message: err instanceof Error ? err.message : "Failed to create contract" });
         }
     });
 
