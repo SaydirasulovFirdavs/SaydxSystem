@@ -4,6 +4,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import path from "path";
 import { generateInvoicePdfPuppeteer, getInvoicePdfPath } from "../invoicePdfPuppeteer";
+import { generateContractPdfPuppeteer, getContractPdfPath } from "../contractPdfPuppeteer";
 import { getUsdToUzsRate } from "../currencyRate";
 
 export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmin: any) {
@@ -455,6 +456,42 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
             res.status(204).end();
         } catch (err) {
             res.status(500).json({ message: "Failed to delete contract" });
+        }
+    });
+
+    app.post("/api/contracts/:id/generate-pdf", isAuthenticated, async (req, res) => {
+        try {
+            const id = Number(req.params.id);
+            const contract = await storage.getContract(id);
+            if (!contract) return res.status(404).json({ message: "Contract not found" });
+
+            const settings = await storage.getInvoiceSettings();
+            const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host") || "localhost:5000"}`;
+
+            const url = await generateContractPdfPuppeteer(contract, settings, baseUrl);
+            await storage.updateContract(id, { pdfUrl: url });
+            res.json({ url });
+        } catch (err) {
+            console.error("Contract PDF generation failed:", err);
+            res.status(500).json({ message: "Shartnoma PDF yaratishda xato" });
+        }
+    });
+
+    app.get("/api/contracts/:id/pdf", isAuthenticated, async (req, res) => {
+        try {
+            const id = Number(req.params.id);
+            const contract = await storage.getContract(id);
+            if (!contract) return res.status(404).json({ message: "Contract not found" });
+
+            const filePath = getContractPdfPath(id);
+            if (!filePath) return res.status(404).json({ message: "PDF topilmadi" });
+
+            const downloadName = `SHARTNOMA-${contract.contractNumber.replace(/\s/g, "-")}.pdf`;
+            res.setHeader("Content-Type", "application/pdf");
+            res.setHeader("Content-Disposition", `attachment; filename="${downloadName}"`);
+            res.sendFile(path.resolve(filePath));
+        } catch (err) {
+            res.status(500).json({ message: "PDF yuklanmadi" });
         }
     });
 }

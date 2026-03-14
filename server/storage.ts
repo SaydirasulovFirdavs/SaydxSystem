@@ -412,6 +412,11 @@ export class DatabaseStorage implements IStorage {
     return row;
   }
 
+  async updateContract(id: number, updates: Partial<InsertContract> & { pdfUrl?: string }): Promise<Contract | undefined> {
+    const [row] = await db.update(contracts).set(updates).where(eq(contracts.id, id)).returning();
+    return row;
+  }
+
   async deleteContract(id: number): Promise<void> {
     await db.delete(contracts).where(eq(contracts.id, id));
   }

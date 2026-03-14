@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ScrollText, Plus, Trash2, Calendar, DollarSign, User, Briefcase, FileText, Globe, UserCheck, CreditCard, ShieldCheck, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 import { useContracts } from "@/hooks/use-contracts";
 import { useProjects } from "@/hooks/use-projects";
 import { useClients } from "@/hooks/use-clients";
@@ -17,6 +18,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { useUpload } from "@/hooks/use-upload";
 import { ObjectUploader } from "@/components/ObjectUploader";
+import { ContractPreview } from "@/components/contracts/ContractPreview";
 
 export default function Contracts() {
   const { contracts, isLoading, createContract, deleteContract } = useContracts();
@@ -30,6 +32,8 @@ export default function Contracts() {
   const [isVerifyOpen, setIsVerifyOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [selectedContractForPreview, setSelectedContractForPreview] = useState<any>(null);
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [verifyNumber, setVerifyNumber] = useState("");
 
   const { data: invoiceSettings } = useQuery({
@@ -85,6 +89,30 @@ export default function Contracts() {
       setTzUrl(null);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleDownloadPdf = async (contract: any) => {
+    setIsPdfLoading(true);
+    try {
+      const response = await fetch(`/api/contracts/${contract.id}/generate-pdf`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("PDF error");
+      const { url } = await response.json();
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.download = `SHARTNOMA-${contract.contractNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      alert("PDF yuklanmadi");
+    } finally {
+      setIsPdfLoading(false);
     }
   };
 
@@ -387,11 +415,24 @@ export default function Contracts() {
                       {clients?.find(c => c.id === contract.clientId)?.name || "Noma'lum Mijoz"}
                     </h3>
                   </div>
-                  {isAdmin && (
-                    <button onClick={() => handleDelete(contract.id)} className="p-2.5 rounded-xl bg-white/5 text-white/20 hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => {
+                        setSelectedContractForPreview(contract);
+                        setIsPreviewOpen(true);
+                      }}
+                      className="h-9 w-9 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10"
+                    >
+                      <FileText className="w-4.5 h-4.5" />
+                    </Button>
+                    {isAdmin && (
+                      <button onClick={() => handleDelete(contract.id)} className="p-2.5 rounded-xl bg-white/5 text-white/20 hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-4 mb-8">
@@ -489,6 +530,34 @@ export default function Contracts() {
           </AnimatePresence>
         </div>
       )}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="glass-panel border-white/10 w-[90vw] max-w-5xl max-h-[90vh] overflow-y-auto p-0">
+          <div className="sticky top-0 z-50 bg-slate-900 border-b border-white/10 p-4 flex justify-between items-center">
+            <h2 className="text-white font-black uppercase tracking-widest text-sm flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary" />
+              Shartnoma Preview
+            </h2>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => selectedContractForPreview && handleDownloadPdf(selectedContractForPreview)} 
+                disabled={isPdfLoading}
+                className="bg-secondary text-white font-bold h-9 px-4 rounded-lg flex items-center gap-2"
+              >
+                {isPdfLoading ? <LoadingSpinner /> : <><Download className="w-4 h-4" /> PDF Yuklash</>}
+              </Button>
+            </div>
+          </div>
+          <div className="p-8 bg-slate-100/10">
+            {selectedContractForPreview && (
+              <ContractPreview 
+                contract={selectedContractForPreview} 
+                settings={invoiceSettings}
+                client={clients?.find(c => c.id === selectedContractForPreview.clientId)}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

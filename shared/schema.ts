@@ -247,6 +247,7 @@ export const contracts = pgTable("contracts", {
   technicalAssignmentUrl: text("technical_assignment_url"), // TZ fayl manzili
   assignedEmployeeId: varchar("assigned_employee_id").references(() => users.id),
   paymentType: text("payment_type"), // To'lov turi
+  pdfUrl: text("pdf_url"),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
