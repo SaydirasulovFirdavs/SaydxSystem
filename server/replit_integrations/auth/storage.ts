@@ -12,6 +12,7 @@ export interface IAuthStorage {
   getEmployees(): Promise<User[]>;
   createEmployee(username: string, passwordHash: string, firstName?: string, lastName?: string, companyRole?: string): Promise<User>;
   updateEmployee(id: string, updates: Partial<User>): Promise<User>;
+  deleteEmployee(id: string): Promise<void>;
 }
 
 class AuthStorage implements IAuthStorage {
@@ -71,6 +72,10 @@ class AuthStorage implements IAuthStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  async deleteEmployee(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {

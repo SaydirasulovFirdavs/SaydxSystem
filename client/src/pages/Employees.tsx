@@ -219,12 +219,17 @@ export default function Employees() {
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 rounded-full bg-black/40 text-blue-400 hover:text-white hover:bg-blue-500/80 mr-1 backdrop-blur-md"
-                                    onClick={() => handleEditClick(emp)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        handleEditClick(emp);
+                                    }}
                                     title="Tahrirlash"
                                 >
                                     <Edit className="w-3.5 h-3.5" />
                                 </Button>
-                                <AlertDialog>
+                                <div onClick={(e) => e.stopPropagation()}>
+                                    <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button
                                             variant="ghost"
@@ -256,6 +261,7 @@ export default function Employees() {
                                         </AlertDialogFooter>
                                     </AlertDialogContent>
                                 </AlertDialog>
+                                </div>
                             </div>
 
                             <div className="relative z-0 p-6 flex flex-col items-center text-center h-full pointer-events-none">

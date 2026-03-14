@@ -65,9 +65,21 @@ export async function registerEmployeeRoutes(app: Express, isAuthenticated: any,
             }
 
             const updatedUser = await authStorage.updateEmployee(req.params.id as string, updates);
+            if (!updatedUser) return res.status(404).json({ message: "Xodim topilmadi" });
             res.json({ id: updatedUser.id, username: updatedUser.username, firstName: updatedUser.firstName, lastName: updatedUser.lastName, role: updatedUser.role, companyRole: updatedUser.companyRole });
         } catch (err) {
             res.status(500).json({ message: "Xodim tahrirlashda xato" });
+        }
+    });
+
+    app.delete("/api/employees/:id", isAuthenticated, async (req, res) => {
+        try {
+            if ((req.user as any)?.role !== "admin") return res.status(403).json({ message: "Faqat admin o'chira oladi" });
+            const { authStorage } = await import("../replit_integrations/auth/storage");
+            await authStorage.deleteEmployee(req.params.id as string);
+            res.status(204).send();
+        } catch (err) {
+            res.status(500).json({ message: "Xodim o'chirishda xato" });
         }
     });
 
