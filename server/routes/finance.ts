@@ -7,7 +7,18 @@ import { generateInvoicePdfPuppeteer, getInvoicePdfPath } from "../invoicePdfPup
 import { generateContractPdfPuppeteer, getContractPdfPath } from "../contractPdfPuppeteer";
 import { getUsdToUzsRate } from "../currencyRate";
 
+import { checkAndFixSchema } from "../db_fix";
+
 export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmin: any) {
+    app.get("/api/debug/db-fix", async (_req, res) => {
+        try {
+            await checkAndFixSchema();
+            res.json({ message: "Schema check/fix completed. Check server logs for details." });
+        } catch (err: any) {
+            res.status(500).json({ error: err.message });
+        }
+    });
+
     // --- Transactions ---
     app.get(api.transactions.list.path, isAuthenticated, async (req, res) => {
         const txs = await storage.getTransactions();
