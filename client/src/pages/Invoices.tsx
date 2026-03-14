@@ -4,8 +4,9 @@ import { useProjects } from "@/hooks/use-projects";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, FileText, Settings, ShieldCheck, CheckCircle2, AlertOctagon, Maximize2, Minimize2, X, Download } from "lucide-react";
+import { Plus, FileText, Settings, ShieldCheck, CheckCircle2, AlertOctagon, Maximize2, Minimize2, X, Download, Trash2, Calendar } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -232,61 +233,91 @@ export default function Invoices() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
         <div>
-          <h1 className="text-3xl font-display font-bold text-white mb-2">Hisob-fakturalar</h1>
-          <p className="text-muted-foreground">Mijozlarga yuboriladigan fakturalarni boshqarish.</p>
+          <h1 className="text-4xl font-black text-white tracking-tighter mb-2 uppercase">Hisob-fakturalar</h1>
+          <div className="flex items-center gap-3">
+             <div className="h-1 w-12 bg-indigo-500 rounded-full" />
+             <p className="text-white/40 font-medium text-sm">Mijozlarga yuboriladigan fakturalarni professional boshqarish.</p>
+          </div>
         </div>
-        <div className="flex items-center gap-2 p-1.5 bg-black/40 border border-white/10 rounded-2xl backdrop-blur-xl">
+        <div className="flex items-center gap-3 p-2 bg-white/5 border border-white/10 rounded-[2rem] backdrop-blur-2xl shadow-2xl">
           <Dialog open={isVerifyDialogOpen} onOpenChange={setIsVerifyDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 h-11 px-5 rounded-xl">
+              <Button className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 h-12 px-6 rounded-[1.25rem] font-black uppercase text-[10px] tracking-widest transition-all">
                 <ShieldCheck className="w-5 h-5 mr-2" /> Tekshirish
               </Button>
             </DialogTrigger>
-            <DialogContent className="glass-panel border-white/10 sm:max-w-md p-0 overflow-hidden">
-              <div className="p-6 bg-slate-900 border-b border-white/10 text-center">
-                <DialogTitle className="text-white">Fakturani tekshirish</DialogTitle>
-              </div>
-              <div className="p-6 space-y-4">
-                <Input value={verifyInvoiceNumber} onChange={e => setVerifyInvoiceNumber(e.target.value.toUpperCase())} placeholder="INV-..." className="glass-input" />
+            <DialogContent className="glass-panel border-white/10 sm:max-w-md p-8 rounded-[3rem]">
+              <DialogHeader className="mb-6">
+                <DialogTitle className="text-2xl font-black text-white uppercase tracking-tight text-center">Fakturani tekshirish</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div className="space-y-2 text-center">
+                   <p className="text-xs font-black text-white/40 uppercase tracking-widest">Faktura raqamini kiriting</p>
+                   <Input value={verifyInvoiceNumber} onChange={e => setVerifyInvoiceNumber(e.target.value.toUpperCase())} placeholder="INV-..." className="glass-input h-14 text-center text-xl font-black tracking-widest" />
+                </div>
                 {verifiedInvoiceData?.invoice && (
-                  <div className="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20">
-                    <p className="text-emerald-400 font-bold">HAQIQIY FAKTURA</p>
-                    <p className="text-white text-sm mt-1">{verifiedInvoiceData.invoice.clientName} - {new Intl.NumberFormat().format(verifiedInvoiceData.invoice.amount)} {verifiedInvoiceData.invoice.currency}</p>
-                  </div>
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-emerald-500/10 p-6 rounded-[2rem] border border-emerald-500/20 text-center relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                       <ShieldCheck className="w-16 h-16 text-emerald-400" />
+                    </div>
+                    <p className="text-emerald-400 font-black uppercase tracking-[0.2em] mb-3 text-xs">HAQIQIY FAKTURA</p>
+                    <div className="space-y-1">
+                       <p className="text-white font-black text-lg">{verifiedInvoiceData.invoice.clientName}</p>
+                       <p className="text-white/60 font-bold text-sm tracking-tight">
+                         {new Intl.NumberFormat().format(verifiedInvoiceData.invoice.amount)} {verifiedInvoiceData.invoice.currency}
+                       </p>
+                    </div>
+                  </motion.div>
                 )}
-                {verifiedInvoiceData?.notFound && <p className="text-red-400 text-center">Topilmadi</p>}
+                {verifiedInvoiceData?.notFound && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-center">
+                     <p className="text-rose-400 font-black uppercase tracking-widest text-xs">Faktura topilmadi</p>
+                  </motion.div>
+                )}
               </div>
             </DialogContent>
           </Dialog>
-          <Button variant="ghost" onClick={() => setIsPreviewOpen(true)} className="text-blue-400 h-11 px-4"><FileText className="w-5 h-5" /></Button>
-          <Button variant="ghost" onClick={() => setIsSettingsDialogOpen(true)} className="text-amber-400 h-11 px-4"><Settings className="w-5 h-5" /></Button>
-          <Button onClick={() => { resetForm(); setIsInvDialogOpen(true); }} className="bg-blue-600 h-11 px-8 rounded-xl font-bold"><Plus className="w-5 h-5 mr-2" /> Yangi</Button>
+
+          <div className="h-8 w-px bg-white/10 mx-1" />
+
+          <Button variant="ghost" onClick={() => setIsSettingsDialogOpen(true)} className="text-amber-400 w-12 h-12 rounded-xl hover:bg-amber-400/10 p-0">
+            <Settings className="w-6 h-6" />
+          </Button>
+          
+          <Button onClick={() => { resetForm(); setIsInvDialogOpen(true); }} className="bg-indigo-500 hover:bg-indigo-600 text-white h-12 px-8 rounded-[1.25rem] font-black shadow-[0_10px_30px_rgba(99,102,241,0.3)] transition-all hover:scale-[1.05] active:scale-95 border-t border-white/20 uppercase text-[10px] tracking-widest">
+            <Plus className="w-5 h-5 mr-2 stroke-[3px]" /> Yangi Qo'shish
+          </Button>
         </div>
       </div>
 
       <Dialog open={isInvDialogOpen} onOpenChange={setIsInvDialogOpen}>
-        <DialogContent className={`glass-panel border-white/10 p-0 flex flex-col overflow-hidden transition-all [&>button:last-child]:hidden ${isFullScreen ? 'w-screen h-screen max-w-none m-0 rounded-none' : 'w-[95vw] max-w-7xl h-[90vh]'}`}>
-          <DialogHeader className="h-16 border-b border-white/5 bg-black/60 relative flex flex-row items-center px-6">
-            <DialogTitle className="text-white text-base font-black tracking-widest uppercase opacity-80">{editingInvoiceId ? "Tahrirlash" : "Yangi faktura"}</DialogTitle>
+        <DialogContent className={`glass-panel border-white/10 p-0 flex flex-col overflow-hidden transition-all [&>button:last-child]:hidden ${isFullScreen ? 'w-screen h-screen max-w-none m-0 rounded-none' : 'w-[95vw] max-w-[1400px] h-[92vh] rounded-[3rem]'}`}>
+          <DialogHeader className="h-20 border-b border-white/5 bg-black/60 relative flex flex-row items-center px-10">
+            <div className="flex items-center gap-4">
+               <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <FileText className="w-6 h-6" />
+               </div>
+               <DialogTitle className="text-xl font-black text-white tracking-widest uppercase">{editingInvoiceId ? "Hisob-fakturani tahrirlash" : "Yangi Hisob-faktura yaratish"}</DialogTitle>
+            </div>
             
             {/* Unified Window Controls */}
-            <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            <div className="absolute right-10 top-1/2 -translate-y-1/2 flex items-center gap-3">
               <button 
                 type="button" 
                 onClick={() => setIsFullScreen(!isFullScreen)} 
-                className="h-9 w-9 text-white/20 hover:text-white hover:bg-white/5 rounded-xl transition-all flex items-center justify-center border border-white/0 hover:border-white/5"
+                className="h-10 w-10 text-white/20 hover:text-white hover:bg-white/5 rounded-2xl transition-all flex items-center justify-center border border-white/0 hover:border-white/5"
               >
-                {isFullScreen ? <Minimize2 className="h-4.5 w-4.5" /> : <Maximize2 className="h-4.5 w-4.5" />}
+                {isFullScreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
               </button>
               
               <button 
                 type="button" 
                 onClick={() => setIsInvDialogOpen(false)} 
-                className="h-9 w-9 text-rose-500/40 hover:text-rose-500 hover:bg-rose-500/5 rounded-xl transition-all flex items-center justify-center border border-white/0 hover:border-rose-500/10"
+                className="h-10 w-10 text-rose-500/40 hover:text-rose-500 hover:bg-rose-500/10 rounded-2xl transition-all flex items-center justify-center border border-white/0 hover:border-rose-500/10"
               >
-                <X className="h-5 w-5" />
+                <X className="h-6 w-6" />
               </button>
             </div>
           </DialogHeader>
@@ -294,277 +325,301 @@ export default function Invoices() {
             <div className="w-[42%] overflow-y-auto p-4 bg-black/40 custom-scrollbar">
               <form id="invoiceForm" onSubmit={handleSaveInvoice} className="space-y-6 pb-10">
                 {/* 1. Meta data section - Grid layout */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-white/40 uppercase pl-1 tracking-wider">Invoice Raqami</label>
-                    <Input readOnly value={nextInvoiceNumber} className="glass-input h-10 text-xs bg-white/5 border-white/10" placeholder="Yuklanmoqda..." />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-px flex-1 bg-indigo-500/20" />
+                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">Loyiha & Ma'lumotlar</span>
+                    <div className="h-px flex-1 bg-indigo-500/20" />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-white/40 uppercase pl-1 tracking-wider">Loyiha (Project)</label>
-                    <select value={projectIdForm} onChange={e => setProjectIdForm(e.target.value ? Number(e.target.value) : "")} required className="w-full glass-input h-10 px-3 rounded-md bg-white/5 border-white/10 text-xs text-white">
-                      <option value="" className="text-black">Loyiha tanlang...</option>
-                      {projects?.map(p => <option key={p.id} value={p.id} className="text-black">{p.name}</option>)}
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-white/40 uppercase pl-1 tracking-wider">To'lov muddati</label>
-                    <Input type="date" required value={dueDateForm} onChange={e => setDueDateForm(e.target.value)} className="glass-input h-10 text-xs date-picker-white-icon" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-white/40 uppercase pl-1 tracking-wider">Valyuta</label>
-                    <select value={formCurrency} onChange={e => setFormCurrency(e.target.value as any)} className="w-full glass-input h-10 px-3 rounded-md bg-white/5 border-white/10 text-xs text-white">
-                      <option value="UZS" className="text-black">UZS (So'm)</option>
-                      <option value="USD" className="text-black">USD (Dollar)</option>
-                    </select>
-                  </div>
-                  <div className="col-span-2 space-y-1.5">
-                    <label className="text-[10px] font-bold text-white/40 uppercase pl-1 tracking-wider">Xolati (Status)</label>
-                    <select value={statusForm} onChange={e => setStatusForm(e.target.value as any)} className="w-full glass-input h-10 px-3 rounded-md bg-white/5 border-white/10 text-xs text-white">
-                      <option value="pending" className="text-black">Kutilmoqda</option>
-                      <option value="paid" className="text-black">To'langan</option>
-                      <option value="unpaid" className="text-black">To'lanmadi</option>
-                    </select>
+                  <div className="grid grid-cols-2 gap-5 p-6 bg-white/[0.02] border border-white/5 rounded-[2rem]">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-white/20 uppercase pl-1 tracking-widest">Faktura Raqami</label>
+                      <Input readOnly value={nextInvoiceNumber} className="glass-input h-14 text-sm font-black bg-white/5 border-white/10 tracking-widest text-indigo-400" placeholder="Yuklanmoqda..." />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-white/20 uppercase pl-1 tracking-widest">Loyiha (Project)</label>
+                      <select value={projectIdForm} onChange={e => setProjectIdForm(e.target.value ? Number(e.target.value) : "")} required className="w-full glass-input h-14 px-4 rounded-xl bg-white/5 border-white/10 text-sm font-bold text-white outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all">
+                        <option value="" className="text-black">Loyiha tanlang...</option>
+                        {projects?.map(p => <option key={p.id} value={p.id} className="text-black">{p.name}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-white/20 uppercase pl-1 tracking-widest">To'lov muddati</label>
+                      <Input type="date" required value={dueDateForm} onChange={e => setDueDateForm(e.target.value)} className="glass-input h-14 text-sm font-bold date-picker-white-icon" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-white/20 uppercase pl-1 tracking-widest">Valyuta</label>
+                      <select value={formCurrency} onChange={e => setFormCurrency(e.target.value as any)} className="w-full glass-input h-14 px-4 rounded-xl bg-white/5 border-white/10 text-sm font-bold text-white outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all">
+                        <option value="UZS" className="text-black">UZS (So'm)</option>
+                        <option value="USD" className="text-black">USD (Dollar)</option>
+                      </select>
+                    </div>
+                    <div className="col-span-2 space-y-2">
+                      <label className="text-[10px] font-black text-white/20 uppercase pl-1 tracking-widest">Xolati (Status)</label>
+                      <select value={statusForm} onChange={e => setStatusForm(e.target.value as any)} className="w-full glass-input h-14 px-4 rounded-xl bg-white/5 border-white/10 text-sm font-bold text-white outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all">
+                        <option value="pending" className="text-black">Kutilmoqda</option>
+                        <option value="paid" className="text-black">To'langan</option>
+                        <option value="unpaid" className="text-black">To'lanmadi</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
                 {/* 2. Shartnoma section */}
-                <div className="space-y-3 pt-2">
+                <div className="space-y-4 pt-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px bg-blue-500/30" />
-                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest whitespace-nowrap">Shartnoma ma'lumotlari</span>
-                    <div className="flex-1 h-px bg-blue-500/30" />
+                    <div className="h-px flex-1 bg-blue-500/20" />
+                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em]">Shartnoma bog'liqligi</span>
+                    <div className="h-px flex-1 bg-blue-500/20" />
                   </div>
-                  <div className="p-4 bg-white/5 rounded-2xl border border-blue-500/10 space-y-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-bold text-white/30 uppercase pl-1">Kim bilan (Shartnoma tuzilgan tomon)</label>
-                      <Input value={contractPartnerForm} onChange={e => setContractPartnerForm(e.target.value)} placeholder="Mijoz / Kompaniya nomi" className="glass-input h-10 text-xs" />
+                  <div className="p-6 bg-white/[0.02] border border-blue-500/10 rounded-[2rem] space-y-5">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-white/20 uppercase pl-1 tracking-widest">Shartnoma Hamkori</label>
+                      <Input value={contractPartnerForm} onChange={e => setContractPartnerForm(e.target.value)} placeholder="Mijoz / Kompaniya nomi" className="glass-input h-14 text-sm font-bold" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-bold text-white/30 uppercase pl-1">Boshlanish sanasi</label>
-                        <Input type="date" value={contractStartDateForm} onChange={e => setContractStartDateForm(e.target.value)} className="glass-input h-10 text-xs date-picker-white-icon" />
+                    <div className="grid grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-white/20 uppercase pl-1 tracking-widest">Boshlanish sanasi</label>
+                        <Input type="date" value={contractStartDateForm} onChange={e => setContractStartDateForm(e.target.value)} className="glass-input h-14 text-sm font-bold date-picker-white-icon" />
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-bold text-white/30 uppercase pl-1">Tugash sanasi</label>
-                        <Input type="date" value={contractEndDateForm} onChange={e => setContractEndDateForm(e.target.value)} className="glass-input h-10 text-xs date-picker-white-icon" />
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-white/20 uppercase pl-1 tracking-widest">Tugash sanasi</label>
+                        <Input type="date" value={contractEndDateForm} onChange={e => setContractEndDateForm(e.target.value)} className="glass-input h-14 text-sm font-bold date-picker-white-icon" />
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* 3. Kimga section */}
-                <div className="space-y-3 pt-2">
+                <div className="space-y-4 pt-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px bg-amber-500/30" />
-                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest whitespace-nowrap">Kimga</span>
-                    <div className="flex-1 h-px bg-amber-500/30" />
+                    <div className="h-px flex-1 bg-amber-500/20" />
+                    <span className="text-[10px] font-black text-amber-400 uppercase tracking-[0.3em]">Mijoz tafsilotlari</span>
+                    <div className="h-px flex-1 bg-amber-500/20" />
                   </div>
-                  <div className="p-4 bg-white/5 rounded-2xl border border-amber-500/10 space-y-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-bold text-white/30 uppercase pl-1">Mijoz (Ism-sharif)</label>
-                      <Input value={clientNameForm} onChange={e => setClientNameForm(e.target.value)} placeholder="Mijoz ismi" className="glass-input h-10 text-xs" />
+                  <div className="p-6 bg-white/[0.02] border border-amber-500/10 rounded-[2rem] space-y-5">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-white/20 uppercase pl-1 tracking-widest">Mijoz (Ism-sharif)</label>
+                      <Input value={clientNameForm} onChange={e => setClientNameForm(e.target.value)} placeholder="Mijoz ismi" className="glass-input h-14 text-sm font-bold" />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-bold text-white/30 uppercase pl-1">Kompaniya nomi</label>
-                      <Input value={companyForm} onChange={e => setCompanyForm(e.target.value)} placeholder="Kompaniya nomi" className="glass-input h-10 text-xs" />
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-white/20 uppercase pl-1 tracking-widest">Kompaniya nomi</label>
+                      <Input value={companyForm} onChange={e => setCompanyForm(e.target.value)} placeholder="Kompaniya nomi" className="glass-input h-14 text-sm font-bold" />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-bold text-white/30 uppercase pl-1">Aloqa ma'lumotlari (Manzil, Tel, Email)</label>
-                      <Input value={billToContactForm} onChange={e => setBillToContactForm(e.target.value)} placeholder="Masalan: Toshkent, +998..., info@..." className="glass-input h-10 text-xs" />
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-white/20 uppercase pl-1 tracking-widest">Aloqa manzili & Tel</label>
+                      <Input value={billToContactForm} onChange={e => setBillToContactForm(e.target.value)} placeholder="Manzil, Tel, Email" className="glass-input h-14 text-sm font-bold" />
                     </div>
                   </div>
                 </div>
 
                 {/* 4. Xizmatlar section */}
-                <div className="space-y-3 pt-2">
+                <div className="space-y-4 pt-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px bg-rose-500/30" />
-                    <span className="text-[10px] font-bold text-rose-400 uppercase tracking-widest whitespace-nowrap">Xizmatlar</span>
-                    <div className="flex-1 h-px bg-rose-500/30" />
+                    <div className="h-px flex-1 bg-rose-500/20" />
+                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-[0.3em]">Xizmatlar & To'lovlar</span>
+                    <div className="h-px flex-1 bg-rose-500/20" />
                     <div className="flex gap-2">
-                      <Button type="button" variant="outline" size="sm" onClick={() => setInvoiceRows(prev => [...prev, { title: "", quantity: 1, paidQuantity: 1, unitPrice: "", serviceType: "row" }])} className="h-7 px-3 text-[10px] border-white/20 hover:bg-white/10 rounded-lg">
-                        <Plus className="w-3 h-3 mr-1" /> Qator
-                      </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setInvoiceRows(prev => [...prev, { title: "Server", quantity: 1, paidQuantity: 1, unitPrice: "", serviceType: "server", startDate: format(new Date(), "yyyy-MM-dd") }])} className="h-7 px-3 text-[10px] border-blue-500/30 text-blue-400 hover:bg-blue-500/10 rounded-lg font-bold">
-                        <Plus className="w-3 h-3 mr-1" /> Server
-                      </Button>
+                       <Button type="button" variant="outline" size="sm" onClick={() => setInvoiceRows(prev => [...prev, { title: "", quantity: 1, paidQuantity: 1, unitPrice: "", serviceType: "row" }])} className="h-8 px-4 text-[10px] border-white/10 hover:bg-white/5 rounded-xl font-black uppercase tracking-widest transition-all">
+                         <Plus className="w-3.5 h-3.5 mr-1" /> Qator
+                       </Button>
+                       <Button type="button" variant="outline" size="sm" onClick={() => setInvoiceRows(prev => [...prev, { title: "Server", quantity: 1, paidQuantity: 1, unitPrice: "", serviceType: "server", startDate: format(new Date(), "yyyy-MM-dd") }])} className="h-8 px-4 text-[10px] border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 rounded-xl font-black uppercase tracking-widest transition-all">
+                         <Plus className="w-3.5 h-3.5 mr-1" /> Server
+                       </Button>
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {invoiceRows.map((row, i) => (
-                      <div key={i} className="group relative bg-white/[0.02] border border-white/10 rounded-xl p-4 transition-all hover:bg-white/[0.04] hover:border-white/20">
-                        {/* Elegant Delete Button */}
+                      <motion.div 
+                        initial={{ opacity: 0, x: -10 }} 
+                        animate={{ opacity: 1, x: 0 }} 
+                        key={i} 
+                        className="group relative bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 transition-all hover:bg-white/[0.04] hover:border-white/10"
+                      >
+                        {/* Premium Delete Button */}
                         <button
                           type="button"
                           onClick={() => setInvoiceRows(prev => prev.filter((_, j) => j !== i))}
-                          className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 rounded-full flex items-center justify-center text-white shadow-lg opacity-0 group-hover:opacity-100 transition-all z-30 hover:bg-rose-600 hover:scale-110 active:scale-95"
+                          className="absolute -top-2 -right-2 w-7 h-7 bg-rose-500 rounded-full flex items-center justify-center text-white shadow-xl opacity-0 group-hover:opacity-100 transition-all z-30 hover:bg-rose-600 hover:scale-110 active:scale-95 border-4 border-[#0a0c10]"
                         >
-                          <X className="w-3 h-3" />
+                          <X className="w-3.5 h-3.5 stroke-[3px]" />
                         </button>
 
-                        <div className="flex flex-col gap-3">
-                          <div className="flex items-end gap-4">
-                            {/* Xizmat nomi - Left Aligned */}
-                            <div className="flex-[3.5] space-y-1.5">
-                              <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Xizmat nomi</label>
+                        <div className="space-y-5">
+                          <div className="grid grid-cols-12 gap-4 items-end">
+                            {/* Xizmat nomi */}
+                            <div className="col-span-6 space-y-2">
+                              <label className="text-[9px] font-black text-white/20 uppercase tracking-widest pl-1">Xizmat nomi</label>
                               <Input
                                 value={row.title}
                                 onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))}
                                 placeholder="Xizmat nomi..."
-                                className="glass-input h-10 text-[12px] bg-black/40 border-white/5 focus:border-white/20"
+                                className="glass-input h-12 text-sm font-bold bg-black/40 border-white/5 focus:border-indigo-500/30"
                               />
                             </div>
 
-                            {/* Boshlanish - Left Aligned */}
-                            <div className="flex-[2.5] space-y-1.5">
-                              <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Boshlanish</label>
+                            {/* Boshlanish */}
+                            <div className="col-span-3 space-y-2">
+                              <label className="text-[9px] font-black text-white/20 uppercase tracking-widest pl-1">Boshlanish</label>
                               <Input
                                 type="date"
                                 value={row.startDate || ""}
                                 onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, startDate: e.target.value } : x))}
-                                className="glass-input h-10 text-[11px] date-picker-white-icon bg-black/40 border-white/5 px-2"
+                                className="glass-input h-12 text-xs font-bold date-picker-white-icon bg-black/40 border-white/5"
                               />
                             </div>
 
-                            {/* Kuni - Centered */}
-                            <div className="flex-[1] space-y-1.5 flex flex-col items-center">
-                              <label className="text-[10px] font-black text-white/20 uppercase tracking-widest w-full text-center">Kuni</label>
-                              <Input
-                                type="number"
-                                value={row.quantity}
-                                onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, quantity: e.target.value } : x))}
-                                placeholder="0"
-                                className="glass-input h-10 text-[12px] text-center bg-black/40 border-white/5 px-1"
-                              />
-                            </div>
-
-                            {/* To'lov - Centered */}
-                            <div className="flex-[1.5] space-y-1.5 flex flex-col items-center">
-                              <label className="text-[10px] font-black text-white/20 uppercase tracking-widest w-full text-center">To'lov</label>
-                              <Input
-                                type="number"
-                                value={row.paidQuantity}
-                                onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, paidQuantity: e.target.value } : x))}
-                                placeholder="0"
-                                className="glass-input h-10 text-[12px] text-center bg-black/40 border-white/5 px-1 font-bold text-amber-500/80"
-                              />
-                            </div>
-
-                            {/* Narxi - Right Aligned */}
-                            <div className="flex-[1.5] space-y-1.5 flex flex-col items-end">
-                              <label className="text-[10px] font-black text-white/20 uppercase tracking-widest w-full text-right pr-1">Narxi</label>
+                            {/* Narxi */}
+                            <div className="col-span-3 space-y-2">
+                              <label className="text-[9px] font-black text-white/20 uppercase tracking-widest pl-1 text-right w-full pr-1">Narxi</label>
                               <Input
                                 type="number"
                                 value={row.unitPrice}
                                 onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, unitPrice: e.target.value } : x))}
                                 placeholder="0"
-                                className="glass-input h-10 text-[12px] text-right bg-black/40 border-white/5 px-3 font-bold"
+                                className="glass-input h-12 text-sm text-right bg-black/40 border-white/5 font-black text-white"
                               />
                             </div>
                           </div>
 
-                          {/* Subtle Project Link */}
-                          <div className="flex items-center gap-3 pt-2 mt-1 border-t border-white/[0.03]">
-                            <span className="text-[9px] font-bold text-blue-400/30 uppercase tracking-[0.2em] pl-1">Loyiha bog'lanishi:</span>
-                            <select
-                              value={row.projectId || ""}
-                              onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, projectId: e.target.value ? Number(e.target.value) : undefined } : x))}
-                              className="bg-transparent border-none text-[10px] text-white/30 focus:text-white/60 transition-colors cursor-pointer outline-none min-w-[200px]"
-                            >
-                              <option value="" className="text-black italic">Loyiha tanlanmagan...</option>
-                              {projects?.map(p => <option key={p.id} value={p.id} className="text-black">{p.name}</option>)}
-                            </select>
+                          <div className="grid grid-cols-12 gap-4 items-center">
+                            {/* Kuni / To'lov */}
+                            <div className="col-span-12 flex items-center gap-6 bg-black/20 p-4 rounded-2xl border border-white/5">
+                               <div className="flex-1 flex items-center gap-4">
+                                  <span className="text-[10px] font-black text-white/10 uppercase tracking-widest">Kuni:</span>
+                                  <Input
+                                    type="number"
+                                    value={row.quantity}
+                                    onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, quantity: e.target.value } : x))}
+                                    className="glass-input h-10 w-20 text-center text-sm font-black border-transparent bg-white/5"
+                                  />
+                               </div>
+                               <div className="w-px h-6 bg-white/5" />
+                               <div className="flex-1 flex items-center gap-4">
+                                  <span className="text-[10px] font-black text-white/10 uppercase tracking-widest">To'lov:</span>
+                                  <Input
+                                    type="number"
+                                    value={row.paidQuantity}
+                                    onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, paidQuantity: e.target.value } : x))}
+                                    className="glass-input h-10 w-20 text-center text-sm font-black border-transparent bg-indigo-500/10 text-indigo-400"
+                                  />
+                               </div>
+                               <div className="flex-[2] flex items-center gap-3">
+                                  <span className="text-[9px] font-black text-white/10 uppercase tracking-widest">Loyiha:</span>
+                                    <select
+                                      value={row.projectId || ""}
+                                      onChange={e => setInvoiceRows(prev => prev.map((x, j) => j === i ? { ...x, projectId: e.target.value ? Number(e.target.value) : undefined } : x))}
+                                      className="bg-transparent border-none text-xs text-indigo-400/60 font-bold focus:text-indigo-400 transition-colors cursor-pointer outline-none flex-1 truncate"
+                                    >
+                                      <option value="" className="text-black italic">Tanlanmagan...</option>
+                                      {projects?.map(p => <option key={p.id} value={p.id} className="text-black">{p.name}</option>)}
+                                    </select>
+                               </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
 
                 {/* Footer total - Enhanced Typography */}
-                <div className="pt-8 mt-6 border-t border-white/10 space-y-4 px-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Oldindan to'lov:</span>
-                    <div className="flex items-center gap-2">
-                       <span className="text-sm font-bold text-white/30">$</span>
-                       <Input 
-                         type="number" 
-                         value={paidAmountForm} 
-                         onChange={e => setPaidAmountForm(e.target.value)}
-                         className="glass-input h-8 w-32 text-right text-sm font-bold"
-                       />
-                       <span className="text-[11px] font-bold text-white/30 uppercase">{formCurrency}</span>
+                <div className="pt-10 mt-10 border-t border-white/10 space-y-6 px-4">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/10 uppercase tracking-widest pl-1">Oldindan to'lov</label>
+                       <div className="relative">
+                          <Input 
+                            type="number" 
+                            value={paidAmountForm} 
+                            onChange={e => setPaidAmountForm(e.target.value)}
+                            className="glass-input h-12 text-right text-sm font-black pr-16 bg-white/5"
+                          />
+                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-white/20 uppercase">{formCurrency}</span>
+                       </div>
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/10 uppercase tracking-widest pl-1">QQS & Chegirma</label>
+                       <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <Input 
+                              type="number" 
+                              value={vatRateForm} 
+                              onChange={e => setVatRateForm(e.target.value)}
+                              className="glass-input h-12 text-center text-sm font-black bg-emerald-500/5 text-emerald-400 border-emerald-500/10"
+                              placeholder="QQS %"
+                            />
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-black text-emerald-500/20">%</span>
+                          </div>
+                          <div className="relative flex-1">
+                            <Input 
+                              type="number" 
+                              value={discountRateForm} 
+                              onChange={e => setDiscountRateForm(e.target.value)}
+                              className="glass-input h-12 text-center text-sm font-black bg-rose-500/5 text-rose-400 border-rose-500/10"
+                              placeholder="Dis %"
+                            />
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-black text-rose-500/20">%</span>
+                          </div>
+                       </div>
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-emerald-400/60 uppercase tracking-[0.3em]">QQS (Qo'shimcha qiymat solig'i) %:</span>
-                    <div className="flex items-center gap-2">
-                       <Input 
-                         type="number" 
-                         value={vatRateForm} 
-                         onChange={e => setVatRateForm(e.target.value)}
-                         className="glass-input h-8 w-16 text-center text-sm font-bold border-emerald-500/20 bg-emerald-500/5 text-emerald-400"
-                       />
-                       <span className="text-[11px] font-bold text-emerald-400/40 uppercase">%</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-rose-400/60 uppercase tracking-[0.3em]">Chegirma (Discount) %:</span>
-                    <div className="flex items-center gap-2">
-                       <Input 
-                         type="number" 
-                         value={discountRateForm} 
-                         onChange={e => setDiscountRateForm(e.target.value)}
-                         className="glass-input h-8 w-16 text-center text-sm font-bold border-rose-500/20 bg-rose-500/5 text-rose-400"
-                       />
-                       <span className="text-[11px] font-bold text-rose-400/40 uppercase">%</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Umumiy hisob:</span>
-                    <div className="text-right flex items-baseline gap-2">
-                      <span className="text-sm font-bold text-white/30">$</span>
-                      <span className="text-3xl font-black text-white tracking-tighter leading-none">
+                  <div className="p-8 bg-indigo-500 rounded-[2.5rem] shadow-2xl shadow-indigo-500/20 flex flex-col items-center gap-2 relative overflow-hidden group/total mt-4">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+                    <span className="text-[11px] font-black text-white/40 uppercase tracking-[0.4em] relative z-10">Jami Hisob-faktura Summasi</span>
+                    <div className="flex items-baseline gap-3 relative z-10">
+                      <span className="text-sm font-black text-white/30 uppercase tracking-widest">{formCurrency}</span>
+                      <span className="text-5xl font-black text-white tracking-tighter leading-none transition-all group-hover/total:scale-110">
                         {new Intl.NumberFormat().format(finalTotal)}
                       </span>
-                      <span className="text-[11px] font-bold text-white/30 uppercase">{formCurrency}</span>
+                    </div>
+                    <div className="absolute -bottom-6 -right-6 pointer-events-none opacity-10">
+                       <FileText className="w-32 h-32 text-white" />
                     </div>
                   </div>
                 </div>
               </form>
             </div>
-            <div className="w-[58%] bg-slate-100 p-8 overflow-y-auto flex justify-center items-start custom-scrollbar">
+            <div className="w-[58%] bg-[#0a0c10] p-10 overflow-y-auto flex justify-center items-start custom-scrollbar relative">
+               {/* Background Watermark/Pattern */}
+               <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center overflow-hidden">
+                  <div className="text-[200px] font-black tracking-widest uppercase rotate-[-35deg] whitespace-nowrap">SAYD.X PREVIEW</div>
+               </div>
+
               {invoiceSettings && (
-                <InvoicePreview
-                  language={languageForm}
-                  invoiceNumber={nextInvoiceNumber}
-                  status={statusForm}
-                  dueDate={dueDateForm}
-                  currency={formCurrency}
-                  clientName={clientNameForm}
-                  company={companyForm}
-                  billToContact={billToContactForm}
-                  projectName={projects?.find(p => p.id === Number(projectIdForm))?.name || ""}
-                  contractPartner={contractPartnerForm}
-                  contractStartDate={contractStartDateForm}
-                  contractEndDate={contractEndDateForm}
-                  invoiceRows={invoiceRows}
-                  totalFromRows={totalFromRows}
-                  paidAmount={paidAmountForm}
-                  vatRate={vatRateForm}
-                  discountRate={discountRateForm}
-                  verificationToken={verificationTokenForm}
-                  settings={invoiceSettings}
-                />
+                <div className="relative z-10 scale-[0.95] origin-top">
+                  <InvoicePreview
+                    language={languageForm}
+                    invoiceNumber={nextInvoiceNumber}
+                    status={statusForm}
+                    dueDate={dueDateForm}
+                    currency={formCurrency}
+                    clientName={clientNameForm}
+                    company={companyForm}
+                    billToContact={billToContactForm}
+                    projectName={projects?.find(p => p.id === Number(projectIdForm))?.name || ""}
+                    contractPartner={contractPartnerForm}
+                    contractStartDate={contractStartDateForm}
+                    contractEndDate={contractEndDateForm}
+                    invoiceRows={invoiceRows}
+                    totalFromRows={totalFromRows}
+                    paidAmount={paidAmountForm}
+                    vatRate={vatRateForm}
+                    discountRate={discountRateForm}
+                    verificationToken={verificationTokenForm}
+                    settings={invoiceSettings}
+                  />
+                </div>
               )}
             </div>
           </div>
-          <div className="p-4 border-t border-white/10 flex justify-end gap-3 bg-slate-900">
-            <Button variant="outline" onClick={() => setIsInvDialogOpen(false)}>Bekor qilish</Button>
-            <Button form="invoiceForm" type="submit" className="bg-secondary px-8">Saqlash</Button>
+          <div className="h-24 px-10 border-t border-white/10 flex items-center justify-end gap-5 bg-black/80 backdrop-blur-xl">
+            <Button variant="outline" onClick={() => setIsInvDialogOpen(false)} className="h-14 px-10 rounded-2xl border-white/10 text-white font-black hover:bg-white/5 uppercase text-xs tracking-widest">Bekor qilish</Button>
+            <Button form="invoiceForm" type="submit" disabled={createInvoice.isPending || updateInvoice.isPending} className="h-14 px-14 rounded-2xl bg-indigo-500 text-white font-black shadow-2xl shadow-indigo-500/20 hover:bg-indigo-600 transition-all active:scale-95 uppercase text-xs tracking-[0.2em]">
+               {createInvoice.isPending || updateInvoice.isPending ? "Saqlanmoqda..." : "Saqlash va Tasdiqlash"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -602,21 +657,23 @@ export default function Invoices() {
 
       <InvoiceItemsDialog invId={itemsDialogInvId} onClose={() => setItemsDialogInvId(null)} projects={projects} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {invoices?.map((inv, idx) => (
-          <InvoiceCard
-            key={inv.id}
-            invoice={inv}
-            projectName={projects?.find(p => p.id === inv.projectId)?.name}
-            idx={idx}
-            onEdit={handleEditInvoiceClick}
-            onDelete={id => window.confirm("O'chirishni xohlaysizmi?") && deleteInvoice.mutate(id)}
-            onAddItems={id => setItemsDialogInvId(id)}
-            onDownloadPdf={handleDownloadPdf}
-            onStatusChange={(id, status) => updateInvoice.mutate({ id, status })}
-            pdfGeneratingId={pdfGeneratingId}
-          />
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        <AnimatePresence mode="popLayout">
+          {invoices?.map((inv, idx) => (
+            <InvoiceCard
+              key={inv.id}
+              invoice={inv}
+              projectName={projects?.find(p => p.id === inv.projectId)?.name}
+              idx={idx}
+              onEdit={handleEditInvoiceClick}
+              onDelete={id => window.confirm("O'chirishni xohlaysizmi?") && deleteInvoice.mutate(id)}
+              onAddItems={id => setItemsDialogInvId(id)}
+              onDownloadPdf={handleDownloadPdf}
+              onStatusChange={(id, status) => updateInvoice.mutate({ id, status })}
+              pdfGeneratingId={pdfGeneratingId}
+            />
+          ))}
+        </AnimatePresence>
       </div>
     </AppLayout>
   );
