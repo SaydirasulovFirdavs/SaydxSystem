@@ -453,7 +453,7 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
                 return res.status(400).json({ message: err.errors[0].message, field: err.errors[0].path.join('.') });
             }
             console.error("Create contract error:", err);
-            res.status(500).json({ message: "Shartnoma yaratishda xato yuz berdi" });
+            res.status(500).json({ message: err instanceof Error ? err.message : "Failed to create contract" });
         }
     });
 
