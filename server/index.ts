@@ -64,7 +64,11 @@ app.use((req, res, next) => {
   next();
 });
 
+import { checkAndFixSchema } from "./db_fix";
+
 (async () => {
+  log("Starting database migration check...");
+  await checkAndFixSchema();
   await setupAuth(app);
   await registerRoutes(httpServer, app);
 
