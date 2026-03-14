@@ -232,7 +232,6 @@ export const contracts = pgTable("contracts", {
   contractNumber: text("contract_number").notNull(),
   clientId: integer("client_id").references(() => clients.id),
   projectId: integer("project_id").references(() => projects.id),
-  title: text("title").notNull(),
   amount: numeric("amount").notNull(),
   currency: text("currency").default("UZS").notNull(),
   startDate: timestamp("start_date").notNull(),
@@ -245,7 +244,7 @@ export const contracts = pgTable("contracts", {
   advancePayment: numeric("advance_payment").default("0"),
   remainingAmount: numeric("remaining_amount").default("0"),
   contractType: text("contract_type"), // Turi
-  contractType2: text("contract_type_2"), // T2
+  technicalAssignmentUrl: text("technical_assignment_url"), // TZ fayl manzili
   assignedEmployeeId: varchar("assigned_employee_id").references(() => users.id),
   paymentType: text("payment_type"), // To'lov turi
   
@@ -325,7 +324,7 @@ export const insertContractSchema = createInsertSchema(contracts)
     advancePayment: z.string().optional(),
     remainingAmount: z.string().optional(),
     contractType: z.string().optional(),
-    contractType2: z.string().optional(),
+    technicalAssignmentUrl: z.string().optional(),
     assignedEmployeeId: z.string().optional(),
     paymentType: z.string().optional(),
   });

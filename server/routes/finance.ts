@@ -434,6 +434,7 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
                 amount: z.union([z.string(), z.number()]).transform(v => String(v)),
                 startDate: z.union([z.string(), z.date(), z.number()]).transform(v => new Date(v)),
                 endDate: z.union([z.string(), z.date(), z.number()]).transform(v => new Date(v)),
+                technicalAssignmentUrl: z.string().optional(),
             }).parse(req.body);
             const contract = await storage.createContract(input);
             res.status(201).json(contract);
