@@ -443,8 +443,9 @@ export default function Contracts() {
               </form>
             </DialogContent>
           </Dialog>
-        </div>
+        </motion.div>
       )}
+      </div>
     </div>
 
       {contracts.length === 0 ? (
