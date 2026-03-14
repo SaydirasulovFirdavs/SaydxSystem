@@ -174,73 +174,103 @@ export default function Contracts() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-4xl font-display font-black text-white tracking-tight mb-2">Shartnomalar</h1>
-          <p className="text-white/50 font-medium">Mijozlar bilan tuzilgan rasmiy hujjatlar va kelishuvlar.</p>
+      <div className="relative mb-12 overflow-hidden py-8 px-2">
+        {/* Background Watermark */}
+        <div className="absolute -top-10 -left-10 text-[12rem] font-black text-white/[0.03] select-none pointer-events-none tracking-tighter uppercase italic">
+          Contracts
         </div>
         
-        {isAdmin && (
-          <div className="flex items-center gap-2 p-1.5 bg-black/40 border border-white/10 rounded-2xl backdrop-blur-xl">
-             {/* Verify Dialog */}
-             <Dialog open={isVerifyOpen} onOpenChange={setIsVerifyOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 h-11 px-5 rounded-xl transition-all hover:bg-emerald-500/20">
-                  <ShieldCheck className="w-5 h-5 mr-2" /> Tekshirish
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="glass-panel border-white/10 sm:max-w-md p-0 overflow-hidden">
-                <div className="p-6 bg-slate-900 border-b border-white/10 text-center">
-                  <h2 className="text-white font-bold">Shartnomani tekshirish</h2>
-                </div>
-                <div className="p-6 space-y-4">
-                  <Input 
-                    value={verifyNumber} 
-                    onChange={e => setVerifyNumber(e.target.value.toUpperCase())} 
-                    placeholder="SH-..." 
-                    className="glass-input" 
-                  />
-                  <p className="text-white/40 text-xs text-center italic">Haqiqiylikni tekshirish uchun shartnoma raqamini kiriting.</p>
-                </div>
-              </DialogContent>
-            </Dialog>
+        <div className="relative flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-1 bg-indigo-500 w-12 rounded-full" />
+              <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.5em]">Hujjatlar Markazi</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <h1 className="text-5xl md:text-6xl font-display font-black text-white tracking-tighter leading-none">
+                Shartnomalar
+              </h1>
+              <div className="px-4 py-1.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-md">
+                <span className="text-sm font-black text-indigo-400">
+                  {contracts.filter(c => c.status === "active").length} FAOL
+                </span>
+              </div>
+            </div>
+            <p className="text-white/40 font-medium text-lg max-w-xl leading-relaxed">
+              Mijozlar bilan tuzilgan barcha rasmiy kelishuvlar, texnik topshiriqlar va moliyaviy shartnomalar jamlangan markaz.
+            </p>
+          </motion.div>
+          
+          {isAdmin && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center gap-3 p-2 bg-white/[0.03] border border-white/5 rounded-[2.5rem] backdrop-blur-2xl shadow-2xl"
+            >
+               {/* Verify Dialog */}
+               <Dialog open={isVerifyOpen} onOpenChange={setIsVerifyOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 h-14 px-6 rounded-[1.75rem] transition-all hover:bg-emerald-500/20 hover:scale-[1.02] active:scale-95 font-black uppercase text-xs tracking-widest">
+                    <ShieldCheck className="w-5 h-5 mr-3" /> Tekshirish
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="glass-panel border-white/10 sm:max-w-md p-0 overflow-hidden rounded-[2.5rem]">
+                  <div className="p-8 bg-slate-900 border-b border-white/10 text-center relative">
+                    <div className="absolute top-0 inset-x-0 h-1 bg-emerald-500/50" />
+                    <h2 className="text-xl font-black text-white uppercase tracking-tight">Shartnomani tekshirish</h2>
+                  </div>
+                  <div className="p-8 space-y-6">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Shartnoma Raqami</label>
+                       <Input 
+                        value={verifyNumber} 
+                        onChange={e => setVerifyNumber(e.target.value.toUpperCase())} 
+                        placeholder="SH-..." 
+                        className="glass-input h-14 text-center text-lg font-black tracking-widest border-emerald-500/20 focus:border-emerald-500/50" 
+                      />
+                    </div>
+                    <p className="text-white/40 text-xs text-center font-medium">Tizimda mavjudligini tasdiqlash uchun raqamni kiriting.</p>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
-            {/* Preview Button (Placeholder) */}
-            <Button variant="ghost" onClick={() => setIsPreviewOpen(true)} className="text-blue-400 h-11 px-4 hover:bg-blue-400/10">
-              <FileText className="w-5 h-5" />
-            </Button>
+              <div className="h-8 w-px bg-white/10 mx-1" />
 
-            {/* Settings Button */}
-            <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" className="text-amber-400 h-11 px-4 hover:bg-amber-400/10">
-                  <Settings className="w-5 h-5" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="glass-panel border-white/10 max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-white">Shartnoma sozlamalari (Rekvizitlar)</DialogTitle>
-                </DialogHeader>
-                {invoiceSettings && (
-                  <InvoiceSettingsForm 
-                    initial={invoiceSettings} 
-                    onSuccess={() => { 
-                      queryClient.invalidateQueries({ queryKey: ["/api/settings/invoice"] }); 
-                      setIsSettingsOpen(false); 
-                    }} 
-                  />
-                )}
-              </DialogContent>
-            </Dialog>
+              {/* Settings Button */}
+              <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" className="text-amber-400 w-14 h-14 rounded-[1.5rem] hover:bg-amber-400/10 hover:scale-110 active:scale-90 transition-all p-0">
+                    <Settings className="w-6 h-6" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="glass-panel border-white/10 max-h-[90vh] overflow-y-auto rounded-[3rem] p-8">
+                  <DialogHeader className="mb-6">
+                    <DialogTitle className="text-2xl font-black text-white uppercase tracking-tight">Rekvizitlar Sozlamalari</DialogTitle>
+                  </DialogHeader>
+                  {invoiceSettings && (
+                    <InvoiceSettingsForm 
+                      initial={invoiceSettings} 
+                      onSuccess={() => { 
+                        queryClient.invalidateQueries({ queryKey: ["/api/settings/invoice"] }); 
+                        setIsSettingsOpen(false); 
+                      }} 
+                    />
+                  )}
+                </DialogContent>
+              </Dialog>
 
-            {/* New Contract Dialog */}
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90 text-background h-11 px-8 rounded-xl font-black shadow-lg shadow-primary/20 transition-all active:scale-95">
-                  <Plus className="w-5 h-5 mr-2 stroke-[3px]" /> Yangi
-                </Button>
-              </DialogTrigger>
-            <DialogContent className="glass-panel border-white/10 max-w-3xl overflow-hidden max-h-[95vh] overflow-y-auto custom-scrollbar">
+              {/* New Contract Dialog */}
+              <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-indigo-500 hover:bg-indigo-600 text-white h-14 px-10 rounded-[1.75rem] font-black shadow-[0_10px_30px_rgba(99,102,241,0.3)] transition-all hover:scale-[1.02] active:scale-95 border-t border-white/20 uppercase text-xs tracking-[0.1em]">
+                    <Plus className="w-6 h-6 mr-3 stroke-[3px]" /> Yangi Qo'shish
+                  </Button>
+                </DialogTrigger>
+              <DialogContent className="glass-panel border-white/10 max-w-3xl overflow-hidden max-h-[95vh] overflow-y-auto custom-scrollbar rounded-[3rem]">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
               <DialogHeader>
                 <DialogTitle className="text-2xl font-black text-white tracking-tight flex items-center gap-3">
