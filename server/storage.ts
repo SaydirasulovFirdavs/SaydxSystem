@@ -433,9 +433,27 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(contracts).orderBy(desc(contracts.createdAt));
   }
 
-  async getContract(id: number): Promise<Contract | undefined> {
-    const [row] = await db.select().from(contracts).where(eq(contracts.id, id));
-    return row;
+  async getContract(id: number): Promise<any> {
+    const [row] = await db
+      .select({
+        contract: contracts,
+        client: clients,
+        project: projects,
+      })
+      .from(contracts)
+      .leftJoin(clients, eq(contracts.clientId, clients.id))
+      .leftJoin(projects, eq(contracts.projectId, projects.id))
+      .where(eq(contracts.id, id));
+    
+    if (!row) return undefined;
+    
+    return {
+      ...row.contract,
+      clientName: row.client?.name,
+      company: row.client?.company,
+      clientEmail: row.client?.email,
+      projectName: row.project?.name,
+    };
   }
 
   async createContract(contract: InsertContract): Promise<Contract> {
