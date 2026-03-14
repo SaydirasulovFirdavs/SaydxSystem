@@ -507,7 +507,7 @@ function buildInvoiceHtml(
           </div>
           ` : ''}
           ${Number(invoice.discountRate || 0) > 0 ? `
-          <div class="total-line" style="color: #dc2626; font-weight: 700;">
+          <div class="total-line" style="color: #d97706; font-weight: 700;">
             <span>${lang === 'uz' ? "Chegirma" : lang === 'en' ? "Discount" : "Скидка"} (${invoice.discountRate}%):</span>
             <span>-${formatAmount(totalAmount * (Number(invoice.discountRate) / 100), currency)}</span>
           </div>

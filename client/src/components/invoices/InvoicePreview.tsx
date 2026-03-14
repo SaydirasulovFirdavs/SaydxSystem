@@ -360,7 +360,7 @@ export function InvoicePreview({
                             </div>
                         )}
                         {Number(discountRate) > 0 && (
-                            <div className="flex justify-between text-xs text-rose-500 font-bold">
+                            <div className="flex justify-between text-xs text-amber-600 font-bold">
                                 <span>{language === 'uz' ? "Chegirma" : language === 'en' ? "Discount" : "Скидка"} ({discountRate}%):</span>
                                 <span>-{new Intl.NumberFormat("uz-UZ").format(totalFromRows * (Number(discountRate) / 100))} {currency}</span>
                             </div>
