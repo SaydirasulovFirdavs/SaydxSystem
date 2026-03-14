@@ -80,6 +80,12 @@ export default function Invoices() {
 
   useEffect(() => {
     if (isInvDialogOpen && !editingInvoiceId) {
+      // Yangi faktura uchun darhol vaqtinchalik xavfsiz token yaratish (preview uchun)
+      const array = new Uint8Array(8);
+      window.crypto.getRandomValues(array);
+      const token = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+      setVerificationTokenForm(token);
+
       fetch("/api/invoices/next-number", { credentials: "include" })
         .then(r => r.json())
         .then(d => setNextInvoiceNumber(d.invoiceNumber ?? ""))

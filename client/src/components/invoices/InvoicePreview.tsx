@@ -372,10 +372,10 @@ export function InvoicePreview({
                     </div>
 
                     {qrDataUri && (
-                        <div className="flex flex-col items-center">
+                        <div className="flex flex-col items-center justify-center absolute left-1/2 -translate-x-[60%] bottom-0">
                             <img src={qrDataUri} alt="QR Code" className="w-16 h-16" />
-                            <span className="text-[7px] font-black uppercase text-slate-400 mt-1 tracking-widest text-center">
-                                {language === 'uz' ? 'Haqiqiyligini tekshirish' : language === 'en' ? 'Verify Authenticity' : 'Проверить подлинность'}
+                            <span className="text-[6px] font-black uppercase text-slate-400 mt-0.5 tracking-[0.2em] text-center w-max">
+                                {language === 'uz' ? 'Haqiqiylikni tekshirish' : language === 'en' ? 'Verify Authenticity' : 'Проверить подлинность'}
                             </span>
                         </div>
                     )}
