@@ -67,6 +67,7 @@ export function useUpdateProject() {
         credentials: "include",
       });
       if (!res.ok) throw new Error("Loyiha yangilanmadi");
+      if (res.status === 204) return null;
       return api.projects.update.responses[200].parse(await res.json());
     },
     onSuccess: () => {
@@ -86,6 +87,7 @@ export function useDeleteProject() {
         credentials: "include",
       });
       if (!res.ok) throw new Error("Loyihani o'chirish muvaffaqiyatsiz bo'ldi");
+      if (res.status === 204) return null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.projects.list.path] });

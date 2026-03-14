@@ -49,6 +49,17 @@ export function registerProjectRoutes(app: Express, isAuthenticated: any, isAdmi
         }
     });
 
+    app.delete(api.projects.delete.path, isAuthenticated, isAdmin, async (req, res) => {
+        try {
+            const id = Number(req.params.id);
+            if (isNaN(id)) return res.status(400).json({ message: "Invalid project ID" });
+            await storage.deleteProject(id);
+            res.status(204).end();
+        } catch (err) {
+            res.status(500).json({ message: "Failed to delete project" });
+        }
+    });
+
     // --- Tasks ---
     app.get(api.tasks.list.path, isAuthenticated, async (req, res) => {
         const tasks = await storage.getTasksByProject(Number(req.params.projectId));
