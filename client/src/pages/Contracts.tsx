@@ -37,6 +37,44 @@ export default function Contracts() {
   const [selectedContractForPreview, setSelectedContractForPreview] = useState<any>(null);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [verifyNumber, setVerifyNumber] = useState("");
+  const [verifiedContract, setVerifiedContract] = useState<any>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  // Auto-fetch next contract number
+  useEffect(() => {
+    if (isOpen) {
+      fetch("/api/contracts/next-number")
+        .then(res => res.json())
+        .then(data => {
+          if (data.contractNumber) {
+            // We can't easily auto-set the form input since it's uncontrolled or using FormData
+            // But we can set a state to use it as a default value
+            setAutoNumber(data.contractNumber);
+          }
+        });
+    }
+  }, [isOpen]);
+
+  const [autoNumber, setAutoNumber] = useState("");
+
+  const handleVerify = async () => {
+    if (!verifyNumber) return;
+    setIsVerifying(true);
+    setVerifiedContract(null);
+    try {
+      const res = await fetch(`/api/contracts/verify/${verifyNumber}`);
+      const data = await res.json();
+      if (data.notFound) {
+        setVerifiedContract({ notFound: true });
+      } else {
+        setVerifiedContract(data.contract);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   const { data: invoiceSettings } = useQuery({
     queryKey: ["/api/settings/invoice"],
@@ -226,14 +264,58 @@ export default function Contracts() {
                   <div className="p-8 space-y-6">
                     <div className="space-y-2">
                        <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Shartnoma Raqami</label>
-                       <Input 
-                        value={verifyNumber} 
-                        onChange={e => setVerifyNumber(e.target.value.toUpperCase())} 
-                        placeholder="SH-..." 
-                        className="glass-input h-14 text-center text-lg font-black tracking-widest border-emerald-500/20 focus:border-emerald-500/50" 
-                      />
+                       <div className="flex gap-2">
+                         <Input 
+                          value={verifyNumber} 
+                          onChange={e => setVerifyNumber(e.target.value.toUpperCase())} 
+                          placeholder="SH-..." 
+                          className="glass-input h-14 text-center text-lg font-black tracking-widest border-emerald-500/20 focus:border-emerald-500/50 w-full" 
+                        />
+                        <Button 
+                          onClick={handleVerify}
+                          disabled={isVerifying || !verifyNumber}
+                          className="h-14 px-6 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl active:scale-95 transition-all shrink-0"
+                        >
+                          {isVerifying ? <LoadingSpinner /> : "OK"}
+                        </Button>
+                       </div>
                     </div>
-                    <p className="text-white/40 text-xs text-center font-medium">Tizimda mavjudligini tasdiqlash uchun raqamni kiriting.</p>
+
+                    {verifiedContract && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className={`p-4 rounded-2xl border ${verifiedContract.notFound ? 'bg-destructive/10 border-destructive/20' : 'bg-emerald-500/10 border-emerald-500/20'}`}
+                      >
+                        {verifiedContract.notFound ? (
+                          <div className="text-center text-destructive font-bold py-2">
+                            Shartnoma topilmadi!
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                             <div className="flex justify-between text-xs">
+                               <span className="text-white/40 font-bold uppercase">Raqam:</span>
+                               <span className="text-white font-black">{verifiedContract.contractNumber}</span>
+                             </div>
+                             <div className="flex justify-between text-xs">
+                               <span className="text-white/40 font-bold uppercase">Summa:</span>
+                               <span className="text-white font-black">{Number(verifiedContract.amount).toLocaleString()} {verifiedContract.currency}</span>
+                             </div>
+                             <div className="flex justify-between text-xs">
+                               <span className="text-white/40 font-bold uppercase">Sana:</span>
+                               <span className="text-white font-black">{format(new Date(verifiedContract.createdAt), "dd.MM.yyyy")}</span>
+                             </div>
+                             <div className="mt-2 text-[10px] text-emerald-400 font-black text-center uppercase tracking-widest bg-emerald-400/10 py-1 rounded-lg">
+                               <ShieldCheck className="w-3 h-3 inline mr-1" /> Rasmiy Tasdiqlangan
+                             </div>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+
+                    <p className="text-white/40 text-[10px] text-center font-medium leading-relaxed">
+                      Eslatma: Bu bo'lim faqat SAYD.X LLC tomonidan taqdim etilgan rasmiy shartnomalarni tekshirish uchun.
+                    </p>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -285,7 +367,7 @@ export default function Contracts() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Shartnoma Raqami</label>
-                    <Input name="contractNumber" required placeholder="Masalan: SH-2026/001" className="glass-input h-12 text-white font-bold" />
+                    <Input name="contractNumber" required value={autoNumber} onChange={e => setAutoNumber(e.target.value)} placeholder="Masalan: SH-2026/001" className="glass-input h-12 text-white font-bold" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Ish olish tartibi</label>
@@ -383,7 +465,7 @@ export default function Contracts() {
                       <ObjectUploader
                         onGetUploadParameters={getUploadParameters}
                         onComplete={(result) => {
-                          const file = result.successful[0];
+                          const file = result?.successful?.[0];
                           if (file) {
                              // result.successful[0].uploadURL is the URL, but ObjectUploader usually stores paths in a way that serving can use.
                              // use-upload request-url returns objectPath which is what we want.

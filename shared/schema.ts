@@ -252,6 +252,7 @@ export const contracts = pgTable("contracts", {
   assignedEmployeeId: varchar("assigned_employee_id").references(() => users.id),
   paymentType: text("payment_type"), // To'lov turi
   pdfUrl: text("pdf_url"),
+  verificationToken: text("verification_token"),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

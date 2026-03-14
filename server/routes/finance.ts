@@ -561,4 +561,55 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
             res.status(500).json({ message: "PDF yuklanmadi" });
         }
     });
+    // --- Contracts ---
+    app.get("/api/contracts/next-number", isAuthenticated, async (req, res) => {
+        try {
+            const contractNumber = await storage.getNextContractNumber();
+            res.json({ contractNumber });
+        } catch (err) {
+            console.error("Next contract number error:", err);
+            res.status(500).json({ message: "Raqam generatsiya qilishda xato." });
+        }
+    });
+
+    app.get("/api/contracts/verify/:contractNumber", isAuthenticated, async (req, res) => {
+        try {
+            const contract = await storage.getContractByNumber(req.params.contractNumber);
+            if (!contract) return res.json({ notFound: true });
+            res.json({
+                contract: {
+                    contractNumber: contract.contractNumber,
+                    amount: contract.amount,
+                    currency: contract.currency,
+                    status: contract.status,
+                    createdAt: contract.createdAt
+                }
+            });
+        } catch (err) {
+            console.error("Verify contract error:", err);
+            res.status(500).json({ message: "Tekshirishda xato yuz berdi" });
+        }
+    });
+
+    app.get("/api/public/verify-contract/:token", async (req, res) => {
+        try {
+            const contract = await storage.getContractByToken(req.params.token);
+            if (!contract) return res.status(404).json({ message: "Shartnoma topilmadi yoki belgi noto'g'ri." });
+
+            res.json({
+                contract: {
+                    contractNumber: contract.contractNumber,
+                    amount: contract.amount,
+                    currency: contract.currency,
+                    startDate: contract.startDate,
+                    endDate: contract.endDate,
+                    status: contract.status,
+                    createdAt: contract.createdAt
+                }
+            });
+        } catch (err) {
+            console.error("Public verify contract error:", err);
+            res.status(500).json({ message: "Ichki server xatosi" });
+        }
+    });
 }

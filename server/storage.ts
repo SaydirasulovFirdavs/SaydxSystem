@@ -408,6 +408,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Contracts
+  async getNextContractNumber(): Promise<string> {
+    const year = new Date().getFullYear();
+    const prefix = `SH-${year}/`;
+    const rows = await db
+      .select({ contractNumber: contracts.contractNumber })
+      .from(contracts)
+      .where(like(contracts.contractNumber, `${prefix}%`));
+    let maxN = 0;
+    for (const r of rows) {
+      if (r.contractNumber) {
+        const parts = r.contractNumber.split('/');
+        if (parts.length === 2) {
+          const num = parseInt(parts[1], 10);
+          if (!Number.isNaN(num) && num > maxN) maxN = num;
+        }
+      }
+    }
+    const next = maxN + 1;
+    return `${prefix}${String(next).padStart(4, "0")}`;
+  }
+
   async getContracts(): Promise<Contract[]> {
     return await db.select().from(contracts).orderBy(desc(contracts.createdAt));
   }
@@ -418,8 +439,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createContract(contract: InsertContract): Promise<Contract> {
-    const [row] = await db.insert(contracts).values(contract).returning();
+    const token = randomBytes(16).toString("hex");
+    const contractNumber = contract.contractNumber || await this.getNextContractNumber();
+    const [row] = await db.insert(contracts).values({ 
+      ...contract, 
+      contractNumber,
+      verificationToken: token 
+    }).returning();
     if (!row) throw new Error("Failed to create contract");
+    return row;
+  }
+
+  async getContractByNumber(contractNumber: string): Promise<Contract | undefined> {
+    const [row] = await db.select().from(contracts).where(eq(contracts.contractNumber, contractNumber));
+    return row;
+  }
+
+  async getContractByToken(token: string): Promise<Contract | undefined> {
+    const [row] = await db.select().from(contracts).where(eq(contracts.verificationToken, token));
     return row;
   }
 
