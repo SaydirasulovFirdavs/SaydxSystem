@@ -75,3 +75,15 @@
 [2026-03-10T11:57:48.397Z] AUTH: Path=/api/projects/6 isAuthenticated=true UserID=f1509517-bfaf-4c64-96f5-ac66dfff5c2b Role=admin
 [2026-03-10T12:51:55.401Z] AUTH: Path=/api/auth/user isAuthenticated=false UserID=undefined Role=undefined
 [2026-03-10T12:52:00.551Z] AUTH: Path=/api/auth/user isAuthenticated=false UserID=undefined Role=undefined
+[2026-03-12T17:35:59.740Z] AUTH: Path=/api/auth/user isAuthenticated=true UserID=9fbe71e7-6f90-4e3b-8514-a17ee10550ac Role=admin
+[2026-03-14T08:03:41.636Z] AUTH: Path=/api/auth/user isAuthenticated=true UserID=9fbe71e7-6f90-4e3b-8514-a17ee10550ac Role=admin
+[2026-03-14T08:03:43.029Z] AUTH: Path=/api/auth/user isAuthenticated=true UserID=9fbe71e7-6f90-4e3b-8514-a17ee10550ac Role=admin
+[2026-03-14T08:03:43.317Z] AUTH: Path=/api/notifications isAuthenticated=true UserID=9fbe71e7-6f90-4e3b-8514-a17ee10550ac Role=admin
+[2026-03-14T08:03:44.688Z] AUTH: Path=/api/dashboard/stats isAuthenticated=true UserID=9fbe71e7-6f90-4e3b-8514-a17ee10550ac Role=admin
+[2026-03-14T08:03:54.394Z] AUTH: Path=/api/auth/user isAuthenticated=true UserID=9fbe71e7-6f90-4e3b-8514-a17ee10550ac Role=admin
+[2026-03-14T08:03:54.656Z] AUTH: Path=/api/clients isAuthenticated=true UserID=9fbe71e7-6f90-4e3b-8514-a17ee10550ac Role=admin
+[2026-03-14T08:03:54.665Z] AUTH: Path=/api/contracts isAuthenticated=true UserID=9fbe71e7-6f90-4e3b-8514-a17ee10550ac Role=admin
+[2026-03-14T08:03:55.437Z] AUTH: Path=/api/projects isAuthenticated=true UserID=9fbe71e7-6f90-4e3b-8514-a17ee10550ac Role=admin
+[2026-03-14T08:04:11.918Z] AUTH: Path=/api/auth/user isAuthenticated=true UserID=9fbe71e7-6f90-4e3b-8514-a17ee10550ac Role=admin
+[2026-03-14T08:05:17.961Z] AUTH: Path=/api/auth/user isAuthenticated=false UserID=undefined Role=undefined
+[2026-03-14T08:05:21.780Z] AUTH: Path=/api/auth/user isAuthenticated=false UserID=undefined Role=undefined

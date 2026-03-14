@@ -239,6 +239,16 @@ export const contracts = pgTable("contracts", {
   endDate: timestamp("end_date").notNull(),
   status: text("status").default("active").notNull(), // active, completed, cancelled
   description: text("description"),
+  
+  // New fields from sketch
+  workMethod: text("work_method").default("offline"), // online, offline
+  advancePayment: numeric("advance_payment").default("0"),
+  remainingAmount: numeric("remaining_amount").default("0"),
+  contractType: text("contract_type"), // Turi
+  contractType2: text("contract_type_2"), // T2
+  assignedEmployeeId: varchar("assigned_employee_id").references(() => users.id),
+  paymentType: text("payment_type"), // To'lov turi
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -285,6 +295,7 @@ export const salariesRelations = relations(salaries, ({ one }) => ({
 export const contractsRelations = relations(contracts, ({ one }) => ({
   client: one(clients, { fields: [contracts.clientId], references: [clients.id] }),
   project: one(projects, { fields: [contracts.projectId], references: [projects.id] }),
+  assignedEmployee: one(users, { fields: [contracts.assignedEmployeeId], references: [users.id] }),
 }));
 
 // --- Zod Schemas ---
@@ -310,6 +321,13 @@ export const insertContractSchema = createInsertSchema(contracts)
   .extend({
     startDate: z.coerce.date(),
     endDate: z.coerce.date(),
+    workMethod: z.string().optional(),
+    advancePayment: z.string().optional(),
+    remainingAmount: z.string().optional(),
+    contractType: z.string().optional(),
+    contractType2: z.string().optional(),
+    assignedEmployeeId: z.string().optional(),
+    paymentType: z.string().optional(),
   });
 
 export const paymentDetailLineSchema = z.object({ title: z.string(), value: z.string() });

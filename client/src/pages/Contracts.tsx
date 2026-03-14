@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ScrollText, Plus, Trash2, Calendar, DollarSign, User, Briefcase, FileText } from "lucide-react";
+import { ScrollText, Plus, Trash2, Calendar, DollarSign, User, Briefcase, FileText, Globe, UserCheck, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useContracts } from "@/hooks/use-contracts";
 import { useProjects } from "@/hooks/use-projects";
 import { useClients } from "@/hooks/use-clients";
+import { useEmployees } from "@/hooks/use-employees";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -17,9 +18,20 @@ export default function Contracts() {
   const { contracts, isLoading, createContract, deleteContract } = useContracts();
   const { data: projects } = useProjects();
   const { data: clients } = useClients();
+  const { data: employees } = useEmployees();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const [isOpen, setIsOpen] = useState(false);
+
+  // Form states for calculations
+  const [amount, setAmount] = useState<string>("0");
+  const [advance, setAdvance] = useState<string>("0");
+  
+  const remaining = useMemo(() => {
+    const total = parseFloat(amount) || 0;
+    const adv = parseFloat(advance) || 0;
+    return Math.max(0, total - adv).toString();
+  }, [amount, advance]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,10 +42,17 @@ export default function Contracts() {
       title: fd.get("title") as string,
       clientId: fd.get("clientId") ? Number(fd.get("clientId")) : undefined,
       projectId: fd.get("projectId") ? Number(fd.get("projectId")) : undefined,
-      amount: fd.get("amount") as string,
+      amount: amount,
+      advancePayment: advance,
+      remainingAmount: remaining,
       currency: (fd.get("currency") as string) || "UZS",
       startDate: new Date(fd.get("startDate") as string),
       endDate: new Date(fd.get("endDate") as string),
+      workMethod: fd.get("workMethod") as string,
+      contractType: fd.get("contractType") as string,
+      contractType2: fd.get("contractType2") as string,
+      assignedEmployeeId: fd.get("assignedEmployeeId") as string,
+      paymentType: fd.get("paymentType") as string,
       description: fd.get("description") as string,
       status: "active",
     };
@@ -41,6 +60,8 @@ export default function Contracts() {
     try {
       await createContract.mutateAsync(data as any);
       setIsOpen(false);
+      setAmount("0");
+      setAdvance("0");
     } catch (error) {
       console.error(error);
     }
@@ -75,7 +96,7 @@ export default function Contracts() {
                 <Plus className="w-5 h-5 mr-2 stroke-[3px]" /> Yangi shartnoma
               </Button>
             </DialogTrigger>
-            <DialogContent className="glass-panel border-white/10 max-w-2xl overflow-hidden">
+            <DialogContent className="glass-panel border-white/10 max-w-3xl overflow-hidden max-h-[95vh] overflow-y-auto custom-scrollbar">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
               <DialogHeader>
                 <DialogTitle className="text-2xl font-black text-white tracking-tight flex items-center gap-3">
@@ -85,21 +106,34 @@ export default function Contracts() {
                   Yangi shartnoma yaratish
                 </DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-6 mt-6 relative">
+              <form onSubmit={handleSubmit} className="space-y-6 mt-6 relative pb-4">
+                {/* Row 1: Shartnoma Raqami | Ish olish Tartibi */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Shartnoma Raqami</label>
                     <Input name="contractNumber" required placeholder="Masalan: SH-2026/001" className="glass-input h-12 text-white font-bold" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Nomi / Mavzusi</label>
-                    <Input name="title" required placeholder="Loyiha ishlab chiqish bo'yicha..." className="glass-input h-12 text-white font-bold" />
+                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Ish olish tartibi</label>
+                    <div className="flex gap-2">
+                      <select name="workMethod" className="w-full h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all">
+                        <option value="offline" className="text-black">Offline</option>
+                        <option value="online" className="text-black">Online</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
+                {/* Row 2: Nomi / Mavzusi (Ish olish tartibi ostida sketcha boyicha biriktirilgan) */}
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Nomi / Mavzusi</label>
+                  <Input name="title" required placeholder="Loyiha ishlab chiqish bo'yicha..." className="glass-input h-12 text-white font-bold" />
+                </div>
+
+                {/* Row 3: Mijoz / Kompaniya */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Mijoz</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Mijoz / Kompaniya tanlang</label>
                     <select name="clientId" className="w-full h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all">
                       <option value="" className="text-black">Mijozni tanlang</option>
                       {clients?.map((c) => (
@@ -118,26 +152,87 @@ export default function Contracts() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Row 4: Umumiy summa | Oldindan to'lov | Qolgan summa */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Summa</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Umumiy summa</label>
                     <div className="relative">
-                      <Input name="amount" type="number" required placeholder="0" className="glass-input h-12 text-white font-bold pr-16" />
+                      <Input 
+                        name="amount" 
+                        type="number" 
+                        required 
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="0" 
+                        className="glass-input h-12 text-white font-bold pr-16" 
+                      />
                       <select name="currency" className="absolute right-2 top-2 h-8 rounded-lg bg-white/10 border-0 text-white text-xs font-black outline-none px-2">
                         <option value="UZS">UZS</option>
                         <option value="USD">USD</option>
                       </select>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Boshlanishi</label>
-                      <Input name="startDate" type="date" required className="glass-input h-12 text-white font-bold text-xs" />
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Oldindan to'lov</label>
+                    <Input 
+                      name="advancePayment" 
+                      type="number" 
+                      value={advance}
+                      onChange={(e) => setAdvance(e.target.value)}
+                      placeholder="0" 
+                      className="glass-input h-12 text-white font-bold" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Qolgan summa</label>
+                    <div className="h-12 flex items-center px-4 rounded-xl border border-white/10 bg-white/5 text-primary/80 font-black">
+                      {parseFloat(remaining).toLocaleString()}
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Tugashi</label>
-                      <Input name="endDate" type="date" required className="glass-input h-12 text-white font-bold text-xs" />
-                    </div>
+                  </div>
+                </div>
+
+                {/* Row 5: Boshlanish sana | Tugash sana */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Boshlanish sana</label>
+                    <Input name="startDate" type="date" required className="glass-input h-12 text-white font-bold" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Tugash sana</label>
+                    <Input name="endDate" type="date" required className="glass-input h-12 text-white font-bold" />
+                  </div>
+                </div>
+
+                {/* Row 6: Turi | T2 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Turi</label>
+                    <Input name="contractType" placeholder="Shartnoma turi..." className="glass-input h-12 text-white font-bold" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">T2</label>
+                    <Input name="contractType2" placeholder="T2..." className="glass-input h-12 text-white font-bold" />
+                  </div>
+                </div>
+
+                {/* Row 7: Biriktirilgan xodim | To'lov turi */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Biriktirilgan xodim</label>
+                    <select name="assignedEmployeeId" className="w-full h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all">
+                      <option value="" className="text-black">Xodimni tanlang</option>
+                      {employees?.map((e) => (
+                        <option key={e.id} value={e.id} className="text-black">{e.firstName} {e.lastName}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">To'lov turi</label>
+                    <select name="paymentType" className="w-full h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all">
+                      <option value="cash" className="text-black">Naqd</option>
+                      <option value="card" className="text-black">Karta</option>
+                      <option value="transfer" className="text-black">O'tkazma</option>
+                    </select>
                   </div>
                 </div>
 
@@ -146,11 +241,11 @@ export default function Contracts() {
                   <textarea name="description" rows={3} className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white font-medium focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none" placeholder="Shartnoma bo'yicha ixtiyoriy izoh..." />
                 </div>
 
-                <div className="flex gap-4 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="flex-1 h-12 rounded-2xl border-white/10 text-white font-black hover:bg-white/5">
+                <div className="flex gap-4 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="flex-1 h-14 rounded-2xl border-white/10 text-white font-black hover:bg-white/5">
                     Bekor qilish
                   </Button>
-                  <Button type="submit" disabled={createContract.isPending} className="flex-[2] h-12 rounded-2xl bg-primary text-background font-black shadow-lg shadow-primary/20">
+                  <Button type="submit" disabled={createContract.isPending} className="flex-[2] h-14 rounded-2xl bg-secondary text-white font-black shadow-lg shadow-secondary/20 hover:bg-secondary/90 transition-all active:scale-95">
                     {createContract.isPending ? <LoadingSpinner /> : "Saqlash"}
                   </Button>
                 </div>
@@ -236,21 +331,47 @@ export default function Contracts() {
                       </p>
                     </div>
                   </div>
+                  
+                  {contract.workMethod && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="p-2 bg-white/5 rounded-lg text-white/40">
+                        <Globe className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-white/30">Tartib</p>
+                        <p className="text-white font-bold capitalize">{contract.workMethod}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="pt-6 border-t border-white/5 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 bg-primary/10 rounded-xl text-primary">
-                      <DollarSign className="w-4 h-4" />
+                <div className="pt-6 border-t border-white/5 flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-primary/10 rounded-xl text-primary">
+                        <DollarSign className="w-4 h-4" />
+                      </div>
+                      <p className="text-xl font-black text-white">
+                        {Number(contract.amount).toLocaleString(contract.currency === "USD" ? "en-US" : "uz-UZ")}
+                        <span className="text-xs text-white/40 ml-1 font-bold">{contract.currency}</span>
+                      </p>
                     </div>
-                    <p className="text-xl font-black text-white">
-                      {Number(contract.amount).toLocaleString(contract.currency === "USD" ? "en-US" : "uz-UZ")}
-                      <span className="text-xs text-white/40 ml-1 font-bold">{contract.currency}</span>
-                    </p>
+                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${contract.status === "active" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-white/5 text-white/40 border border-white/10"}`}>
+                      {contract.status === "active" ? "FAOL" : contract.status}
+                    </div>
                   </div>
-                  <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${contract.status === "active" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-white/5 text-white/40 border border-white/10"}`}>
-                    {contract.status === "active" ? "FAOL" : contract.status}
-                  </div>
+                  
+                  {contract.advancePayment && parseFloat(contract.advancePayment) > 0 && (
+                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="w-3 h-3 text-white/40" />
+                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">Avans:</span>
+                      </div>
+                      <span className="text-xs font-black text-primary/80">
+                        {Number(contract.advancePayment).toLocaleString()} {contract.currency}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ))}
