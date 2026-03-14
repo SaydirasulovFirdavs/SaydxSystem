@@ -58,6 +58,7 @@ export function useUpdateEmployee() {
     return useMutation({
         mutationFn: async ({ id, ...data }: { id: string } & Partial<Employee> & { password?: string }) => {
             const res = await apiRequest("PUT", `/api/employees/${id}`, data);
+            if (res.status === 204) return null;
             return res.json();
         },
         onSuccess: (_, variables) => {
@@ -85,6 +86,7 @@ export function useDeleteEmployee() {
     return useMutation({
         mutationFn: async (id: string) => {
             const res = await apiRequest("DELETE", `/api/employees/${id}`);
+            if (res.status === 204) return null;
             return res.json();
         },
         onSuccess: () => {
