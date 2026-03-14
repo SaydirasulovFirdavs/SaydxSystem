@@ -46,6 +46,7 @@ export function useContracts() {
                 method: api.contracts.delete.method,
             });
             if (!res.ok) throw new Error("Shartnomani o'chirib bo'lmadi.");
+            if (res.status === 204) return null;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [api.contracts.list.path] });
@@ -56,10 +57,40 @@ export function useContracts() {
         },
     });
 
+    const updateMutation = useMutation({
+        mutationFn: async ({ id, contract }: { id: number, contract: Partial<InsertContract> }) => {
+            const res = await fetch(api.contracts.update.path.replace(":id", String(id)), {
+                method: api.contracts.update.method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(contract),
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message || "Ushbu shartnomani yangilab bo'lmadi.");
+            }
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [api.contracts.list.path] });
+            toast({
+                title: "Muvaffaqiyatli",
+                description: "Shartnoma yangilandi.",
+            });
+        },
+        onError: (error: Error) => {
+            toast({
+                variant: "destructive",
+                title: "Xato",
+                description: error.message,
+            });
+        },
+    });
+
     return {
         contracts: query.data ?? [],
         isLoading: query.isLoading,
         createContract: createMutation,
+        updateContract: updateMutation,
         deleteContract: deleteMutation,
     };
 }

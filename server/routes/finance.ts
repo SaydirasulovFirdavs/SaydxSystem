@@ -501,6 +501,31 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
         }
     });
 
+    app.put(api.contracts.update.path, isAuthenticated, isAdmin, async (req, res) => {
+        try {
+            const id = Number(req.params.id);
+            const input = api.contracts.create.input.extend({
+                clientId: z.preprocess(v => v === "" ? null : v, z.coerce.number().optional().nullable()),
+                projectId: z.preprocess(v => v === "" ? null : v, z.coerce.number().optional().nullable()),
+                amount: z.union([z.string(), z.number()]).transform(v => String(v)),
+                startDate: z.union([z.string(), z.date(), z.number()]).optional().transform(v => v ? new Date(v) : undefined),
+                endDate: z.union([z.string(), z.date(), z.number()]).optional().transform(v => v ? new Date(v) : undefined),
+                technicalAssignmentUrl: z.preprocess(v => v === "" ? null : v, z.string().optional().nullable()),
+                assignedEmployeeId: z.preprocess(v => v === "" ? null : v, z.string().optional().nullable()),
+            }).partial().parse(req.body);
+            
+            const contract = await storage.updateContract(id, input);
+            if (!contract) return res.status(404).json({ message: "Contract not found" });
+            res.json(contract);
+        } catch (err) {
+            if (err instanceof z.ZodError) {
+                return res.status(400).json({ message: err.errors[0].message, field: err.errors[0].path.join('.') });
+            }
+            console.error("Update contract error:", err);
+            res.status(500).json({ message: "Failed to update contract" });
+        }
+    });
+
     app.post("/api/contracts/:id/generate-pdf", isAuthenticated, async (req, res) => {
         try {
             const id = Number(req.params.id);

@@ -291,6 +291,16 @@ export const api = {
         204: z.undefined(),
         404: errorSchemas.notFound,
       }
+    },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/contracts/:id' as const,
+      input: insertContractSchema.partial(),
+      responses: {
+        200: z.custom<Contract>(),
+        400: errorSchemas.validation,
+        404: errorSchemas.notFound,
+      }
     }
   }
 };

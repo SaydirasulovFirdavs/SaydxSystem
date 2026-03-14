@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ScrollText, Plus, Trash2, Calendar, DollarSign, User, Briefcase, FileText, Globe, UserCheck, CreditCard, ShieldCheck, Settings } from "lucide-react";
+import { ScrollText, Plus, Trash2, Calendar, DollarSign, User, Briefcase, FileText, Globe, UserCheck, CreditCard, ShieldCheck, Settings, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useContracts } from "@/hooks/use-contracts";
@@ -21,7 +21,7 @@ import { ObjectUploader } from "@/components/ObjectUploader";
 import { ContractPreview } from "@/components/contracts/ContractPreview";
 
 export default function Contracts() {
-  const { contracts, isLoading, createContract, deleteContract } = useContracts();
+  const { contracts, isLoading, createContract, updateContract, deleteContract } = useContracts();
   const { data: projects } = useProjects();
   const { data: clients } = useClients();
   const { data: employees } = useEmployees();
@@ -30,6 +30,8 @@ export default function Contracts() {
   const isAdmin = user?.role === "admin";
   const [isOpen, setIsOpen] = useState(false);
   const [isVerifyOpen, setIsVerifyOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedContract, setSelectedContract] = useState<any>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedContractForPreview, setSelectedContractForPreview] = useState<any>(null);
@@ -121,7 +123,42 @@ export default function Contracts() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!selectedContract) return;
+    const fd = new FormData(e.currentTarget);
+    const getVal = (name: string) => {
+      const v = fd.get(name) as string;
+      return v && v.trim() !== "" ? v : null;
+    };
+    const data = {
+      contractNumber: fd.get("contractNumber") as string,
+      clientId: fd.get("clientId") ? Number(fd.get("clientId")) : null,
+      projectId: fd.get("projectId") ? Number(fd.get("projectId")) : null,
+      amount: amount,
+      advancePayment: advance,
+      remainingAmount: remaining,
+      currency: (fd.get("currency") as string) || "UZS",
+      startDate: new Date(fd.get("startDate") as string),
+      endDate: new Date(fd.get("endDate") as string),
+      workMethod: getVal("workMethod"),
+      contractType: getVal("contractType"),
+      technicalAssignmentUrl: tzUrl,
+      assignedEmployeeId: getVal("assignedEmployeeId"),
+      paymentType: getVal("paymentType"),
+      description: getVal("description"),
+    };
+    try {
+      await updateContract.mutateAsync({ id: selectedContract.id, contract: data as any });
+      setIsEditOpen(false);
+      setSelectedContract(null);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
     if (window.confirm("Haqiqatan ham ushbu shartnomani o'chirmoqchimisiz?")) {
       await deleteContract.mutateAsync(id);
     }
@@ -398,143 +435,269 @@ export default function Contracts() {
           )}
         </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <AnimatePresence mode="popLayout">
             {contracts.map((contract, index) => (
               <motion.div
                 key={contract.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: index * 0.05 }}
-                className="glass-panel p-6 rounded-[2.5rem] border border-white/5 border-b-primary/30 hover:border-primary/50 transition-all group relative overflow-hidden"
+                transition={{ delay: index * 0.05, duration: 0.4 }}
+                className="relative group block"
               >
-                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-700">
-                  <ScrollText className="w-20 h-20" />
-                </div>
+                {/* Contract "Sheet" Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-[2.5rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 
-                <div className="flex justify-between items-start mb-6">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60">№ {contract.contractNumber}</p>
-                    <h3 className="text-xl font-black text-white leading-tight group-hover:text-primary transition-colors">
-                      {clients?.find(c => c.id === contract.clientId)?.name || "Noma'lum Mijoz"}
-                    </h3>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => {
-                        setSelectedContractForPreview(contract);
-                        setIsPreviewOpen(true);
-                      }}
-                      className="h-9 w-9 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10"
-                    >
-                      <FileText className="w-4.5 h-4.5" />
-                    </Button>
-                    {isAdmin && (
-                      <button onClick={() => handleDelete(contract.id)} className="p-2.5 rounded-xl bg-white/5 text-white/20 hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="p-2 bg-white/5 rounded-lg text-white/40">
-                      <User className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/30">Mijoz</p>
-                      <p className="text-white font-bold">{clients?.find(c => c.id === contract.clientId)?.name || "Noma'lum"}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="p-2 bg-white/5 rounded-lg text-white/40">
-                      <Briefcase className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/30">Loyiha</p>
-                      <p className="text-white font-bold">{projects?.find(p => p.id === contract.projectId)?.name || "Noma'lum"}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-6 pt-2">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/30 flex items-center gap-1">
-                        <Calendar className="w-3 h-3" /> Amalda
-                      </p>
-                      <p className="text-[11px] text-white/60 font-black tracking-tight italic">
-                        {format(new Date(contract.startDate), "dd.MM.yyyy")} — {format(new Date(contract.endDate), "dd.MM.yyyy")}
-                      </p>
-                    </div>
-                  </div>
+                <div className="relative glass-panel rounded-[2.5rem] border border-white/5 overflow-hidden flex flex-col md:flex-row h-full min-h-[300px]">
+                  {/* Left Accent Bar */}
+                  <div className={`w-2 md:w-3 h-full shrink-0 ${contract.status === "active" ? "bg-emerald-500/80" : "bg-white/20"}`} />
                   
-                  {contract.workMethod && (
-                    <div className="flex items-center gap-3 text-sm">
-                      <div className="p-2 bg-white/5 rounded-lg text-white/40">
-                        <Globe className="w-4 h-4" />
+                  {/* Main Content Area */}
+                  <div className="flex-1 p-8 flex flex-col">
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-500/20 transition-all duration-500">
+                          <ScrollText className="w-7 h-7" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400/60 mb-1">SHARTNOMA RAQAMI</p>
+                          <h3 className="text-2xl font-black text-white tracking-tight">{contract.contractNumber}</h3>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/30">Tartib</p>
-                        <p className="text-white font-bold capitalize">{contract.workMethod}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="pt-6 border-t border-white/5 flex flex-col gap-4">
-                  {contract.technicalAssignmentUrl && (
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
+                      
                       <div className="flex items-center gap-2">
-                        <FileText className="w-3 h-3 text-primary" />
-                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">TZ Fayl:</span>
+                        {isAdmin && (
+                          <>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedContract(contract);
+                                setAmount(contract.amount);
+                                setAdvance(contract.advancePayment || "0");
+                                setTzUrl(contract.technicalAssignmentUrl);
+                                setIsEditOpen(true);
+                              }}
+                              className="h-10 w-10 text-white/40 hover:text-amber-400 hover:bg-amber-400/10 rounded-xl"
+                            >
+                              <Pencil className="w-4.5 h-4.5" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={(e) => handleDelete(e, contract.id)}
+                              className="h-10 w-10 text-white/40 hover:text-destructive hover:bg-destructive/10 rounded-xl"
+                            >
+                              <Trash2 className="w-4.5 h-4.5" />
+                            </Button>
+                          </>
+                        )}
                       </div>
-                      <a 
-                        href={`/objects/${contract.technicalAssignmentUrl.replace(/^\//, '')}`} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="text-xs font-black text-primary hover:underline"
-                      >
-                        Ochildi
-                      </a>
                     </div>
-                  )}
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-primary/10 rounded-xl text-primary">
-                        <DollarSign className="w-4 h-4" />
-                      </div>
-                      <p className="text-xl font-black text-white">
-                        {Number(contract.amount).toLocaleString(contract.currency === "USD" ? "en-US" : "uz-UZ")}
-                        <span className="text-xs text-white/40 ml-1 font-bold">{contract.currency}</span>
-                      </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 mt-2">
+                       <div className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white/5 rounded-lg">
+                              <User className="w-4 h-4 text-white/40" />
+                            </div>
+                            <div className="overflow-hidden">
+                              <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Mijoz</p>
+                              <p className="text-sm font-bold text-white/80 truncate leading-tight">
+                                {clients?.find(c => c.id === contract.clientId)?.name || "Noma'lum Mijoz"}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white/5 rounded-lg">
+                              <Briefcase className="w-4 h-4 text-white/40" />
+                            </div>
+                            <div className="overflow-hidden">
+                              <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Loyiha</p>
+                              <p className="text-sm font-bold text-white/80 truncate leading-tight">
+                                {projects?.find(p => p.id === contract.projectId)?.name || "Loyiha biriktirilmagan"}
+                              </p>
+                            </div>
+                          </div>
+                       </div>
+                       
+                       <div className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white/5 rounded-lg">
+                              <Calendar className="w-4 h-4 text-white/40" />
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Muddat</p>
+                              <p className="text-sm font-bold text-indigo-300 italic">
+                                {format(new Date(contract.startDate), "dd MMM", { locale: uz })} — {format(new Date(contract.endDate), "dd MMM", { locale: uz })}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white/5 rounded-lg">
+                              <Globe className="w-4 h-4 text-white/40" />
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Tartib</p>
+                              <p className="text-sm font-bold text-white/80 capitalize">{contract.workMethod || "Offline"}</p>
+                            </div>
+                          </div>
+                       </div>
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${contract.status === "active" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-white/5 text-white/40 border border-white/10"}`}>
-                      {contract.status === "active" ? "FAOL" : contract.status}
+
+                    <div className="mt-auto flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-white/5">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-black text-white tracking-tighter">
+                          {Number(contract.amount).toLocaleString()}
+                        </span>
+                        <span className="text-xs font-black text-indigo-400 uppercase tracking-widest">{contract.currency}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          onClick={() => {
+                            setSelectedContractForPreview(contract);
+                            setIsPreviewOpen(true);
+                          }}
+                          className="bg-white/5 hover:bg-white/10 text-white font-bold px-5 h-11 rounded-xl transition-all border border-white/5"
+                        >
+                          <FileText className="w-4 h-4 mr-2 text-indigo-400" /> Preview
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  
-                  {contract.advancePayment && parseFloat(contract.advancePayment) > 0 && (
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
-                      <div className="flex items-center gap-2">
-                        <CreditCard className="w-3 h-3 text-white/40" />
-                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">Avans:</span>
-                      </div>
-                      <span className="text-xs font-black text-primary/80">
-                        {Number(contract.advancePayment).toLocaleString()} {contract.currency}
-                      </span>
-                    </div>
-                  )}
+
+                  {/* Desktop Right Side Meta (Optional creative element) */}
+                  <div className="hidden md:flex flex-col items-center justify-center px-6 bg-white/[0.02] border-l border-white/5 shrink-0">
+                     <div className="[writing-mode:vertical-lr] rotate-180 text-[10px] font-black tracking-[0.5em] text-white/10 uppercase mb-8">
+                       OFFICIAL DOCUMENT
+                     </div>
+                     <div className={`w-3 h-3 rounded-full ${contract.status === "active" ? "bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]" : "bg-white/20"}`} />
+                  </div>
                 </div>
               </motion.div>
             ))}
           </AnimatePresence>
         </div>
       )}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="glass-panel border-white/10 w-[90vw] max-w-4xl max-h-[90vh] overflow-y-auto p-8 rounded-[3rem]">
+          <DialogTitle className="text-3xl font-black text-white mb-8 pr-12 tracking-tight uppercase">
+            Shartnomani tahrirlash
+          </DialogTitle>
+          <form onSubmit={handleEditSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Shartnoma №</label>
+                <Input name="contractNumber" defaultValue={selectedContract?.contractNumber} required className="glass-input h-12 text-white font-bold" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Mijoz</label>
+                <select name="clientId" defaultValue={selectedContract?.clientId} className="w-full h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all">
+                  <option value="" className="text-black">Mijozni tanlang</option>
+                  {clients?.map((cl) => (
+                    <option key={cl.id} value={cl.id} className="text-black">{cl.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Loyiha</label>
+              <select name="projectId" defaultValue={selectedContract?.projectId} className="w-full h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all">
+                <option value="" className="text-black">Loyihani tanlang</option>
+                {projects?.map((pj) => (
+                  <option key={pj.id} value={pj.id} className="text-black">{pj.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Summa</label>
+                <div className="relative">
+                  <Input 
+                    name="amount" 
+                    type="number" 
+                    required 
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="glass-input h-12 text-white font-bold pr-16" 
+                  />
+                  <select name="currency" defaultValue={selectedContract?.currency} className="absolute right-2 top-2 h-8 rounded-lg bg-white/10 border-0 text-white text-xs font-black outline-none px-2">
+                    <option value="UZS">UZS</option>
+                    <option value="USD">USD</option>
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Oldindan to'lov</label>
+                <Input 
+                  name="advancePayment" 
+                  type="number" 
+                  value={advance}
+                  onChange={(e) => setAdvance(e.target.value)}
+                  className="glass-input h-12 text-white font-bold" 
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Qolgan summa</label>
+                <div className="h-12 flex items-center px-4 rounded-xl border border-white/10 bg-white/5 text-primary/80 font-black">
+                  {parseFloat(remaining).toLocaleString()}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Boshlanish sana</label>
+                <Input name="startDate" type="date" defaultValue={selectedContract?.startDate ? new Date(selectedContract.startDate).toISOString().split('T')[0] : ""} required className="glass-input h-12 text-white font-bold" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Tugash sana</label>
+                <Input name="endDate" type="date" defaultValue={selectedContract?.endDate ? new Date(selectedContract.endDate).toISOString().split('T')[0] : ""} required className="glass-input h-12 text-white font-bold" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Ish tartibi</label>
+                <select name="workMethod" defaultValue={selectedContract?.workMethod || "offline"} className="w-full h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all">
+                  <option value="online" className="text-black">Online</option>
+                  <option value="offline" className="text-black">Offline</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">To'lov turi</label>
+                <select name="paymentType" defaultValue={selectedContract?.paymentType || "cash"} className="w-full h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white font-bold focus:ring-2 focus:ring-primary/50 outline-none transition-all">
+                  <option value="cash" className="text-black">Naqd</option>
+                  <option value="card" className="text-black">Karta</option>
+                  <option value="transfer" className="text-black">O'tkazma</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Qo'shimcha tafsilotlar</label>
+              <textarea name="description" defaultValue={selectedContract?.description} rows={3} className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white font-medium focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none" placeholder="Izoh..." />
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="flex-1 h-14 rounded-2xl border-white/10 text-white font-black hover:bg-white/5">
+                Bekor qilish
+              </Button>
+              <Button type="submit" disabled={updateContract.isPending} className="flex-[2] h-14 rounded-2xl bg-amber-500 text-white font-black hover:bg-amber-600 transition-all active:scale-95">
+                {updateContract.isPending ? <LoadingSpinner /> : "Yangilash"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent className="glass-panel border-white/10 w-[90vw] max-w-5xl max-h-[90vh] overflow-y-auto p-0">
           <div className="sticky top-0 z-50 bg-slate-900 border-b border-white/10 p-4 flex justify-between items-center">
