@@ -9,6 +9,8 @@ import { useEmployees } from "@/hooks/use-employees";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { InvoiceSettingsForm } from "@/components/invoices/InvoiceSettingsForm";
 import { format } from "date-fns";
 import { uz } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +23,7 @@ export default function Contracts() {
   const { data: projects } = useProjects();
   const { data: clients } = useClients();
   const { data: employees } = useEmployees();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const [isOpen, setIsOpen] = useState(false);
@@ -28,6 +31,14 @@ export default function Contracts() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [verifyNumber, setVerifyNumber] = useState("");
+
+  const { data: invoiceSettings } = useQuery({
+    queryKey: ["/api/settings/invoice"],
+    queryFn: async () => {
+      const res = await fetch("/api/settings/invoice", { credentials: "include" });
+      return res.json();
+    },
+  });
 
   // Form states for calculations
   const [amount, setAmount] = useState<string>("0");
@@ -129,10 +140,28 @@ export default function Contracts() {
               <FileText className="w-5 h-5" />
             </Button>
 
-            {/* Settings Button (Placeholder) */}
-            <Button variant="ghost" onClick={() => setIsSettingsOpen(true)} className="text-amber-400 h-11 px-4 hover:bg-amber-400/10">
-              <Settings className="w-5 h-5" />
-            </Button>
+            {/* Settings Button */}
+            <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" className="text-amber-400 h-11 px-4 hover:bg-amber-400/10">
+                  <Settings className="w-5 h-5" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="glass-panel border-white/10 max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-white">Shartnoma sozlamalari (Rekvizitlar)</DialogTitle>
+                </DialogHeader>
+                {invoiceSettings && (
+                  <InvoiceSettingsForm 
+                    initial={invoiceSettings} 
+                    onSuccess={() => { 
+                      queryClient.invalidateQueries({ queryKey: ["/api/settings/invoice"] }); 
+                      setIsSettingsOpen(false); 
+                    }} 
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
 
             {/* New Contract Dialog */}
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
