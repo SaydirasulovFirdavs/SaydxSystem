@@ -4,6 +4,7 @@ import { FileText, Edit, Trash2, Download, Calendar, DollarSign, Building2, User
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { calculateInvoiceTotal } from "@/lib/invoiceUtils";
 
 type InvoiceCardProps = {
     invoice: any;
@@ -48,6 +49,13 @@ export function InvoiceCard({
       pending: "shadow-[0_0_15px_rgba(245,158,11,0.2)]",
       unpaid: "shadow-[0_0_15px_rgba(244,63,94,0.2)]",
     };
+
+    const grandTotal = calculateInvoiceTotal(
+        invoice.amount,
+        invoice.paidAmount,
+        invoice.vatRate,
+        invoice.discountRate
+    );
 
     return (
         <TooltipProvider>
@@ -120,7 +128,7 @@ export function InvoiceCard({
                                     <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Jami summa</p>
                                     <div className="flex items-baseline gap-1.5">
                                         <span className="text-3xl font-black text-white tracking-tighter">
-                                            {new Intl.NumberFormat("uz-UZ").format(Number(invoice.amount))}
+                                            {new Intl.NumberFormat("uz-UZ").format(grandTotal)}
                                         </span>
                                         <span className="text-xs font-black text-indigo-400 uppercase tracking-tighter">{invoice.currency}</span>
                                     </div>

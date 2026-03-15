@@ -82,10 +82,17 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
         try {
             const invoice = await storage.getInvoiceByNumber(req.params.invoiceNumber);
             if (!invoice) return res.json({ notFound: true });
+
+            const subtotal = Number(invoice.amount) || 0;
+            const vat = Number(invoice.vatRate) || 0;
+            const disc = Number(invoice.discountRate) || 0;
+            const paid = Number(invoice.paidAmount) || 0;
+            const finalAmount = Math.max(0, subtotal + (subtotal * vat / 100) - (subtotal * disc / 100) - paid);
+
             res.json({
                 invoice: {
                     clientName: invoice.clientName,
-                    amount: invoice.amount,
+                    amount: finalAmount,
                     currency: invoice.currency
                 }
             });
@@ -100,11 +107,17 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
             const invoice = await storage.getInvoiceByToken(req.params.token);
             if (!invoice) return res.status(404).json({ message: "Hisob-faktura topilmadi yoki belgi noto'g'ri." });
 
+            const subtotal = Number(invoice.amount) || 0;
+            const vat = Number(invoice.vatRate) || 0;
+            const disc = Number(invoice.discountRate) || 0;
+            const paid = Number(invoice.paidAmount) || 0;
+            const finalAmount = Math.max(0, subtotal + (subtotal * vat / 100) - (subtotal * disc / 100) - paid);
+
             res.json({
                 invoice: {
                     invoiceNumber: invoice.invoiceNumber,
                     clientName: invoice.clientName,
-                    amount: invoice.amount,
+                    amount: finalAmount,
                     currency: invoice.currency,
                     dueDate: invoice.dueDate,
                     status: invoice.status,
