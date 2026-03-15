@@ -124,6 +124,12 @@ export default function Contracts() {
       paymentType: getVal("paymentType"),
       description: getVal("description"),
       title: getVal("contractType") || fd.get("contractNumber") as string,
+      clientAddress: getVal("clientAddress"),
+      clientPhone: getVal("clientPhone"),
+      clientBankName: getVal("clientBankName"),
+      clientMfo: getVal("clientMfo"),
+      clientInn: getVal("clientInn"),
+      clientAccountNumber: getVal("clientAccountNumber"),
       status: "active",
     };
 
@@ -186,6 +192,12 @@ export default function Contracts() {
       assignedEmployeeId: getVal("assignedEmployeeId"),
       paymentType: getVal("paymentType"),
       description: getVal("description"),
+      clientAddress: getVal("clientAddress"),
+      clientPhone: getVal("clientPhone"),
+      clientBankName: getVal("clientBankName"),
+      clientMfo: getVal("clientMfo"),
+      clientInn: getVal("clientInn"),
+      clientAccountNumber: getVal("clientAccountNumber"),
     };
     try {
       await updateContract.mutateAsync({ id: selectedContract.id, contract: data as any });
@@ -510,6 +522,40 @@ export default function Contracts() {
                   </div>
                 </div>
 
+                <div className="space-y-4 pt-4 border-t border-white/5">
+                  <label className="text-xs font-black uppercase tracking-widest text-primary/60 ml-1">Mijozning qo'shimcha ma'lumotlari (PDF uchun)</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Manzil</label>
+                       <Input name="clientAddress" placeholder="Manzil..." className="glass-input h-11 text-sm font-bold" />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Telefon</label>
+                       <Input name="clientPhone" placeholder="+998..." className="glass-input h-11 text-sm font-bold" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Bank nomi</label>
+                       <Input name="clientBankName" placeholder="Bank nomi..." className="glass-input h-11 text-sm font-bold" />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">H/r (Hisob raqami)</label>
+                       <Input name="clientAccountNumber" placeholder="202..." className="glass-input h-11 text-sm font-bold" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">MFO</label>
+                       <Input name="clientMfo" placeholder="00444" className="glass-input h-11 text-sm font-bold" />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">STIR (INN)</label>
+                       <Input name="clientInn" placeholder="123456789" className="glass-input h-11 text-sm font-bold" />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-white/40 ml-1">Qo'shimcha tafsilotlar</label>
                   <textarea name="description" rows={3} className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white font-medium focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none" placeholder="Shartnoma bo'yicha ixtiyoriy izoh..." />
@@ -792,6 +838,40 @@ export default function Contracts() {
                   <option value="card" className="text-black">Karta</option>
                   <option value="transfer" className="text-black">O'tkazma</option>
                 </select>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-white/5">
+              <label className="text-xs font-black uppercase tracking-widest text-primary/60 ml-1">Mijozning qo'shimcha ma'lumotlari (PDF uchun)</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Manzil</label>
+                   <Input name="clientAddress" defaultValue={selectedContract?.clientAddress} className="glass-input h-11 text-sm font-bold" />
+                </div>
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Telefon</label>
+                   <Input name="clientPhone" defaultValue={selectedContract?.clientPhone} className="glass-input h-11 text-sm font-bold" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Bank nomi</label>
+                   <Input name="clientBankName" defaultValue={selectedContract?.clientBankName} className="glass-input h-11 text-sm font-bold" />
+                </div>
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">H/r</label>
+                   <Input name="clientAccountNumber" defaultValue={selectedContract?.clientAccountNumber} className="glass-input h-11 text-sm font-bold" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">MFO</label>
+                   <Input name="clientMfo" defaultValue={selectedContract?.clientMfo} className="glass-input h-11 text-sm font-bold" />
+                </div>
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">STIR (INN)</label>
+                   <Input name="clientInn" defaultValue={selectedContract?.clientInn} className="glass-input h-11 text-sm font-bold" />
+                </div>
               </div>
             </div>
 

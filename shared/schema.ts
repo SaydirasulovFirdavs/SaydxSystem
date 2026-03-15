@@ -256,6 +256,14 @@ export const contracts = pgTable("contracts", {
   verificationToken: text("verification_token"),
   title: text("title"),
   
+  // Client specific details for the contract document
+  clientAddress: text("client_address"),
+  clientPhone: text("client_phone"),
+  clientBankName: text("client_bank_name"),
+  clientMfo: text("client_mfo"),
+  clientInn: text("client_inn"),
+  clientAccountNumber: text("client_account_number"),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -343,6 +351,12 @@ export const insertContractSchema = createInsertSchema(contracts)
     assignedEmployeeId: z.string().optional().nullable(),
     paymentType: z.string().optional().nullable(),
     title: z.string().optional().nullable(),
+    clientAddress: z.string().optional().nullable(),
+    clientPhone: z.string().optional().nullable(),
+    clientBankName: z.string().optional().nullable(),
+    clientMfo: z.string().optional().nullable(),
+    clientInn: z.string().optional().nullable(),
+    clientAccountNumber: z.string().optional().nullable(),
   });
 
 export const paymentDetailLineSchema = z.object({ title: z.string(), value: z.string() });

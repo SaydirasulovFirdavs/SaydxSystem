@@ -215,12 +215,12 @@ function buildContractHtml(contract: any, settings: any, baseUrl: string, qrCode
     <div class="party-box">
       <h4>KOMPANIYA</h4>
       <div class="details">
-        <b>"SAYD.X" YATT</b><br>
-        Raxbar: Saidmuhammadalixon Ataullayev<br>
-        Manzil: Toshkent sh., Yashnobod t., Obod makon 56/12 uy<br>
-        H/r: 20218000207298668001<br>
-        Bank: MFO 00444, STIR 637742163<br>
-        Tel: +998 20 000 37 90
+        <b>${esc(settings.companyName || '"SAYD.X" YATT')}</b><br>
+        Raxbar: ${esc(settings.authorizedName || 'Saidmuhammadalixon Ataullayev')}<br>
+        Manzil: ${esc(settings.address || "Toshkent sh., Yashnobod t., Obod makon 56/12 uy")}<br>
+        H/r: ${esc(settings.accountNumber || '20218000207298668001')}<br>
+        Bank: ${esc(settings.bankName || 'MFO 00444, STIR 637742163')}<br>
+        Tel: ${esc(settings.phone || '+998 20 000 37 90')}
       </div>
     </div>
     <div class="party-box">
@@ -228,8 +228,10 @@ function buildContractHtml(contract: any, settings: any, baseUrl: string, qrCode
       <div class="details">
         <b>${esc(contract.company || contract.clientName)}</b><br>
         Vakil: ${esc(contract.clientName)}<br>
-        To'lov turi: ${esc(contract.paymentType || "Karta/O'tkazma")}<br>
-        E-mail: ${esc(contract.clientEmail || '---')}
+        Manzil: ${esc(contract.clientAddress || '---')}<br>
+        H/r: ${esc(contract.clientAccountNumber || '---')}<br>
+        Bank: ${esc(contract.clientBankName || '---')} ${contract.clientMfo ? `, MFO ${contract.clientMfo}` : ''} ${contract.clientInn ? `, STIR ${contract.clientInn}` : ''}<br>
+        Tel: ${esc(contract.clientPhone || '---')}
       </div>
     </div>
   </div>
