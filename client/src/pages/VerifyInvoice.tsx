@@ -68,30 +68,30 @@ export default function VerifyInvoice() {
               </div>
             ) : (
               <div className="space-y-8">
-                <div className="flex items-center gap-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
-                  <ShieldCheck className="w-8 h-8 text-emerald-500" />
-                  <div>
-                    <h2 className="text-emerald-500 font-black uppercase text-sm tracking-widest">Tasdiqlangan</h2>
-                    <p className="text-slate-400 text-xs">Ushbu hujjat haqiqiy va tizim tomonidan ro'yxatga olingan.</p>
+                <div className="flex items-center justify-between gap-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                  <div className="flex items-center gap-4">
+                    <ShieldCheck className="w-8 h-8 text-emerald-500 flex-shrink-0" />
+                    <div>
+                      <h2 className="text-emerald-500 font-black uppercase text-sm tracking-widest leading-none mb-1">Tasdiqlangan</h2>
+                      <p className="text-slate-400 text-[10px] leading-tight">Ushbu hujjat haqiqiy va tizim tomonidan ro'yxatga olingan.</p>
+                    </div>
+                  </div>
+                  <div className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border border-white/5 flex-shrink-0 ${
+                    invoice.status === 'paid' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                    invoice.status === 'unpaid' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
+                    'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                  }`}>
+                    {invoice.status === 'paid' ? "To'langan" : 
+                     invoice.status === 'unpaid' ? "To'lanmadi" : "Kutilmoqda"}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                         <FileText className="w-3 h-3" /> Faktura raqami
-                      </label>
-                      <p className="text-lg font-bold text-white uppercase">{invoice.invoiceNumber}</p>
-                    </div>
-                    <div className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5 ${
-                      invoice.status === 'paid' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                      invoice.status === 'unpaid' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
-                      'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                    }`}>
-                      {invoice.status === 'paid' ? "To'langan" : 
-                       invoice.status === 'unpaid' ? "To'lanmadi" : "Kutilmoqda"}
-                    </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                       <FileText className="w-3 h-3" /> Faktura raqami
+                    </label>
+                    <p className="text-lg font-bold text-white uppercase tracking-tight">{invoice.invoiceNumber}</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-6">
