@@ -8,7 +8,7 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { format } from "date-fns";
 import {
   ArrowDownRight, ArrowUpRight, Plus, TrendingUp, TrendingDown,
-  DollarSign, Percent, RefreshCw, X, Calendar, Clock, AlignLeft, Tag, Layers, Trash2
+  DollarSign, Percent, RefreshCw, X, Calendar, Clock, AlignLeft, Tag, Layers, Trash2, AlertOctagon
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -157,138 +157,176 @@ export default function Finance() {
 
   return (
     <AppLayout>
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-display font-bold text-white mb-1">Moliya tizimi</h1>
-          <p className="text-muted-foreground text-sm">Kirim-chiqim va foyda bo'yicha umumiy ko'rinish</p>
-        </div>
-
-        {/* Add Transaction Button */}
-        <Dialog open={isTransDialogOpen} onOpenChange={setIsTransDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 text-background font-bold px-5 py-2.5 rounded-xl shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:shadow-[0_0_30px_rgba(0,240,255,0.5)] transition-all flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              Yangi Tranzaksiya
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="glass-panel border-white/10 rounded-2xl max-w-lg p-0 overflow-hidden">
-            <div className="p-6 border-b border-white/5 bg-white/[0.02]">
-              <DialogTitle className="text-white text-xl font-display font-bold">Yangi tranzaksiya</DialogTitle>
-              <DialogDescription className="text-white/50 text-sm mt-1">Kirim yoki chiqim ma'lumotlarini to'liq kiriting.</DialogDescription>
+      {/* Header Section */}
+      <div className="mb-12">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-indigo-400" />
+              </div>
+              <h1 className="text-5xl font-black text-white tracking-tighter uppercase italic">
+                Moliya <span className="text-indigo-500">Tizimi</span>
+              </h1>
             </div>
-            <form onSubmit={handleCreateTrans} className="p-6 space-y-5">
-              <div className="grid grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <label className="text-[11px] text-white/50 uppercase tracking-widest font-semibold flex items-center gap-1.5"><Layers className="w-3.5 h-3.5" /> Turi</label>
-                  <select name="type" className="w-full glass-input p-3 rounded-xl text-white text-sm focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer">
-                    <option value="income" className="text-emerald-600 font-medium">Kirim (+)</option>
-                    <option value="expense" className="text-red-600 font-medium">Chiqim (-)</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] text-white/50 uppercase tracking-widest font-semibold flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5" /> Miqdor</label>
-                  <Input name="amount" type="number" required className="glass-input text-white rounded-xl h-[46px] text-lg font-bold placeholder:text-white/20" placeholder="0" />
-                </div>
-              </div>
+            <p className="text-white/40 font-medium tracking-wide uppercase text-[10px] pl-1">
+              Kirim-chiqim va foyda bo'yicha <span className="text-indigo-400/60">umumiy tahlil</span>
+            </p>
+          </div>
 
-              <div className="grid grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <label className="text-[11px] text-white/50 uppercase tracking-widest font-semibold flex items-center gap-1.5"><RefreshCw className="w-3.5 h-3.5" /> Valyuta</label>
-                  <select name="currency" className="w-full glass-input p-3 rounded-xl text-white text-sm focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer">
-                    <option value="UZS" className="text-black">UZS — O'zbek so'm</option>
-                    <option value="USD" className="text-black">USD — Dollar</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] text-white/50 uppercase tracking-widest font-semibold flex items-center gap-1.5"><Tag className="w-3.5 h-3.5" /> Toifa</label>
-                  <select name="category" required className="w-full glass-input p-3 rounded-xl text-white text-sm focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer">
-                    <option value="" className="text-black">Tanlang...</option>
-                    <optgroup label="Kirim" className="text-black">
-                      {incomeCategories.map(c => <option key={c} value={c} className="text-black">{c}</option>)}
-                    </optgroup>
-                    <optgroup label="Chiqim" className="text-black">
-                      {expenseCategories.map(c => <option key={c} value={c} className="text-black">{c}</option>)}
-                    </optgroup>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <label className="text-[11px] text-white/50 uppercase tracking-widest font-semibold flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> Sana va Vaqt</label>
-                  <Input name="date" type="datetime-local" defaultValue={format(new Date(), "yyyy-MM-dd'T'HH:mm")} className="glass-input text-white rounded-xl h-[46px] flex w-full" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] text-white/50 uppercase tracking-widest font-semibold flex items-center gap-1.5"><Layers className="w-3.5 h-3.5" /> Loyiha (ixtiyoriy)</label>
-                  <select name="projectId" className="w-full glass-input p-3 rounded-xl text-white text-sm focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer">
-                    <option value="" className="text-black">Bog'lanmagan</option>
-                    {projects?.map(p => <option key={p.id} value={p.id} className="text-black">{p.name}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[11px] text-white/50 uppercase tracking-widest font-semibold flex items-center gap-1.5"><AlignLeft className="w-3.5 h-3.5" /> Izoh (ixtiyoriy)</label>
-                <Input name="description" className="glass-input text-white rounded-xl h-[46px]" placeholder="Qisqa tavsif..." />
-              </div>
-
-              <div className="pt-3">
-                <Button type="submit" disabled={createTrans.isPending} className="w-full bg-primary hover:bg-primary/90 text-background font-bold py-6 rounded-xl shadow-[0_0_20px_rgba(0,240,255,0.2)] hover:shadow-[0_0_30px_rgba(0,240,255,0.4)] transition-all text-base">
-                  {createTrans.isPending ? "Saqlanmoqda..." : "Saqlash"}
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Action Bar / Transaction Button */}
+            <Dialog open={isTransDialogOpen} onOpenChange={setIsTransDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="h-14 px-8 rounded-2xl bg-indigo-500 text-white font-black shadow-2xl shadow-indigo-500/20 hover:bg-indigo-600 transition-all active:scale-95 uppercase text-xs tracking-[0.2em] flex items-center gap-3">
+                  <Plus className="w-4 h-4" />
+                  Yangi Tranzaksiya
                 </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+              </DialogTrigger>
+              <DialogContent className="glass-panel border-white/10 rounded-[32px] max-w-lg p-0 overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+                {/* Decorative Window Controls */}
+                <div className="h-12 bg-white/[0.03] border-b border-white/5 flex items-center justify-between px-6">
+                  <div className="flex gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/30" />
+                    <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/30" />
+                    <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/30" />
+                  </div>
+                  <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Sayd.x Finance</div>
+                  <button onClick={() => setIsTransDialogOpen(false)} className="text-white/20 hover:text-white/40 transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="p-8">
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-black text-white uppercase italic tracking-tight">Yangi <span className="text-indigo-500">Tranzaksiya</span></h2>
+                    <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-1">Barcha maydonlarni diqqat bilan to'ldiring</p>
+                  </div>
+                  
+                  <form onSubmit={handleCreateTrans} className="space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black ml-1">Kategoriya Turi</label>
+                        <select name="type" className="w-full h-14 bg-white/[0.03] border border-white/10 rounded-2xl px-5 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-all cursor-pointer appearance-none">
+                          <option value="income" className="bg-[#0a0a0c] text-emerald-400 uppercase font-black">Kirim (+)</option>
+                          <option value="expense" className="bg-[#0a0a0c] text-rose-400 uppercase font-black">Chiqim (-)</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black ml-1">Summa Miqdori</label>
+                        <div className="relative">
+                          <Input name="amount" type="number" required className="h-14 bg-white/[0.03] border border-white/10 rounded-2xl px-5 text-white text-lg font-black focus:border-indigo-500/50 placeholder:text-white/10" placeholder="0.00" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black ml-1">Hisob Valyutasi</label>
+                        <select name="currency" className="w-full h-14 bg-white/[0.03] border border-white/10 rounded-2xl px-5 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-all cursor-pointer appearance-none">
+                          <option value="UZS" className="bg-[#0a0a0c] text-white uppercase font-black">UZS — So'm</option>
+                          <option value="USD" className="bg-[#0a0a0c] text-white uppercase font-black">USD — Dollar</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black ml-1">Xizmat Toifasi</label>
+                        <select name="category" required className="w-full h-14 bg-white/[0.03] border border-white/10 rounded-2xl px-5 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-all cursor-pointer appearance-none">
+                          <option value="" className="bg-[#0a0a0c] text-white/20 italic">Tanlang...</option>
+                          <optgroup label="KIRIM" className="bg-[#0a0a0c] text-emerald-500 font-black">
+                            {incomeCategories.map(c => <option key={c} value={c} className="bg-[#0a0a0c] text-white font-bold">{c}</option>)}
+                          </optgroup>
+                          <optgroup label="CHIQIM" className="bg-[#0a0a0c] text-rose-500 font-black">
+                            {expenseCategories.map(c => <option key={c} value={c} className="bg-[#0a0a0c] text-white font-bold">{c}</option>)}
+                          </optgroup>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black ml-1">Amal Sanasi</label>
+                        <Input name="date" type="datetime-local" defaultValue={format(new Date(), "yyyy-MM-dd'T'HH:mm")} className="h-14 bg-white/[0.03] border border-white/10 rounded-2xl px-5 text-white font-bold focus:border-indigo-500/50" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black ml-1">Tegishli Loyiha</label>
+                        <select name="projectId" className="w-full h-14 bg-white/[0.03] border border-white/10 rounded-2xl px-5 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-all cursor-pointer appearance-none">
+                          <option value="" className="bg-[#0a0a0c] text-white/20 italic">Bog'lanmagan</option>
+                          {projects?.map(p => <option key={p.id} value={p.id} className="bg-[#0a0a0c] text-white font-bold">{p.name}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black ml-1">Qo'shimcha Izoh</label>
+                      <Input name="description" className="h-14 bg-white/[0.03] border border-white/10 rounded-2xl px-5 text-white font-medium focus:border-indigo-500/50 placeholder:text-white/10" placeholder="Tranzaksiya haqida qisqacha ma'lumot..." />
+                    </div>
+
+                    <div className="pt-4 flex items-center gap-4">
+                      <Button form="transForm" type="submit" disabled={createTrans.isPending} className="flex-1 h-16 rounded-2xl bg-indigo-500 text-white font-black shadow-2xl shadow-indigo-500/20 hover:bg-indigo-600 transition-all active:scale-95 uppercase text-xs tracking-[0.2em]">
+                        {createTrans.isPending ? "Saqlanmoqda..." : "Tranzaksiyani Tasdiqlash"}
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
       </div>
 
-      {/* Currency Banner */}
-      <AnimatePresence>
-        {!currencyFromApi && !savedManualRate && !hideCurrencyBanner && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-sm relative pr-10 flex items-start gap-3"
-          >
-            <RefreshCw className="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-400" />
-            <div>
-              <strong className="text-amber-300">Kurs tizimga kiritilmagan!</strong>{" "}
-              USD hisob-kitob to'g'ri bo'lishi uchun quyida kursni qo'lda kiritib qo'ying (aks holda 12,500 UZS olinadi).
-
+      {/* Currency Management Bar */}
+      <div className="mb-10 p-1.5 rounded-[24px] bg-white/[0.02] border border-white/5 backdrop-blur-xl flex flex-wrap items-center gap-4 shadow-2xl overflow-hidden relative group">
+        <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        
+        <div className="px-5 py-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+            <DollarSign className="w-4 h-4 text-indigo-400" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] text-indigo-400/60 uppercase font-black tracking-widest leading-none mb-1">Valyuta Kursi</span>
+            <div className="flex items-center gap-2">
+              <span className="text-white font-black text-sm tabular-nums">1 USD =</span>
+              <Input
+                type="number"
+                min={1}
+                placeholder={savedManualRate ? String(savedManualRate) : "12500"}
+                value={manualRateInput}
+                onChange={(e) => setManualRateInput(e.target.value)}
+                className="w-24 h-7 bg-white/5 border-white/10 text-white text-xs font-black p-0 px-2 rounded-lg focus:border-indigo-500/40 tabular-nums"
+              />
+              <span className="text-white/40 font-black text-[10px]">UZS</span>
             </div>
-            <button onClick={() => setHideCurrencyBanner(true)} className="absolute top-3 right-3 text-amber-200/60 hover:text-white transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+          <Button type="button" size="sm" onClick={saveManualRate} className="bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 hover:bg-indigo-500/30 h-8 text-[10px] font-black px-4 ml-2 rounded-xl uppercase tracking-widest">
+            Saqlash
+          </Button>
+        </div>
 
-      {/* USD Rate Input */}
-      <div className="glass-panel rounded-2xl p-4 mb-8 flex flex-wrap items-center gap-3 border border-white/5">
-        <div className="flex items-center gap-2 text-white/50 text-xs uppercase tracking-widest flex-shrink-0">
-          <DollarSign className="w-3.5 h-3.5" />
-          USD kursi
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-white/60 text-sm">1 USD =</span>
-          <Input
-            type="number"
-            min={1}
-            placeholder={savedManualRate ? String(savedManualRate) : "12500"}
-            value={manualRateInput}
-            onChange={(e) => setManualRateInput(e.target.value)}
-            className="w-28 glass-input text-white text-sm h-8"
-          />
-          <span className="text-white/60 text-sm">UZS</span>
-        </div>
-        <Button type="button" size="sm" onClick={saveManualRate} className="bg-primary/20 border border-primary/40 text-primary hover:bg-primary/30 h-8 text-xs font-semibold px-3">
-          Saqlash
-        </Button>
         {savedManualRate != null && (
-          <span className="text-xs text-white/30 ml-1">Saqlangan: 1 USD = {savedManualRate.toLocaleString("uz-UZ")} UZS</span>
+          <div className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/5 flex items-center gap-2">
+            <RefreshCw className="w-3 h-3 text-white/20" />
+            <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+              Faol Kurs: 1 = {savedManualRate.toLocaleString("uz-UZ")} UZS
+            </span>
+          </div>
         )}
+
+        <AnimatePresence>
+          {!currencyFromApi && !savedManualRate && !hideCurrencyBanner && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="px-5 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200/80 text-[10px] font-black uppercase tracking-widest flex items-center gap-3 ml-auto animate-pulse"
+            >
+              <AlertOctagon className="w-3.5 h-3.5 text-amber-500" />
+              <span>Kurs kiritilmagan!</span>
+              <button onClick={() => setHideCurrencyBanner(true)} className="ml-2 text-white/20 hover:text-white transition-colors">
+                <X className="w-3 h-3" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Stat Cards */}
@@ -316,37 +354,98 @@ export default function Finance() {
         ))}
       </div>
 
-      {/* Transactions Table */}
+      {/* Stat Cards Section */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        {statCards.map((card, i) => (
+          <motion.div
+            key={card.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="group relative"
+          >
+            {/* Background Glow */}
+            <div className={`absolute inset-0 rounded-[32px] blur-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none ${
+              i === 0 ? 'bg-emerald-500' : i === 1 ? 'bg-rose-500' : i === 2 ? 'bg-indigo-500' : 'bg-violet-500'
+            }`} />
+            
+            <div className="relative glass-panel rounded-[32px] p-8 border border-white/5 overflow-hidden min-h-[160px] flex flex-col justify-between shadow-2xl transition-all duration-500 group-hover:translate-y-[-4px] group-hover:border-white/10">
+              {/* Card Header */}
+              <div className="flex items-center justify-between mb-2">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-transform duration-500 group-hover:rotate-12 ${card.iconBg}`}>
+                  <card.icon className={`w-6 h-6 ${card.iconColor}`} />
+                </div>
+                <div className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${card.iconBg} ${card.iconColor} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                  Live
+                </div>
+              </div>
+
+              {/* Value & Label */}
+              <div>
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-1 pl-1 transition-colors group-hover:text-white/60">
+                  {card.label}
+                </p>
+                <h3 className={`text-2xl font-black tabular-nums tracking-tighter ${card.valueColor}`}>
+                  {card.value}
+                </h3>
+              </div>
+
+              {/* Decorative Accent */}
+              <div className={`absolute bottom-0 left-0 h-1 bg-gradient-to-r from-transparent via-current to-transparent opacity-30 transition-all duration-500 w-0 group-hover:w-full ${card.iconColor}`} />
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Transactions Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
-        className="glass-panel rounded-2xl overflow-hidden border border-white/5"
+        transition={{ delay: 0.4 }}
+        className="glass-panel rounded-[32px] overflow-hidden border border-white/5 shadow-2xl relative"
       >
-        {/* Table Header */}
-        <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-white flex items-center gap-2">
-            <ArrowUpRight className="w-4 h-4 text-primary" />
-            Tranzaksiyalar tarixi
-          </h2>
-          <span className="text-xs text-white/30">{transactions?.length ?? 0} ta yozuv</span>
+        <div className="absolute inset-0 bg-white/[0.01] pointer-events-none" />
+        
+        {/* Table Header / Action Bar */}
+        <div className="px-10 py-8 border-b border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center">
+              <Clock className="w-5 h-5 text-white/20" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-white uppercase italic tracking-tight">
+                Tranzaksiyalar <span className="text-indigo-500">Tarixi</span>
+              </h2>
+              <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mt-0.5">
+                Barcha operatsiyalar xronologiyasi
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/5 text-[10px] font-black text-white/30 uppercase tracking-widest">
+              Jami: <span className="text-white ml-1">{transactions?.length ?? 0}</span>
+            </div>
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
+        <div className="overflow-x-auto relative z-10">
+          <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-white/[0.02]">
-                <th className="px-5 py-3 text-[11px] font-semibold text-white/30 uppercase tracking-widest">Sana</th>
-                <th className="px-5 py-3 text-[11px] font-semibold text-white/30 uppercase tracking-widest">Toifa</th>
-                <th className="px-5 py-3 text-[11px] font-semibold text-white/30 uppercase tracking-widest">Loyiha</th>
-                <th className="px-5 py-3 text-[11px] font-semibold text-white/30 uppercase tracking-widest text-right">Miqdor</th>
+                <th className="px-10 py-5 text-[10px] font-black text-white/20 uppercase tracking-[0.3em] border-b border-white/5">Amaliyot Sanasi</th>
+                <th className="px-10 py-5 text-[10px] font-black text-white/20 uppercase tracking-[0.3em] border-b border-white/5">Toifasi</th>
+                <th className="px-10 py-5 text-[10px] font-black text-white/20 uppercase tracking-[0.3em] border-b border-white/5">Tegishli Loyiha</th>
+                <th className="px-10 py-5 text-[10px] font-black text-white/20 uppercase tracking-[0.3em] border-b border-white/5 text-right">Miqdor va Valyuta</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/[0.02]">
               {transactions?.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-12 text-center text-white/30 text-sm">
-                    Hozircha tranzaksiyalar yo'q
+                  <td colSpan={4} className="px-10 py-24 text-center">
+                    <div className="flex flex-col items-center gap-3 opacity-20">
+                      <Layers className="w-12 h-12" />
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em]">Hozircha ma'lumotlar mavjud emas</p>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -356,41 +455,51 @@ export default function Finance() {
                 return (
                   <motion.tr
                     key={t.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.03 }}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + i * 0.03 }}
                     onClick={() => setSelectedTx({ ...t, projectName })}
-                    className="border-t border-white/[0.04] hover:bg-white/[0.04] transition-colors group cursor-pointer"
+                    className="group hover:bg-white/[0.02] transition-all cursor-pointer relative"
                   >
-                    <td className="px-5 py-4">
-                      <span className="text-sm text-white/50 font-mono">
-                        {format(new Date(t.date), "dd.MM.yyyy")}
-                      </span>
-                      <span className="text-xs text-white/25 ml-2">{format(new Date(t.date), "HH:mm")}</span>
+                    <td className="px-10 py-6">
+                      <div className="flex flex-col">
+                        <span className="text-sm text-white/60 font-black tabular-nums tracking-tight">
+                          {format(new Date(t.date), "dd.MM.yyyy")}
+                        </span>
+                        <span className="text-[10px] text-white/20 font-black uppercase tracking-widest mt-0.5">
+                          {format(new Date(t.date), "HH:mm")}
+                        </span>
+                      </div>
                     </td>
-                    <td className="px-5 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${isIncome
-                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                        : "bg-red-500/10 border-red-500/20 text-red-400"
-                        }`}>
+                    <td className="px-10 py-6">
+                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all group-hover:scale-105 ${
+                        isIncome 
+                        ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.05)]" 
+                        : "bg-rose-500/5 border-rose-500/20 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.05)]"
+                      }`}>
                         {isIncome ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                         {t.category}
-                      </span>
+                      </div>
                     </td>
-                    <td className="px-5 py-4">
-                      <span className="text-sm text-white/50">
-                        {projectName ? (
-                          <span className="text-white/70 font-medium">{projectName}</span>
-                        ) : (
-                          <span className="text-white/20 italic text-xs">—</span>
-                        )}
-                      </span>
+                    <td className="px-10 py-6">
+                      {projectName ? (
+                        <div className="flex items-center gap-2 text-white/60 group-hover:text-white transition-colors">
+                          <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                          <span className="text-sm font-bold tracking-tight">{projectName}</span>
+                        </div>
+                      ) : (
+                        <span className="text-white/10 text-[10px] font-black uppercase tracking-widest">— Bog'lanmagan</span>
+                      )}
                     </td>
-                    <td className="px-5 py-4 text-right">
-                      <span className={`text-sm font-bold tabular-nums ${isIncome ? "text-emerald-400" : "text-red-400"}`}>
-                        {isIncome ? "+" : "−"}{new Intl.NumberFormat("uz-UZ").format(Number(t.amount))}
-                        <span className="text-xs font-normal ml-1 opacity-60">{t.currency || "UZS"}</span>
-                      </span>
+                    <td className="px-10 py-6 text-right">
+                      <div className="flex flex-col items-end">
+                        <span className={`text-lg font-black tabular-nums tracking-tighter ${isIncome ? "text-emerald-400" : "text-rose-400"}`}>
+                          {isIncome ? "+" : "−"}{new Intl.NumberFormat("uz-UZ").format(Number(t.amount))}
+                        </span>
+                        <span className="text-[10px] text-white/20 font-black uppercase tracking-[0.2em] mt-0.5 group-hover:text-white/40 transition-colors">
+                          {t.currency || "UZS"}
+                        </span>
+                      </div>
                     </td>
                   </motion.tr>
                 );
@@ -401,12 +510,20 @@ export default function Finance() {
 
         {/* Table Footer */}
         {(transactions?.length ?? 0) > 0 && (
-          <div className="px-5 py-3 border-t border-white/5 flex items-center justify-between bg-white/[0.01]">
-            <span className="text-xs text-white/30">Jami: {transactions?.length} ta tranzaksiya</span>
-            <div className="flex items-center gap-4 text-xs">
-              <span className="text-emerald-400 font-semibold">+{fmt(totalIncome)}</span>
-              <span className="text-white/20">|</span>
-              <span className="text-red-400 font-semibold">−{fmt(totalExpense)}</span>
+          <div className="px-10 py-6 border-t border-white/5 bg-white/[0.01] flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
+            <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">
+              Xulosa: <span className="text-white/40 ml-2">{transactions?.length} Tranzaksiya</span>
+            </div>
+            <div className="flex items-center gap-8">
+              <div className="flex flex-col items-end">
+                <span className="text-[9px] font-black text-emerald-500/40 uppercase tracking-widest mb-0.5">Jami Kirim</span>
+                <span className="text-sm font-black text-emerald-400 tabular-nums">+{fmt(totalIncome)}</span>
+              </div>
+              <div className="w-px h-8 bg-white/5" />
+              <div className="flex flex-col items-end">
+                <span className="text-[9px] font-black text-rose-500/40 uppercase tracking-widest mb-0.5">Jami Chiqim</span>
+                <span className="text-sm font-black text-rose-400 tabular-nums">−{fmt(totalExpense)}</span>
+              </div>
             </div>
           </div>
         )}
@@ -414,96 +531,124 @@ export default function Finance() {
 
       {/* Transaction Details Modal */}
       <Dialog open={!!selectedTx} onOpenChange={(open) => !open && setSelectedTx(null)}>
-        <DialogContent className="glass-panel border-white/10 rounded-3xl max-w-md p-0 overflow-hidden shadow-2xl">
+        <DialogContent className="glass-panel border-white/10 rounded-[40px] max-w-md p-0 overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.6)]">
           {selectedTx && (
             <>
-              <div className={`p-8 relative overflow-hidden ${selectedTx.type === 'income' ? 'bg-emerald-500/10' : 'bg-red-500/10'}`}>
-                <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-30 mix-blend-screen"
-                  style={{ background: selectedTx.type === 'income' ? '#34d399' : '#f87171' }} />
-
-                <div className="flex items-start justify-between relative z-10 mb-6">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border backdrop-blur-md shadow-lg ${selectedTx.type === 'income' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-red-500/20 border-red-500/30 text-red-400'
-                    }`}>
-                    {selectedTx.type === 'income' ? <ArrowUpRight className="w-6 h-6" /> : <ArrowDownRight className="w-6 h-6" />}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className={`px-3 py-1.5 rounded-full text-xs font-bold border ${selectedTx.type === 'income' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
-                      }`}>
-                      {selectedTx.category}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={async () => {
-                        if (confirm("Ushbu tranzaksiyani o'chirmoqchimisiz?")) {
-                          await deleteTrans.mutateAsync(selectedTx.id);
-                          setSelectedTx(null);
-                        }
-                      }}
-                      disabled={deleteTrans.isPending}
-                      className="h-8 w-8 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 hover:text-red-400 transition-colors"
-                      title="O'chirish"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+              {/* Decorative Window Controls */}
+              <div className="h-12 bg-white/[0.03] border-b border-white/5 flex items-center justify-between px-8">
+                <div className="flex gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/20 border border-red-500/30" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500/20 border border-amber-500/30" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/20 border border-emerald-500/30" />
                 </div>
+                <div className="text-[9px] font-black text-white/20 uppercase tracking-[0.4em]">Tranzaksiya Tafsiloti</div>
+                <button onClick={() => setSelectedTx(null)} className="text-white/20 hover:text-white/40 transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
 
-                <div className="relative z-10">
-                  <p className="text-white/60 uppercase tracking-widest text-[10px] font-bold mb-1">Miqdor</p>
-                  <h3 className={`text-4xl font-bold font-display tracking-tight ${selectedTx.type === 'income' ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {selectedTx.type === 'income' ? '+' : '−'}
-                    {new Intl.NumberFormat("uz-UZ").format(Number(selectedTx.amount))}
-                    <span className="text-lg ml-1.5 opacity-60 font-medium">{selectedTx.currency || "UZS"}</span>
-                  </h3>
+              <div className={`p-10 relative overflow-hidden ${selectedTx.type === 'income' ? 'bg-emerald-500/5' : 'bg-rose-500/5'}`}>
+                {/* Visual Accent */}
+                <div className={`absolute top-0 right-0 w-48 h-48 rounded-full blur-[80px] opacity-20 pointer-events-none ${
+                    selectedTx.type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'
+                }`} />
+
+                <div className="relative z-10 flex flex-col items-center text-center">
+                  <div className={`w-20 h-20 rounded-3xl flex items-center justify-center border backdrop-blur-xl shadow-2xl mb-6 transition-transform hover:scale-110 duration-500 ${
+                      selectedTx.type === 'income' 
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-emerald-500/10' 
+                      : 'bg-rose-500/10 border-rose-500/20 text-rose-400 shadow-rose-500/10'
+                  }`}>
+                    {selectedTx.type === 'income' ? <ArrowUpRight className="w-10 h-10" /> : <ArrowDownRight className="w-10 h-10" />}
+                  </div>
+
+                  <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border mb-4 ${
+                      selectedTx.type === 'income' 
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                      : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                  }`}>
+                    {selectedTx.category}
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Tranzaksiya Summasi</p>
+                    <h3 className={`text-4xl font-black tabular-nums tracking-tighter ${selectedTx.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {selectedTx.type === 'income' ? '+' : '−'}{new Intl.NumberFormat("uz-UZ").format(Number(selectedTx.amount))}
+                      <span className="text-lg ml-2 opacity-40 font-bold uppercase">{selectedTx.currency || "UZS"}</span>
+                    </h3>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-8 space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-white/40 uppercase tracking-widest text-[10px] font-bold mb-2 flex items-center gap-1.5">
-                      <Calendar className="w-3 h-3" /> Sana
+              <div className="p-10 space-y-8 bg-[#0a0a0c]/50 backdrop-blur-md">
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-[10px] font-black text-white/20 uppercase tracking-widest">
+                       <Calendar className="w-3 h-3" /> Sana
+                    </div>
+                    <p className="text-sm font-black text-white tracking-tight italic">
+                      {format(new Date(selectedTx.date), "dd MMMM, yyyy")}
                     </p>
-                    <p className="text-white font-medium">{format(new Date(selectedTx.date), "dd MMMM, yyyy")}</p>
                   </div>
-                  <div>
-                    <p className="text-white/40 uppercase tracking-widest text-[10px] font-bold mb-2 flex items-center gap-1.5">
-                      <Clock className="w-3 h-3" /> Vaqt
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-[10px] font-black text-white/20 uppercase tracking-widest">
+                       <Clock className="w-3 h-3" /> Vaqt
+                    </div>
+                    <p className="text-sm font-black text-white tracking-tight italic">
+                      {format(new Date(selectedTx.date), "HH:mm")}
                     </p>
-                    <p className="text-white font-medium">{format(new Date(selectedTx.date), "HH:mm")}</p>
                   </div>
                 </div>
 
-                <div className="h-px w-full bg-white/5" />
-
-                <div>
-                  <p className="text-white/40 uppercase tracking-widest text-[10px] font-bold mb-2 flex items-center gap-1.5">
-                    <Layers className="w-3 h-3" /> Asosiy loyiha
-                  </p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-[10px] font-black text-white/20 uppercase tracking-widest">
+                    <Layers className="w-3 h-3" /> Tegishli Loyiha
+                  </div>
                   {selectedTx.projectName ? (
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5">
-                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                      <span className="text-white/90 font-medium text-sm">{selectedTx.projectName}</span>
+                    <div className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 group hover:bg-indigo-500/20 transition-all cursor-default overflow-hidden relative">
+                      <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_10px_rgba(99,102,241,1)]" />
+                      <span className="text-sm font-black text-indigo-100 tracking-tight uppercase italic">{selectedTx.projectName}</span>
                     </div>
                   ) : (
-                    <p className="text-white/30 italic text-sm">Bog'lanmagan</p>
+                    <div className="px-4 py-2 rounded-2xl bg-white/[0.03] border border-white/5 text-[10px] font-black text-white/20 uppercase tracking-widest italic">
+                      Bog'lanmagan
+                    </div>
                   )}
                 </div>
 
                 {selectedTx.description && (
-                  <>
-                    <div className="h-px w-full bg-white/5" />
-                    <div>
-                      <p className="text-white/40 uppercase tracking-widest text-[10px] font-bold mb-2 flex items-center gap-1.5">
-                        <AlignLeft className="w-3 h-3" /> Izoh
-                      </p>
-                      <p className="text-white/80 text-sm leading-relaxed p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                        {selectedTx.description}
-                      </p>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-[10px] font-black text-white/20 uppercase tracking-widest">
+                      <AlignLeft className="w-3 h-3" /> Tranzaksiya Izohi
                     </div>
-                  </>
+                    <div className="p-5 rounded-3xl bg-white/[0.02] border border-white/5 text-sm font-medium text-white/60 leading-relaxed italic relative overflow-hidden group">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500/20 transition-all group-hover:bg-indigo-500" />
+                      {selectedTx.description}
+                    </div>
+                  </div>
                 )}
+
+                <div className="pt-4 flex gap-4">
+                  <Button
+                    onClick={async () => {
+                      if (confirm("Ushbu tranzaksiyani butunlay o'chirib tashlamoqchimisiz?")) {
+                        await deleteTrans.mutateAsync(selectedTx.id);
+                        setSelectedTx(null);
+                      }
+                    }}
+                    disabled={deleteTrans.isPending}
+                    className="flex-1 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 font-black uppercase text-[10px] tracking-[0.2em] hover:bg-rose-500 hover:text-white transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    O'chirib Tashlash
+                  </Button>
+                  <Button
+                    onClick={() => setSelectedTx(null)}
+                    className="flex-1 h-14 rounded-2xl bg-white/[0.05] border border-white/10 text-white font-black uppercase text-[10px] tracking-[0.2em] hover:bg-white/10 transition-all active:scale-95"
+                  >
+                    Yopish
+                  </Button>
+                </div>
               </div>
             </>
           )}
