@@ -51,6 +51,7 @@ export default function Finance() {
   const [manualRateInput, setManualRateInput] = useState("");
   const [hideCurrencyBanner, setHideCurrencyBanner] = useState(false);
   const [selectedTx, setSelectedTx] = useState<any | null>(null);
+  const [displayCurrency, setDisplayCurrency] = useState<'UZS' | 'USD'>('UZS');
 
   const { data: financeSettings } = useQuery({
     queryKey: ["/api/settings/finance"],
@@ -130,8 +131,17 @@ export default function Finance() {
     setIsTransDialogOpen(false);
   };
 
-  const fmt = (n: number, cur = "UZS") =>
-    new Intl.NumberFormat("uz-UZ", { maximumFractionDigits: 0 }).format(n) + " " + cur;
+  const fmt = (n: number, cur = displayCurrency) => {
+    if (cur === "USD") {
+      const val = n / usdToUzs;
+      return new Intl.NumberFormat("en-US", { 
+        style: "currency", 
+        currency: "USD",
+        maximumFractionDigits: 2 
+      }).format(val);
+    }
+    return new Intl.NumberFormat("uz-UZ", { maximumFractionDigits: 0 }).format(n) + " " + cur;
+  };
 
   const statCards = [
     {
@@ -196,6 +206,21 @@ export default function Finance() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
+            <div className="flex bg-white/[0.03] p-1.5 rounded-2xl border border-white/5 gap-1 mr-2 backdrop-blur-md">
+              <button 
+                onClick={() => setDisplayCurrency('UZS')}
+                className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${displayCurrency === 'UZS' ? 'bg-indigo-500 text-white shadow-xl shadow-indigo-500/20' : 'text-white/30 hover:text-white/50 hover:bg-white/5'}`}
+              >
+                UZS
+              </button>
+              <button 
+                onClick={() => setDisplayCurrency('USD')}
+                className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${displayCurrency === 'USD' ? 'bg-indigo-500 text-white shadow-xl shadow-indigo-500/20' : 'text-white/30 hover:text-white/50 hover:bg-white/5'}`}
+              >
+                USD
+              </button>
+            </div>
+
             {/* Action Bar / Transaction Button */}
             <Dialog open={isTransDialogOpen} onOpenChange={setIsTransDialogOpen}>
               <DialogTrigger asChild>
