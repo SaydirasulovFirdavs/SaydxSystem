@@ -144,6 +144,12 @@ function buildContractHtml(contract: any, settings: any, baseUrl: string, qrCode
     </div>
   </div>
 
+  <div style="margin-bottom: 30px; padding: 15px; background: #f8fafc; border-radius: 12px; border-left: 4px solid #4338ca;">
+    <div style="font-size: 8pt; font-weight: 800; color: #6366f1; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">MIJOZ MA'LUMOTLARI</div>
+    <div style="font-size: 14pt; font-weight: 800; color: #1e1b4b; line-height: 1.2;">${esc(contract.company || contract.clientName)}</div>
+    <div style="font-size: 10pt; color: #4338ca; font-weight: 600; margin-top: 4px;">${esc(contract.clientName)}</div>
+  </div>
+
   <div class="section">
     <p>"SAYD.X" yakka tartibdagi tadbirkor, <b>ATAULLAYEV SAIDMUHAMMADALIXON UMID O'G'LI</b> – mazkur kompaniya asoschisi va rahbari, (keyingi o'rinlarda matnda "Kompaniya" deb yuritiladi) o'z Nizomi asosida faoliyat yurituvchi, O'zbekiston Respublikasi qonunchiligiga muvofiq ro'yxatdan o'tgan va web-saytlar, Telegram botlar hamda avtomatlashtirilgan (AyTi) tizimlar sohasida xizmat ko'rsatib kelayotgan tashkilot sifatida, mazkur shartnoma orqali o'z xizmatlarini buyurtmachi (keyingi o'rinlarda matnda "Mijoz" deb yuritiladi)ga taqdim etishni taklif qiladi. Ushbu shartnoma O'zbekiston Respublikasi Fuqarolik kodeksining 367-moddasiga muvofiq, tomonlarning o'zaro kelishuvi asosida tuzilgan bo'lib, "Kompaniya" va "Mijoz" birgalikda "Tomonlar" deb yuritiladi. Mazkur shartnoma taklifi, Mijoz tomonidan "Kompaniya"ning rasmiy aloqa manzili bo'lmish Telegram kanali @saydxuz orqali buyurtma berish, shuningdek shartnomada ko'rsatilgan to'lov tartib-qoidalarini amalga oshirish orqali tuzilgan hisoblanadi va shu kundan e'tiboran yuridik kuchga ega bo'ladi. Tomonlar bundan buyon matnda "Mijoz" va "Kompaniya" deb yuritiladi.</p>
   </div>
