@@ -249,7 +249,7 @@ export default function Finance() {
                     <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-1">Barcha maydonlarni diqqat bilan to'ldiring</p>
                   </div>
                   
-                  <form onSubmit={handleCreateTrans} className="space-y-6">
+                  <form id="transForm" onSubmit={handleCreateTrans} className="space-y-6">
                     <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black ml-1">Kategoriya Turi</label>
@@ -308,7 +308,7 @@ export default function Finance() {
                     </div>
 
                     <div className="pt-4 flex items-center gap-4">
-                      <Button form="transForm" type="submit" disabled={createTrans.isPending} className="flex-1 h-16 rounded-2xl bg-indigo-500 text-white font-black shadow-2xl shadow-indigo-500/20 hover:bg-indigo-600 transition-all active:scale-95 uppercase text-xs tracking-[0.2em]">
+                      <Button type="submit" disabled={createTrans.isPending} className="flex-1 h-16 rounded-2xl bg-indigo-500 text-white font-black shadow-2xl shadow-indigo-500/20 hover:bg-indigo-600 transition-all active:scale-95 uppercase text-xs tracking-[0.2em]">
                         {createTrans.isPending ? "Saqlanmoqda..." : "Tranzaksiyani Tasdiqlash"}
                       </Button>
                     </div>
