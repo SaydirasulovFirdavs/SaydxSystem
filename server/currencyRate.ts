@@ -13,7 +13,7 @@ export type UsdToUzsResult = { rate: number; source: RateSource };
 let cached: UsdToUzsResult | null = null;
 let cacheExpiry = 0;
 
-export type GetManualRate = () => Promise<number | null>;
+export type GetFinanceSettings = () => Promise<{ manualUsdToUzs: number | null; useAutomaticRate: boolean }>;
 
 async function fetchFromCbuApi(): Promise<{ rate: number }> {
   // CBU Ochiq API (API key talab qilmaydi)
@@ -34,38 +34,49 @@ async function fetchFromCbuApi(): Promise<{ rate: number }> {
   return { rate: Math.round(rate) };
 }
 
-export async function getUsdToUzsRate(getManualRate?: GetManualRate): Promise<UsdToUzsResult> {
+export async function getUsdToUzsRate(getFinanceSettings?: GetFinanceSettings): Promise<UsdToUzsResult> {
   const now = Date.now();
   if (cached !== null && now < cacheExpiry) {
     return cached;
   }
 
-  // 1. O'zbekiston Markaziy Banki API'dan kursni olishga harakat (maksimum 2 urinish)
-  for (let attempt = 1; attempt <= 2; attempt++) {
+  // Settings ni olish
+  const settings = getFinanceSettings ? await getFinanceSettings() : { manualUsdToUzs: null, useAutomaticRate: true };
+
+  // 1. Agar avtomatik rejim yoqilgan bo'lsa, API dan olishga harakat qilamiz
+  if (settings.useAutomaticRate) {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const { rate } = await fetchFromCbuApi();
+        cached = { rate, source: "api" };
+        cacheExpiry = now + CACHE_TTL_MS;
+        return cached;
+      } catch (err) {
+        console.error("CBU API Connection attempt failed:", attempt, err);
+      }
+    }
+  }
+
+  // 2. Agar avtomatik o'chirilgan bo'lsa YOKI API ishlamasa, qo'lda kiritilgan kursni olamiz
+  if (settings.manualUsdToUzs != null) {
+    cached = { rate: settings.manualUsdToUzs, source: "manual" };
+    cacheExpiry = now + FALLBACK_CACHE_MS;
+    return cached;
+  }
+
+  // 3. Agar qo'lda ham yo'q bo'lsa (lekin avto o'chirilgan bo'lsa ham), oxirgi chora sifatida API ni yana bir bor sinaymiz (fallback rejimda)
+  if (!settings.useAutomaticRate) {
     try {
       const { rate } = await fetchFromCbuApi();
       cached = { rate, source: "api" };
-      cacheExpiry = now + CACHE_TTL_MS;
-      if (attempt > 1) console.log("CBU API: qayta urinish muvaffaqiyatli");
-      return cached;
-    } catch (err) {
-      console.error("DEBUG CBU API ERROR:", err);
-      if (attempt === 1) console.warn("CBU API xato (1-urinish), qayta urinilmoqda:", (err as Error).message);
-      else console.error("CBU API xato (Barcha urinishlar barbod bo'ldi):", (err as Error).message);
-    }
-  }
-
-  // 2. Agar API mutlaqo ishlamasa, qo'lda saqlangan kursni olamiz
-  if (getManualRate) {
-    const manual = await getManualRate();
-    if (manual != null) {
-      cached = { rate: manual, source: "manual" };
       cacheExpiry = now + FALLBACK_CACHE_MS;
       return cached;
+    } catch (err) {
+      // Ignored
     }
   }
 
-  // 3. Hech qaysisi ishlamasa, oxirgi chora sifatida tizimning default kursi (12500)
+  // 4. Mutlaqo hech narsa ishlamasa, tizimning default kursi
   cached = { rate: Number(process.env.USD_TO_UZS_RATE) || FALLBACK_RATE, source: "fallback" };
   cacheExpiry = now + FALLBACK_CACHE_MS;
   return cached;

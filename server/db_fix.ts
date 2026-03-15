@@ -61,6 +61,19 @@ async function checkAndFixSchema() {
     console.log("Ensuring 'title' column in 'contracts' is nullable...");
     await db.execute(sql`ALTER TABLE contracts ALTER COLUMN title DROP NOT NULL`);
     console.log("'title' column adjusted.");
+    
+    // Check for finance_settings table columns
+    const checkFinanceSettingsResult = await db.execute(sql`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'finance_settings' AND column_name = 'use_automatic_rate';
+    `);
+
+    if (checkFinanceSettingsResult.rows.length === 0) {
+      console.log("Adding missing column 'use_automatic_rate' to 'finance_settings'...");
+      await db.execute(sql`ALTER TABLE finance_settings ADD COLUMN IF NOT EXISTS use_automatic_rate BOOLEAN DEFAULT TRUE NOT NULL`);
+      console.log("Column 'use_automatic_rate' added successfully!");
+    }
 
   } catch (err) {
     console.error("Database operation failed:", err);

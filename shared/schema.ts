@@ -207,6 +207,7 @@ export const invoiceSettings = pgTable("invoice_settings", {
 export const financeSettings = pgTable("finance_settings", {
   id: serial("id").primaryKey(),
   manualUsdToUzs: numeric("manual_usd_to_uzs").default("12500"), // 1 USD = ? UZS
+  useAutomaticRate: boolean("use_automatic_rate").default(true).notNull(),
 });
 
 /** Xodimlar uchun OYLIK (Salaries) jadvali */

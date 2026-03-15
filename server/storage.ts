@@ -64,6 +64,8 @@ export interface IStorage {
   upsertInvoiceSettings(data: UpdateInvoiceSettings): Promise<InvoiceSettings>;
   getManualUsdToUzs(): Promise<number | null>;
   setManualUsdToUzs(rate: number): Promise<void>;
+  getFinanceSettings(): Promise<{ manualUsdToUzs: number | null; useAutomaticRate: boolean }>;
+  updateFinanceSettings(updates: { manualUsdToUzs?: number; useAutomaticRate?: boolean }): Promise<void>;
   // Salaries
   getSalaries(month?: number, year?: number, userId?: string): Promise<Salary[]>;
   createSalary(salary: InsertSalary): Promise<Salary>;
@@ -357,19 +359,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getManualUsdToUzs(): Promise<number | null> {
-    const [row] = await db.select().from(financeSettings).limit(1);
-    if (!row?.manualUsdToUzs) return null;
-    const n = Number(row.manualUsdToUzs);
-    return Number.isFinite(n) && n > 0 ? n : null;
+    const settings = await this.getFinanceSettings();
+    return settings.manualUsdToUzs;
   }
 
   async setManualUsdToUzs(rate: number): Promise<void> {
+    await this.updateFinanceSettings({ manualUsdToUzs: rate });
+  }
+
+  async getFinanceSettings(): Promise<{ manualUsdToUzs: number | null; useAutomaticRate: boolean }> {
+    const [row] = await db.select().from(financeSettings).limit(1);
+    if (!row) return { manualUsdToUzs: null, useAutomaticRate: true };
+    const n = row.manualUsdToUzs ? Number(row.manualUsdToUzs) : null;
+    return {
+      manualUsdToUzs: (n !== null && Number.isFinite(n) && n > 0) ? n : null,
+      useAutomaticRate: row.useAutomaticRate ?? true,
+    };
+  }
+
+  async updateFinanceSettings(updates: { manualUsdToUzs?: number; useAutomaticRate?: boolean }): Promise<void> {
     const [existing] = await db.select().from(financeSettings).limit(1);
-    const value = String(Math.round(rate));
+    
+    const payload: any = {};
+    if (updates.manualUsdToUzs !== undefined) payload.manualUsdToUzs = String(Math.round(updates.manualUsdToUzs));
+    if (updates.useAutomaticRate !== undefined) payload.useAutomaticRate = updates.useAutomaticRate;
+
     if (existing) {
-      await db.update(financeSettings).set({ manualUsdToUzs: value }).where(eq(financeSettings.id, existing.id));
+      await db.update(financeSettings).set(payload).where(eq(financeSettings.id, existing.id));
     } else {
-      await db.insert(financeSettings).values({ manualUsdToUzs: value });
+      await db.insert(financeSettings).values(payload);
     }
   }
 

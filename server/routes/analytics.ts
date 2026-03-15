@@ -15,7 +15,7 @@ export function registerAnalyticsRoutes(app: Express, isAuthenticated: any) {
                 storage.getProjects(),
                 storage.getTransactions(),
                 storage.getClients(),
-                getUsdToUzsRate(() => storage.getManualUsdToUzs()),
+                getUsdToUzsRate(() => storage.getFinanceSettings()),
             ]);
             const usdToUzs = currencyResult.rate;
             const now = new Date();
@@ -151,7 +151,7 @@ export function registerAnalyticsRoutes(app: Express, isAuthenticated: any) {
                 storage.getProjects(),
                 storage.getTransactions(),
                 storage.getTotalLoggedMinutes(),
-                getUsdToUzsRate(() => storage.getManualUsdToUzs()),
+                getUsdToUzsRate(() => storage.getFinanceSettings()),
             ]);
             const usdToUzs = currencyResult.rate;
             const now = new Date();

@@ -8,7 +8,8 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { format } from "date-fns";
 import {
   ArrowDownRight, ArrowUpRight, Plus, TrendingUp, TrendingDown,
-  DollarSign, Percent, RefreshCw, X, Calendar, Clock, AlignLeft, Tag, Layers, Trash2, AlertOctagon
+  DollarSign, Percent, RefreshCw, X, Calendar, Clock, AlignLeft, Tag, Layers, Trash2, AlertOctagon,
+  Globe, UserCog, Check
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -31,12 +32,17 @@ export default function Finance() {
         credentials: "include",
         cache: "no-store"
       });
-      const data = (await res.json()) as { usdToUzs?: number; currencyRateSource?: string };
+      const data = (await res.json()) as { 
+        usdToUzs: number; 
+        currencyRateSource: string; 
+        useAutomaticRate: boolean 
+      };
       return data;
     },
   });
   const usdToUzs = currencyData?.usdToUzs ?? FALLBACK_USD_UZS;
-  const currencyFromApi = currencyData?.currencyRateSource === "api";
+  const isAuto = currencyData?.useAutomaticRate ?? true;
+  const currencySource = currencyData?.currencyRateSource ?? "api";
 
   const createTrans = useCreateTransaction();
   const deleteTrans = useDeleteTransaction();
@@ -56,10 +62,25 @@ export default function Finance() {
   });
   const savedManualRate = financeSettings?.manualUsdToUzs ?? null;
 
+  const toggleAutoMode = async (enabled: boolean) => {
+    try {
+      await fetch("/api/settings/finance", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ useAutomaticRate: enabled }),
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/currency-rate"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/settings/finance"] });
+    } catch (_) {
+      alert("Xato yuz berdi.");
+    }
+  };
+
   const saveManualRate = async () => {
     const num = Number(manualRateInput.replace(/\s/g, ""));
     if (!Number.isFinite(num) || num <= 0) {
-      alert("Iltimos, musbat son kiriting (masalan 12500).");
+      alert("Iltimos, musbat son kiriting.");
       return;
     }
     try {
@@ -67,7 +88,7 @@ export default function Finance() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ manualUsdToUzs: num }),
+        body: JSON.stringify({ manualUsdToUzs: num, useAutomaticRate: false }),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/settings/finance"] });
       queryClient.invalidateQueries({ queryKey: ["/api/currency-rate"] });
@@ -278,80 +299,73 @@ export default function Finance() {
       <div className="mb-10 p-1.5 rounded-[24px] bg-white/[0.02] border border-white/5 backdrop-blur-xl flex flex-wrap items-center gap-4 shadow-2xl overflow-hidden relative group">
         <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
         
-        <div className="px-5 py-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-indigo-500/20 flex items-center justify-center">
-            <DollarSign className="w-4 h-4 text-indigo-400" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] text-indigo-400/60 uppercase font-black tracking-widest leading-none mb-1">Valyuta Kursi</span>
-            <div className="flex items-center gap-2">
-              <span className="text-white font-black text-sm tabular-nums">1 USD =</span>
-              <Input
-                type="number"
-                min={1}
-                placeholder={savedManualRate ? String(savedManualRate) : "12500"}
-                value={manualRateInput}
-                onChange={(e) => setManualRateInput(e.target.value)}
-                className="w-24 h-7 bg-white/5 border-white/10 text-white text-xs font-black p-0 px-2 rounded-lg focus:border-indigo-500/40 tabular-nums"
-              />
-              <span className="text-white/40 font-black text-[10px]">UZS</span>
+        {/* Auto/Manual Toggle */}
+        <div className="flex bg-black/40 p-1 rounded-2xl border border-white/5 gap-1">
+          <button 
+            onClick={() => toggleAutoMode(true)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isAuto ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-white/40 hover:text-white/60'}`}
+          >
+            <Globe className={`w-3.5 h-3.5 ${isAuto ? 'animate-pulse' : ''}`} />
+            Avtomatik
+          </button>
+          <button 
+            onClick={() => toggleAutoMode(false)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!isAuto ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-white/40 hover:text-white/60'}`}
+          >
+            <UserCog className="w-3.5 h-3.5" />
+            Qo'lda
+          </button>
+        </div>
+
+        <div className="h-8 w-px bg-white/5 mx-2 hidden sm:block" />
+
+        <div className="flex items-center gap-4 flex-1 min-w-[300px]">
+          <div className="flex-1 relative group/input">
+            <div className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors ${!isAuto ? 'text-indigo-400' : 'text-white/10'}`}>
+              <DollarSign className="w-4 h-4" />
             </div>
+            <Input
+              type="text"
+              placeholder={isAuto ? "Avtomatik rejim faol..." : "Kursni kiriting..."}
+              disabled={isAuto}
+              value={manualRateInput}
+              onChange={(e) => setManualRateInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && saveManualRate()}
+              className={`w-full h-12 bg-white/[0.03] border-white/10 rounded-xl pl-12 pr-4 text-sm font-black transition-all ${!isAuto ? 'focus:border-indigo-500/50 focus:bg-white/[0.05] text-white' : 'text-white/20 border-white/5'}`}
+            />
           </div>
-          <Button type="button" size="sm" onClick={saveManualRate} className="bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 hover:bg-indigo-500/30 h-8 text-[10px] font-black px-4 ml-2 rounded-xl uppercase tracking-widest">
+
+          <Button 
+            onClick={saveManualRate}
+            disabled={isAuto || !manualRateInput}
+            className={`h-12 px-6 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${!isAuto ? 'bg-indigo-500 text-white hover:bg-indigo-600 active:scale-95' : 'bg-white/5 text-white/10 overflow-hidden'}`}
+          >
             Saqlash
           </Button>
         </div>
 
-        {savedManualRate != null && (
-          <div className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/5 flex items-center gap-2">
-            <RefreshCw className="w-3 h-3 text-white/20" />
-            <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">
-              Faol Kurs: 1 = {savedManualRate.toLocaleString("uz-UZ")} UZS
+        <div className="px-5 py-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center gap-3">
+          <div className="relative">
+            <RefreshCw className={`w-4 h-4 text-indigo-400 ${isAuto ? 'animate-spin-slow' : ''}`} />
+            {isAuto && <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full animate-ping" />}
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[9px] text-white/30 uppercase font-black leading-none mb-1">Joriy Kurs (1 USD)</span>
+            <span className="text-sm text-indigo-100 font-black tracking-tighter">
+              {fmt(usdToUzs)}
             </span>
           </div>
-        )}
-
-        <AnimatePresence>
-          {!currencyFromApi && !savedManualRate && !hideCurrencyBanner && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="px-5 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200/80 text-[10px] font-black uppercase tracking-widest flex items-center gap-3 ml-auto animate-pulse"
-            >
-              <AlertOctagon className="w-3.5 h-3.5 text-amber-500" />
-              <span>Kurs kiritilmagan!</span>
-              <button onClick={() => setHideCurrencyBanner(true)} className="ml-2 text-white/20 hover:text-white transition-colors">
-                <X className="w-3 h-3" />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {statCards.map((card, i) => (
-          <motion.div
-            key={card.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
-            className={`glass-panel rounded-2xl p-5 border border-white/5 ${card.glow} relative overflow-hidden`}
-          >
-            <div className="absolute top-0 right-0 w-20 h-20 rounded-full blur-2xl opacity-20"
-              style={{ background: i === 0 ? "#34d399" : i === 1 ? "#f87171" : i === 2 ? "#00f0ff" : "#a78bfa" }} />
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs text-white/40 uppercase tracking-widest font-medium">{card.label}</span>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${card.iconBg}`}>
-                  <card.icon className={`w-4 h-4 ${card.iconColor}`} />
-                </div>
-              </div>
-              <p className={`text-xl font-bold leading-tight ${card.valueColor}`}>{card.value}</p>
+          {isAuto && (
+            <div className="ml-2 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30">
+              <span className="text-[8px] text-emerald-400 font-black uppercase tracking-tighter">Live</span>
             </div>
-          </motion.div>
-        ))}
+          )}
+          {!isAuto && (
+            <div className="ml-2 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30">
+              <span className="text-[8px] text-amber-400 font-black uppercase tracking-tighter">Manual</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Stat Cards Section */}

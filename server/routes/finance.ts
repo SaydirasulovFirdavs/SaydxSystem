@@ -614,4 +614,32 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
             res.status(500).json({ message: "Ichki server xatosi" });
         }
     });
+    app.get("/api/currency-rate", isAuthenticated, async (req, res) => {
+        try {
+            const settings = await storage.getFinanceSettings();
+            const result = await getUsdToUzsRate(() => Promise.resolve(settings));
+            res.json({ 
+                usdToUzs: result.rate, 
+                currencyRateSource: result.source,
+                useAutomaticRate: settings.useAutomaticRate
+            });
+        } catch (err) {
+            console.error("Currency rate error:", err);
+            res.status(500).json({ usdToUzs: 12500, currencyRateSource: "fallback" });
+        }
+    });
+
+    app.put("/api/settings/finance", isAuthenticated, isAdmin, async (req, res) => {
+        try {
+            const input = z.object({
+                manualUsdToUzs: z.union([z.string(), z.number()]).optional().transform(v => v !== undefined ? Number(v) : undefined),
+                useAutomaticRate: z.boolean().optional(),
+            }).parse(req.body);
+            await storage.updateFinanceSettings(input);
+            res.json({ success: true });
+        } catch (err) {
+            if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+            res.status(500).json({ message: "Internal Error" });
+        }
+    });
 }
