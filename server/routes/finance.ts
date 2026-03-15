@@ -30,6 +30,25 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
         }
     });
 
+    app.put(api.transactions.update.path, isAuthenticated, async (req, res) => {
+        try {
+            const id = Number(req.params.id);
+            if (isNaN(id)) return res.status(400).json({ message: "Invalid transaction ID" });
+            const input = api.transactions.update.input.extend({
+                projectId: z.coerce.number().optional().nullable(),
+                amount: z.union([z.string(), z.number()]).optional().transform(v => v !== undefined ? String(v) : undefined),
+            }).parse(req.body);
+            const tx = await storage.updateTransaction(id, input);
+            if (!tx) return res.status(404).json({ message: "Transaction not found" });
+            res.json(tx);
+        } catch (err) {
+            if (err instanceof z.ZodError) {
+                return res.status(400).json({ message: err.errors[0].message });
+            }
+            res.status(500).json({ message: "Failed to update transaction" });
+        }
+    });
+
     app.delete(api.transactions.delete.path, isAuthenticated, isAdmin, async (req, res) => {
         try {
             const id = Number(req.params.id);

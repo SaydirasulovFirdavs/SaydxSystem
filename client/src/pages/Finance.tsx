@@ -2,14 +2,14 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@shared/routes";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useTransactions, useCreateTransaction, useDeleteTransaction } from "@/hooks/use-finance";
+import { useTransactions, useCreateTransaction, useDeleteTransaction, useUpdateTransaction } from "@/hooks/use-finance";
 import { useProjects } from "@/hooks/use-projects";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { format } from "date-fns";
 import {
   ArrowDownRight, ArrowUpRight, Plus, TrendingUp, TrendingDown,
   DollarSign, Percent, RefreshCw, X, Calendar, Clock, AlignLeft, Tag, Layers, Trash2, AlertOctagon,
-  Globe, UserCog, Check
+  Globe, UserCog, Check, Edit2
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,7 @@ export default function Finance() {
   const currencySource = currencyData?.currencyRateSource ?? "api";
 
   const createTrans = useCreateTransaction();
+  const updateTrans = useUpdateTransaction();
   const deleteTrans = useDeleteTransaction();
   const queryClient = useQueryClient();
   const [isTransDialogOpen, setIsTransDialogOpen] = useState(false);
@@ -52,6 +53,7 @@ export default function Finance() {
   const [hideCurrencyBanner, setHideCurrencyBanner] = useState(false);
   const [selectedTx, setSelectedTx] = useState<any | null>(null);
   const [displayCurrency, setDisplayCurrency] = useState<'UZS' | 'USD'>('UZS');
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const { data: financeSettings } = useQuery({
     queryKey: ["/api/settings/finance"],
@@ -119,7 +121,7 @@ export default function Finance() {
       dateObj = new Date(dateVal);
     }
 
-    await createTrans.mutateAsync({
+    const data = {
       projectId: formData.get("projectId") ? Number(formData.get("projectId")) : undefined,
       type: formData.get("type") as string,
       amount: formData.get("amount") as string,
@@ -127,7 +129,15 @@ export default function Finance() {
       description: (formData.get("description") as string) || undefined,
       currency: (formData.get("currency") as string) || "UZS",
       date: dateObj as any
-    });
+    };
+
+    if (isEditMode && selectedTx) {
+      await updateTrans.mutateAsync({ id: selectedTx.id, ...data });
+      setIsEditMode(false);
+      setSelectedTx(null);
+    } else {
+      await createTrans.mutateAsync(data);
+    }
     setIsTransDialogOpen(false);
   };
 
@@ -222,9 +232,15 @@ export default function Finance() {
             </div>
 
             {/* Action Bar / Transaction Button */}
-            <Dialog open={isTransDialogOpen} onOpenChange={setIsTransDialogOpen}>
+            <Dialog open={isTransDialogOpen} onOpenChange={(open) => {
+              setIsTransDialogOpen(open);
+              if (!open) setIsEditMode(false);
+            }}>
               <DialogTrigger asChild>
-                <Button className="h-14 px-8 rounded-2xl bg-indigo-500 text-white font-black shadow-2xl shadow-indigo-500/20 hover:bg-indigo-600 transition-all active:scale-95 uppercase text-xs tracking-[0.2em] flex items-center gap-3">
+                <Button onClick={() => {
+                  setIsEditMode(false);
+                  setIsTransDialogOpen(true);
+                }} className="h-14 px-8 rounded-2xl bg-indigo-500 text-white font-black shadow-2xl shadow-indigo-500/20 hover:bg-indigo-600 transition-all active:scale-95 uppercase text-xs tracking-[0.2em] flex items-center gap-3">
                   <Plus className="w-4 h-4" />
                   Yangi Tranzaksiya
                 </Button>
@@ -237,7 +253,7 @@ export default function Finance() {
                     <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/30" />
                     <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/30" />
                   </div>
-                  <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Sayd.x Finance</div>
+                  <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">{isEditMode ? "Tahrirlash" : "Sayd.x Finance"}</div>
                   <button onClick={() => setIsTransDialogOpen(false)} className="text-white/20 hover:text-white/40 transition-colors">
                     <X className="w-4 h-4" />
                   </button>
@@ -245,7 +261,7 @@ export default function Finance() {
 
                 <div className="p-8">
                   <div className="mb-8">
-                    <h2 className="text-2xl font-black text-white uppercase italic tracking-tight">Yangi <span className="text-indigo-500">Tranzaksiya</span></h2>
+                    <h2 className="text-2xl font-black text-white uppercase italic tracking-tight">{isEditMode ? "Tranzaksiyani" : "Yangi"} <span className="text-indigo-500">{isEditMode ? "Tahrirlash" : "Tranzaksiya"}</span></h2>
                     <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-1">Barcha maydonlarni diqqat bilan to'ldiring</p>
                   </div>
                   
@@ -308,8 +324,8 @@ export default function Finance() {
                     </div>
 
                     <div className="pt-4 flex items-center gap-4">
-                      <Button type="submit" disabled={createTrans.isPending} className="flex-1 h-16 rounded-2xl bg-indigo-500 text-white font-black shadow-2xl shadow-indigo-500/20 hover:bg-indigo-600 transition-all active:scale-95 uppercase text-xs tracking-[0.2em]">
-                        {createTrans.isPending ? "Saqlanmoqda..." : "Tranzaksiyani Tasdiqlash"}
+                      <Button form="transForm" type="submit" disabled={createTrans.isPending || updateTrans.isPending} className="flex-1 h-16 rounded-2xl bg-indigo-500 text-white font-black shadow-2xl shadow-indigo-500/20 hover:bg-indigo-600 transition-all active:scale-95 uppercase text-xs tracking-[0.2em]">
+                        {createTrans.isPending || updateTrans.isPending ? "Saqlanmoqda..." : (isEditMode ? "O'zgarishlarni Saqlash" : "Tranzaksiyani Tasdiqlash")}
                       </Button>
                     </div>
                   </form>
@@ -669,6 +685,16 @@ export default function Finance() {
 
                 <div className="pt-4 flex gap-4">
                   <Button
+                    onClick={() => {
+                      setIsEditMode(true);
+                      setIsTransDialogOpen(true);
+                    }}
+                    className="flex-1 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-black uppercase text-[10px] tracking-[0.2em] hover:bg-indigo-500 hover:text-white transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Tahrirlash
+                  </Button>
+                  <Button
                     onClick={async () => {
                       if (confirm("Ushbu tranzaksiyani butunlay o'chirib tashlamoqchimisiz?")) {
                         await deleteTrans.mutateAsync(selectedTx.id);
@@ -680,12 +706,6 @@ export default function Finance() {
                   >
                     <Trash2 className="w-4 h-4" />
                     O'chirib Tashlash
-                  </Button>
-                  <Button
-                    onClick={() => setSelectedTx(null)}
-                    className="flex-1 h-14 rounded-2xl bg-white/[0.05] border border-white/10 text-white font-black uppercase text-[10px] tracking-[0.2em] hover:bg-white/10 transition-all active:scale-95"
-                  >
-                    Yopish
                   </Button>
                 </div>
               </div>

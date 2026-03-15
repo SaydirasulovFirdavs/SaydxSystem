@@ -48,6 +48,8 @@ export interface IStorage {
   // Transactions
   getTransactions(): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  updateTransaction(id: number, updates: Partial<InsertTransaction>): Promise<Transaction | undefined>;
+  deleteTransaction(id: number): Promise<void>;
 
   // Invoices
   getInvoices(): Promise<Invoice[]>;
@@ -224,6 +226,11 @@ export class DatabaseStorage implements IStorage {
     const newTx = rows[0];
     if (!newTx) throw new Error("Failed to create transaction");
     return newTx;
+  }
+
+  async updateTransaction(id: number, updates: Partial<InsertTransaction>): Promise<Transaction | undefined> {
+    const [row] = await db.update(transactions).set(updates).where(eq(transactions.id, id)).returning();
+    return row;
   }
 
   async deleteTransaction(id: number): Promise<void> {
