@@ -197,7 +197,7 @@ export default function MyTasks() {
                                             {currentRunningTask?.title || "Vazifa bajarilmoqda..." }
                                         </h3>
                                         <p className="text-primary/70 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
-                                            <div className="w-1 h-1 rounded-full bg-primary" />
+                                            <span className="w-1 h-1 rounded-full bg-primary" />
                                             {getProjectName(currentRunningTask?.projectId || 0)}
                                         </p>
                                     </div>
