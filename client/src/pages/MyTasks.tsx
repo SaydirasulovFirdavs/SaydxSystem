@@ -18,7 +18,8 @@ import {
     Briefcase,
     Timer,
     ExternalLink,
-    PlusCircle
+    PlusCircle,
+    CheckCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -228,7 +229,7 @@ export default function MyTasks() {
             {viewMode === "kanban" ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
                     {columns.map(col => {
-                        const colTasks = (tasks || []).filter(t => t.status === col.id);
+                        const colTasks = Array.isArray(tasks) ? tasks.filter(t => t.status === col.id) : [];
                         return (
                             <div key={col.id} className="flex flex-col gap-6 h-full min-h-[500px]">
                                 <div className="flex justify-between items-center px-2">
@@ -282,7 +283,7 @@ export default function MyTasks() {
 
                                                 <div className="flex justify-between items-center pt-4 border-t border-white/5 gap-3 relative z-10">
                                                     <div className="flex items-center gap-3">
-                                                        {task.dueDate && (
+                                                        {task.dueDate && !isNaN(new Date(task.dueDate).getTime()) && (
                                                             <div className="flex items-center gap-1.5 text-white/30">
                                                                 <Calendar className="w-3.5 h-3.5" />
                                                                 <span className="text-[11px] font-bold">{format(new Date(task.dueDate), 'd MMM', { locale: uz })}</span>
@@ -386,7 +387,7 @@ export default function MyTasks() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 font-medium">
-                            {(tasks || []).map(task => (
+                            {(Array.isArray(tasks) ? tasks : []).map(task => (
                                 <tr key={task.id} className="group hover:bg-white/[0.03] transition-all">
                                     <td className="p-6">
                                         <div className="flex flex-col">
