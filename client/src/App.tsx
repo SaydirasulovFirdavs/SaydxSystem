@@ -97,11 +97,12 @@ import MyTasks from "@/pages/MyTasks";
 import Salaries from "@/pages/Salaries";
 import Contracts from "@/pages/Contracts";
 import VerifyInvoice from "@/pages/VerifyInvoice";
+import VerifyContract from "@/pages/VerifyContract";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [location] = useLocation();
-  const isPublicRoute = location.startsWith("/verify-invoice/");
+  const isPublicRoute = location.startsWith("/verify-invoice") || location.startsWith("/verify-contract");
   
   // /login sahifasida darhol formani ko'rsatish (animatsiya va kutishsiz)
   if (location === "/login") return <Login />;
@@ -137,6 +138,7 @@ function Router() {
       {isAdmin && <Route path="/employees/:id" component={EmployeeDetails} />}
       <Route path="/salaries" component={Salaries} />
       <Route path="/verify-invoice/:token" component={VerifyInvoice} />
+      <Route path="/verify-contract" component={VerifyContract} />
 
       <Route component={NotFound} />
     </Switch>

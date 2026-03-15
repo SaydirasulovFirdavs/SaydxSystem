@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { storage } from "./storage";
+import QRCode from "qrcode";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const UPLOAD_DIR = path.join(__dirname, "..", "uploads", "contracts");
@@ -29,7 +30,7 @@ function formatAmount(amt: string | number, currency: string) {
   return new Intl.NumberFormat("uz-UZ").format(n) + " " + currency;
 }
 
-function buildContractHtml(contract: any, settings: any, baseUrl: string) {
+function buildContractHtml(contract: any, settings: any, baseUrl: string, qrCodeDataUri: string) {
   const logoUrl = `${baseUrl}/LOGO2.png`;
   const imzoUrl = `${baseUrl}/imzo.PNG`;
 
@@ -137,7 +138,10 @@ function buildContractHtml(contract: any, settings: any, baseUrl: string) {
 
   <div class="meta-row">
     <div>Sana: ${formatDate(contract.startDate)} yil</div>
-    <div>Toshkent shahri</div>
+    <div style="text-align: right;">
+      <div style="font-size: 8px; color: #666; margin-bottom: 2px;">TEKSHIRISH UCHUN SKANERLANG</div>
+      <img src="${qrCodeDataUri}" style="width: 60px; height: 60px; border: 1px solid #eee; padding: 2px; border-radius: 4px;">
+    </div>
   </div>
 
   <div class="section">
@@ -234,7 +238,8 @@ function buildContractHtml(contract: any, settings: any, baseUrl: string) {
       <img src="${imzoUrl}" class="signature-img">
       <div class="sign-line"></div>
       <div style="font-weight: 800; color: #4338ca;">${esc(settings.authorizedName)}</div>
-      <div style="font-size: 9pt; color: #666;">${esc(settings.authorizedPosition)}</div>
+      <div style="font-size: 8pt; color: #666; margin-bottom: 4px;">${esc(settings.authorizedPosition)}</div>
+      <div style="font-size: 7px; color: #94a3b8; font-family: monospace;">TOKEN: ${esc(contract.verificationToken || '---')}</div>
     </div>
   </div>
 </body>
@@ -247,7 +252,17 @@ export async function generateContractPdfPuppeteer(contract: any, settings: any,
   const filename = `contract-${contract.id}-${timestamp}.pdf`;
   const filePath = path.join(UPLOAD_DIR, filename);
 
-  const html = buildContractHtml(contract, settings, baseUrl);
+  const qrCodeUrl = `${baseUrl}/verify-contract?token=${contract.verificationToken}`;
+  const qrCodeDataUri = await QRCode.toDataURL(qrCodeUrl, {
+    margin: 1,
+    width: 200,
+    color: {
+      dark: "#312e81",
+      light: "#ffffff"
+    }
+  });
+
+  const html = buildContractHtml(contract, settings, baseUrl, qrCodeDataUri);
 
   const puppeteer = await import("puppeteer");
   const browser = await puppeteer.default.launch({
