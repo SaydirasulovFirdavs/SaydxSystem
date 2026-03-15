@@ -47,6 +47,12 @@ async function checkAndFixSchema() {
       { name: "payment_type", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS payment_type TEXT` },
       { name: "pdf_url", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS pdf_url TEXT` },
       { name: "title", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS title TEXT` },
+      { name: "client_address", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS client_address TEXT` },
+      { name: "client_phone", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS client_phone TEXT` },
+      { name: "client_bank_name", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS client_bank_name TEXT` },
+      { name: "client_mfo", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS client_mfo TEXT` },
+      { name: "client_inn", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS client_inn TEXT` },
+      { name: "client_account_number", sql: sql`ALTER TABLE contracts ADD COLUMN IF NOT EXISTS client_account_number TEXT` },
     ];
 
     for (const update of contractUpdates) {
