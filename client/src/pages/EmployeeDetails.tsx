@@ -3,12 +3,13 @@ import { useParams, Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { ChevronLeft, Save, User, UserCog, Eye, EyeOff, Trash2, ShieldAlert } from "lucide-react";
+import { ChevronLeft, Save, User, UserCog, Eye, EyeOff, Trash2, ShieldAlert, Plus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -22,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { priorityLabel, statusLabel } from "@/lib/uz";
 import { useDeleteEmployee } from "@/hooks/use-employees";
+import { useProjects } from "@/hooks/use-projects";
+import { useCreateTask } from "@/hooks/use-tasks";
 
 type Employee = { id: string; username: string; firstName: string; lastName: string; role: string; companyRole?: string };
 type Task = { id: number; title: string; description: string; priority: string; status: string; createdAt: Date; projectId: number };
@@ -42,6 +45,50 @@ export default function EmployeeDetails() {
     const { data: tasks, isLoading: isTasksLoading } = useQuery<Task[]>({
         queryKey: [`/api/employees/${employeeId}/tasks`],
     });
+
+    const { data: projects } = useProjects();
+    const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+    const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+
+    // useCreateTask hook takes a projectId, but it's used inside mutationFn
+    // Actually, useCreateTask is bound to a single projectId.
+    // If we want to create tasks for different projects, we might need a custom mutation or use it separately.
+    // Let's check the hook again. useCreateTask(projectId) uses projectId in path.
+    // So we'll call it dynamically in the component or use a raw mutation.
+    // Since useCreateTask is defined as a hook, we can't call it inside a handler.
+    // But we can create a custom version or just use apiRequest.
+
+    const createTaskMutation = useMutation({
+        mutationFn: async ({ projectId, data }: { projectId: number, data: any }) => {
+            const res = await apiRequest("POST", `/api/projects/${projectId}/tasks`, data);
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [`/api/employees/${employeeId}/tasks`] });
+            toast({ title: "Muvaffaqiyatli", description: "Vazifa biriktirildi." });
+            setIsTaskDialogOpen(false);
+        },
+        onError: (err: any) => {
+            toast({ title: "Xato", description: err.message, variant: "destructive" });
+        }
+    });
+
+    const handleTaskSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        const pId = Number(fd.get("projectId"));
+        if (!pId) return toast({ title: "Xato", description: "Loyiha tanlanmagan!", variant: "destructive" });
+
+        const taskData = {
+            title: fd.get("title") as string,
+            description: fd.get("description") as string,
+            priority: fd.get("priority") as string,
+            status: "todo",
+            assigneeId: employeeId,
+        };
+
+        createTaskMutation.mutate({ projectId: pId, data: taskData });
+    };
 
     const updateEmployee = useMutation({
         mutationFn: async (data: any) => {
@@ -220,9 +267,53 @@ export default function EmployeeDetails() {
                             <div key={col.id} className={`w-80 shrink-0 rounded-2xl p-4 glass-panel border-t-2 ${col.color}`}>
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className={`font-semibold ${col.headerColor}`}>{col.title}</h3>
-                                    <span className="text-xs bg-white/10 px-2 py-1 rounded-full text-white/70">
-                                        {tasksByStatus[col.id]?.length || 0}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        {col.id === "todo" && (
+                                            <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
+                                                <DialogTrigger asChild>
+                                                    <Button size="icon" variant="ghost" className="w-6 h-6 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-background border-0 p-0">
+                                                        <Plus className="w-3 h-3" />
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent className="glass-panel border-white/10">
+                                                    <DialogHeader><DialogTitle className="text-white">Yangi vazifa biriktirish</DialogTitle></DialogHeader>
+                                                    <form onSubmit={handleTaskSubmit} className="space-y-4 mt-4 text-left">
+                                                        <div>
+                                                            <label className="text-sm text-white/70 block mb-1">Loyihani tanlang</label>
+                                                            <select name="projectId" required className="w-full rounded-md border border-white/10 bg-black/20 p-2 text-white">
+                                                                <option value="" className="text-black">Loyihalar...</option>
+                                                                {(projects || []).filter(p => p.status !== 'completed').map(p => (
+                                                                    <option key={p.id} value={p.id} className="text-black">{p.name}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-sm text-white/70 block mb-1">Vazifa nomi</label>
+                                                            <Input name="title" required className="glass-input text-white" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-sm text-white/70 block mb-1">Tavsif</label>
+                                                            <textarea name="description" rows={3} className="w-full rounded-md border border-white/10 bg-black/20 p-3 text-sm text-white focus:ring-2 focus:ring-primary/50" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-sm text-white/70 block mb-1">Muhimlik</label>
+                                                            <select name="priority" className="w-full rounded-md border border-white/10 bg-black/20 p-2 text-white">
+                                                                <option value="low" className="text-black">Past</option>
+                                                                <option value="medium" className="text-black" selected>O'rta</option>
+                                                                <option value="high" className="text-black">Yuqori</option>
+                                                            </select>
+                                                        </div>
+                                                        <Button type="submit" disabled={createTaskMutation.isPending} className="w-full bg-primary text-background font-bold h-11">
+                                                            {createTaskMutation.isPending ? "Saqlanmoqda..." : "Saqlash"}
+                                                        </Button>
+                                                    </form>
+                                                </DialogContent>
+                                            </Dialog>
+                                        )}
+                                        <span className="text-xs bg-white/10 px-2 py-1 rounded-full text-white/70">
+                                            {tasksByStatus[col.id]?.length || 0}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-3">
