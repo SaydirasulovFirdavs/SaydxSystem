@@ -128,9 +128,9 @@ export default function VerifyInvoice() {
 
                 <div className="pt-8 text-center">
                    <p className="text-[9px] text-slate-600 uppercase tracking-[0.3em] mb-4">SAYD.X DIGITAL SOLUTIONS ERP</p>
-                   <Button asChild variant="ghost" className="text-blue-500/50 hover:text-blue-500 transition-colors text-xs">
-                     <Link href="/">saydx.uz</Link>
-                   </Button>
+                   <a href="https://saydx.uz" target="_blank" rel="noreferrer" className="text-blue-500/50 hover:text-blue-500 transition-colors text-xs font-black uppercase tracking-widest">
+                     saydx.uz
+                   </a>
                 </div>
               </div>
             )}
