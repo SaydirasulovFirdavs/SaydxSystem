@@ -81,6 +81,10 @@ function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrC
   <meta charset="UTF-8">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    @page {
+      margin: 25mm 20mm;
+      size: A4;
+    }
     body { 
       font-family: 'Inter', sans-serif; 
       line-height: 1.5; 
@@ -90,10 +94,8 @@ function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrC
       font-size: 11pt; 
     }
     .page {
-      padding: 60px 80px;
       position: relative;
       page-break-after: always;
-      min-height: 1000px;
     }
     .page:last-child {
       page-break-after: auto;
@@ -121,7 +123,7 @@ function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrC
     
     .meta-row { display: flex; justify-content: space-between; margin-bottom: 25px; font-weight: 600; font-size: 10pt; border-bottom: 1px solid #eee; padding-bottom: 10px; }
     
-    .section { margin-bottom: 20px; }
+    .section { margin-bottom: 20px; page-break-inside: avoid; }
     .section-title { 
       font-weight: 800; 
       text-transform: uppercase; 
@@ -170,7 +172,7 @@ function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrC
     
     b { color: #000; }
     ul { margin: 15px 0 20px 25px; padding: 0; }
-    li { margin-bottom: 6px; text-align: justify; }
+    li { margin-bottom: 6px; text-align: justify; page-break-inside: avoid; }
 
     /* Offer Styles */
     .offer-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
