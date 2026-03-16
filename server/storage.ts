@@ -269,14 +269,14 @@ export class DatabaseStorage implements IStorage {
 
   async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
     const token = randomBytes(16).toString("hex");
-    const rows = await db.insert(invoices).values({ ...invoice, verificationToken: token }).returning();
+    const rows = await db.insert(invoices).values({ ...(invoice as any), verificationToken: token } as any).returning();
     const newInvoice = rows[0];
     if (!newInvoice) throw new Error("Failed to create invoice");
     return newInvoice;
   }
 
   async updateInvoice(id: number, updates: Partial<InsertInvoice> & { status?: string; pdfUrl?: string }): Promise<Invoice | undefined> {
-    const rows = await db.update(invoices).set(updates).where(eq(invoices.id, id)).returning();
+    const rows = await db.update(invoices).set(updates as any).where(eq(invoices.id, id)).returning();
     return rows[0];
   }
 
@@ -485,10 +485,10 @@ export class DatabaseStorage implements IStorage {
     const token = randomBytes(16).toString("hex");
     const contractNumber = contract.contractNumber || await this.getNextContractNumber();
     const [row] = await db.insert(contracts).values({ 
-      ...contract, 
+      ...(contract as any), 
       contractNumber,
       verificationToken: token 
-    }).returning();
+    } as any).returning();
     if (!row) throw new Error("Failed to create contract");
     return row;
   }
@@ -532,7 +532,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateContract(id: number, updates: Partial<InsertContract>): Promise<Contract | undefined> {
-    const [row] = await db.update(contracts).set(updates).where(eq(contracts.id, id)).returning();
+    const [row] = await db.update(contracts).set(updates as any).where(eq(contracts.id, id)).returning();
     return row;
   }
 

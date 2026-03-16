@@ -15,6 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { riskLabel, statusLabel, priorityLabel, typeLabel } from "@/lib/uz";
 
+const isValidDate = (d: any) => d instanceof Date && !isNaN(d.getTime());
+
 export default function ProjectDetails() {
   const params = useParams();
   const projectId = Number(params.id);
@@ -81,16 +83,18 @@ export default function ProjectDetails() {
     return (budget * (project.paymentProgress || 0)) / 100;
   }, [project]);
 
-  const rootTasks = useMemo(() => (tasks || []).filter(t => !(t as any).parentTaskId), [tasks]);
+  const rootTasks = useMemo(() => Array.isArray(tasks) ? tasks.filter(t => !(t as any).parentTaskId) : [], [tasks]);
   const subtasksByParent = useMemo(() => {
     const map: Record<number, typeof tasks> = {};
-    (tasks || []).forEach(t => {
-      const pid = (t as any).parentTaskId;
-      if (pid != null) {
-        if (!map[pid]) map[pid] = [];
-        map[pid].push(t);
-      }
-    });
+    if (Array.isArray(tasks)) {
+      tasks.forEach(t => {
+        const pid = (t as any).parentTaskId;
+        if (pid != null) {
+          if (!map[pid]) map[pid] = [];
+          map[pid].push(t);
+        }
+      });
+    }
     return map;
   }, [tasks]);
 
@@ -245,7 +249,9 @@ export default function ProjectDetails() {
                 </div>
                 <div>
                   <p className="text-[10px] text-white/40 uppercase font-black tracking-widest">Boshlandi</p>
-                  <p className="text-sm font-bold text-white">{format(new Date(project.startDate), 'dd.MM.yyyy')}</p>
+                  <p className="text-sm font-bold text-white">
+                    {project.startDate && isValidDate(new Date(project.startDate)) ? format(new Date(project.startDate), 'dd.MM.yyyy') : 'Belgilanmagan'}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
@@ -254,7 +260,9 @@ export default function ProjectDetails() {
                 </div>
                 <div>
                   <p className="text-[10px] text-white/40 uppercase font-black tracking-widest">Muddat</p>
-                  <p className="text-sm font-bold text-white">{format(new Date(project.deadlineDate), 'dd.MM.yyyy')}</p>
+                  <p className="text-sm font-bold text-white">
+                    {project.deadlineDate && isValidDate(new Date(project.deadlineDate)) ? format(new Date(project.deadlineDate), 'dd.MM.yyyy') : 'Belgilanmagan'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -539,14 +547,15 @@ export default function ProjectDetails() {
         <div className="glass-panel rounded-2xl p-6">
           <p className="text-muted-foreground text-sm mb-4">Vazifalar yaratilgan sana bo'yicha</p>
           <div className="space-y-4">
-            {Object.entries(
-              (tasks || []).reduce<Record<string, typeof tasks>>((acc, t) => {
-                const key = format(startOfDay(new Date(t.createdAt)), "yyyy-MM-dd");
-                if (!acc[key]) acc[key] = [];
-                acc[key].push(t);
-                return acc;
-              }, {})
-            )
+              {Object.entries(
+                (Array.isArray(tasks) ? tasks : []).reduce<Record<string, typeof tasks>>((acc, t) => {
+                  const dateObj = new Date(t.createdAt);
+                  const key = isValidDate(dateObj) ? format(startOfDay(dateObj), "yyyy-MM-dd") : "Nomalum";
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push(t);
+                  return acc;
+                }, {})
+              )
               .sort(([a], [b]) => b.localeCompare(a))
               .map(([date, list]) => (
                 <div key={date} className="border-b border-white/5 pb-4">

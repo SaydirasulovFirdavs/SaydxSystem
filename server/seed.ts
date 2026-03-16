@@ -187,7 +187,7 @@ async function seed() {
     });
 
     // Seed Invoices
-    await db.insert(invoices).values({
+    await (db.insert(invoices) as any).values({
       projectId: project1.id,
       invoiceNumber: "INV-2024-001",
       amount: "2500000",
@@ -196,7 +196,7 @@ async function seed() {
       dueDate: new Date(),
     });
 
-    await db.insert(invoices).values({
+    await (db.insert(invoices) as any).values({
       projectId: project2.id,
       invoiceNumber: "INV-2024-002",
       amount: "2500000",

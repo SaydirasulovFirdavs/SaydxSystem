@@ -236,7 +236,7 @@ export const contracts = pgTable("contracts", {
   id: serial("id").primaryKey(),
   contractNumber: text("contract_number").notNull(),
   clientId: integer("client_id").references(() => clients.id),
-  projectId: integer("project_id").references(() => projects.id),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }),
   amount: numeric("amount").notNull(),
   currency: text("currency").default("UZS").notNull(),
   startDate: timestamp("start_date").notNull(),
@@ -343,6 +343,7 @@ export const insertContractSchema = createInsertSchema(contracts)
   .extend({
     startDate: z.coerce.date(),
     endDate: z.coerce.date(),
+    projectId: z.coerce.number().optional().nullable(),
     workMethod: z.string().optional().nullable(),
     advancePayment: z.string().optional().nullable(),
     remainingAmount: z.string().optional().nullable(),

@@ -27,6 +27,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGr
 import { riskLabel, typeLabel } from "@/lib/uz";
 import { api, buildUrl } from "@shared/routes";
 
+const isValidDate = (d: any) => d instanceof Date && !isNaN(d.getTime());
+
 export default function Projects() {
   const { data: projects, isLoading } = useProjects();
   const { data: clients } = useClients();
@@ -45,8 +47,8 @@ export default function Projects() {
   const startDateInputRef = useRef<HTMLInputElement>(null);
   const deadlineDateInputRef = useRef<HTMLInputElement>(null);
 
-  const activeProjects = (projects || []).filter((p) => p.status !== "completed");
-  const completedProjects = (projects || []).filter((p) => p.status === "completed");
+  const activeProjects = Array.isArray(projects) ? projects.filter((p) => p.status !== "completed") : [];
+  const completedProjects = Array.isArray(projects) ? projects.filter((p) => p.status === "completed") : [];
 
   if (isLoading) return <AppLayout><LoadingSpinner message="Loyihalar yuklanmoqda..." /></AppLayout>;
 
@@ -402,7 +404,9 @@ export default function Projects() {
                           <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest">Tugash muddati</p>
                           <div className="flex items-center gap-2 text-white/80">
                             <Calendar className="w-3 h-3 text-primary" />
-                            <span className="text-sm font-semibold">{format(new Date(project.deadlineDate), 'dd.MM.yyyy')}</span>
+                            <span className="text-sm font-semibold">
+                              {project.deadlineDate && isValidDate(new Date(project.deadlineDate)) ? format(new Date(project.deadlineDate), 'dd.MM.yyyy') : 'Belgilanmagan'}
+                            </span>
                           </div>
                         </div>
 
@@ -479,7 +483,7 @@ export default function Projects() {
                   <td className="px-6 py-4 text-sm font-medium text-white/80">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-3 h-3 text-primary/50" />
-                      {format(new Date(project.deadlineDate), 'dd.MM.yyyy')}
+                      {project.deadlineDate && isValidDate(new Date(project.deadlineDate)) ? format(new Date(project.deadlineDate), 'dd.MM.yyyy') : 'Belgilanmagan'}
                     </div>
                   </td>
                   <td className="px-6 py-4">

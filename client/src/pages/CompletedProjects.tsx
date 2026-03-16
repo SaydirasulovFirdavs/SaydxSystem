@@ -7,9 +7,11 @@ import { CheckCircle, ChevronRight, Briefcase } from "lucide-react";
 import { motion } from "framer-motion";
 import { riskLabel, typeLabel } from "@/lib/uz";
 
+const isValidDate = (d: any) => d instanceof Date && !isNaN(d.getTime());
+
 export default function CompletedProjects() {
   const { data: allProjects, isLoading } = useProjects();
-  const projects = (allProjects || []).filter((p) => p.status === "completed");
+  const projects = Array.isArray(allProjects) ? allProjects.filter((p) => p.status === "completed") : [];
 
   if (isLoading) return <AppLayout><LoadingSpinner message="Tugallangan loyihalar yuklanmoqda..." /></AppLayout>;
 
@@ -87,7 +89,9 @@ export default function CompletedProjects() {
                   <div className="flex justify-between items-center pt-6 border-t border-white/5">
                     <div className="flex items-center gap-2">
                       <p className="text-white/30 font-bold text-xs">Yopildi:</p>
-                      <p className="text-white font-black text-sm">{format(new Date(project.deadlineDate), "dd.MM.yyyy")}</p>
+                      <p className="text-white font-black text-sm">
+                        {project.deadlineDate && isValidDate(new Date(project.deadlineDate)) ? format(new Date(project.deadlineDate), "dd.MM.yyyy") : 'Belgilanmagan'}
+                      </p>
                     </div>
                   </div>
                 </div>
