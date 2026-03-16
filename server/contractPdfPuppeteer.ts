@@ -233,45 +233,73 @@ function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrC
       </div>
     </div>
 
-    <div style="margin-bottom: 30px; padding: 15px; background: #f8fafc; border-radius: 12px; border-left: 4px solid #4338ca;">
-      <div style="font-size: 8pt; font-weight: 800; color: #6366f1; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">MIJOZ MA'LUMOTLARI</div>
-      <div style="font-size: 14pt; font-weight: 800; color: #1e1b4b; line-height: 1.2;">${esc(contract.company || contract.clientName)}</div>
-      <div style="font-size: 10pt; color: #4338ca; font-weight: 600; margin-top: 4px;">${esc(contract.clientName)}</div>
-    </div>
-
     <div class="section">
-      <p>"SAYD.X" jamoasi, <b>ATAULLAYEV SAIDMUHAMMADALIXON UMID O'G'LI</b> – mazkur jamoa asoschisi va rahbari, (keyingi o'rinlarda matnda "Kompaniya" deb yuritiladi), ikkinchi tomondan <b style="text-transform: uppercase;">"${esc(contract.company || contract.clientName)}"</b> (keyingi o'rinlarda "Buyurtmachi" deb yuritiladi), o'rtasida quyidagilar haqida ushbu shartnoma tuzildi:</p>
+      <p>"SAYD.X" yakka tartibdagi tadbirkor, <b>ATAULLAYEV SAIDMUHAMMADALIXON UMID O'G'LI</b> – mazkur kompaniya asoschisi va rahbari, (keyingi o‘rinlarda matnda “Kompaniya” deb yuritiladi) o‘z Nizomi asosida faoliyat yurituvchi, O‘zbekiston Respublikasi qonunchiligiga muvofiq ro‘yxatdan o‘tgan va web-saytlar, Telegram botlar hamda avtomatlashtirilgan (AyTi) tizimlar sohasida xizmat ko‘rsatib kelayotgan tashkilot sifatida, mazkur shartnoma orqali o‘z xizmatlarini buyurtmachi (keyingi o‘rinlarda matnda “Mijoz” deb yuritiladi)ga taqdim etishni taklif qiladi. Ushbu shartnoma O‘zbekiston Respublikasi Fuqarolik kodeksining 367-moddasiga muvofiq, tomonlarning o‘zaro kelishuvi asosida tuzilgan bo‘lib, “Kompaniya” va “Mijoz” birgalikda “Tomonlar” deb yuritiladi. Mazkur shartnoma taklifi, Mijoz tomonidan “Kompaniya”ning rasmiy aloqa manzili bo‘lmish Telegram kanali @saydxuz orqali buyurtma berish, shuningdek shartnomada ko‘rsatilgan to‘lov tartib-qoidalarini amalga oshirish orqali tuzilgan hisoblanadi va shu kundan e’tiboran yuridik kuchga ega bo‘ladi. Tomonlar bundan buyon matnda “Mijoz” va “Kompaniya” deb yuritiladi.</p>
     </div>
 
-    <div class="section-title">1. SHARTNOMA PREDMETI</div>
+    <div class="section-title">2. Shartnoma predmeti</div>
     <div class="section">
-      <p>1.1. Bajaruvchi Buyurtmachining topshirig'iga binoan quyidagi xizmatlarni ko'rsatish majburiyatini oladi: <b>${esc(contract.description || 'Loyiha ishlab chiqish')}</b>.</p>
-      <p>1.2. Buyurtmachi Bajaruvchi tomonidan ko'rsatilgan xizmatlarni qabul qilish va ushbu shartnomada belgilangan tartibda to'lovni amalga oshirish majburiyatini oladi.</p>
+      <p>2.1. Kompaniya Mijozga quyidagi xizmatlarni taqdim etadi: <b>${esc(contract.description || 'Loyiha ishlab chiqish')}</b>.</p>
+      <ul>
+        <li>Telegram botlar ishlab chiqish – buyurtmalar qabul qilish, to‘lovlarni amalga oshirish va jarayonlarni avtomatlashtirish imkoniyatiga ega botlar yaratish.</li>
+        <li>Web-saytlar yaratish – zamonaviy texnologiyalar asosida korporativ va tijorat saytlarini ishlab chiqish.</li>
+        <li>Moliyaviy xizmatlarni tizimlashtirish (Google Sheets orqali) – daromad va xarajatlarni hisoblash, balans yuritish va moliyaviy nazorat tizimlarini yaratish va yana barcha ma’lumotlar bazzasini boshqarish tizimini google sheetsga ulab berish.</li>
+        <li>UI/UX dizayn – foydalanuvchilarga qulay interfeys va samarali tajriba taqdim etuvchi dizaynlar ishlab chiqish.</li>
+        <li>Mini-ilovalar yaratish – biznes jarayonlarini soddalashtiruvchi kichik dasturlar tayyorlash.</li>
+        <li>Target reklama (Telegram orqali) – mahsulot va xizmatlarni targ‘ib qilish uchun maqsadli auditoriyaga reklama yo‘lga qo‘yish.</li>
+        <li>Jarayonlarni avtomatlashtirish – qo‘lda va qog‘ozda bajariladigan ishlarni IT vositalari yordamida avtomatlashtirish.</li>
+        <li>To‘lov tizimlari va SMS xizmatlari integratsiyasi – Click, Payme va boshqa tizimlar bilan ulash.</li>
+        <li>CRM va tashqi tizimlar integratsiyasi – turli tizimlar miqyosida yagona platformaga birlashtirish.</li>
+        <li>Qo‘shimcha zamonaviy xizmatlar – Mijoz ehtiyojidan kelib chiqib yangi IT yechimlarini joriy etish.</li>
+      </ul>
+      <p>2.2. Xizmatlar hajmi, texnik topshiriq (TZ) va muddatlar qo‘shimcha kelishuv (OFFER) orqali belgilanadi.</p>
     </div>
 
-    <div class="section-title">2. SHARTNOMA SUMMASI VA TO'LOV TARTIBI</div>
+    <div class="section-title">3. Tomonlarning huquq va majburiyatlari</div>
     <div class="section">
-      <p>2.1. Ushbu shartnomaning umumiy qiymati <b>${formatAmount(amount, contract.currency || 'UZS')}</b> loyini tashkil etadi.</p>
-      <p>2.2. Buyurtmachi shartnoma imzolangan kundan boshlab 3 bank ish kuni ichida umumiy summaning 50 foizi miqdorida, ya'ni <b>${formatAmount(advance, contract.currency || 'UZS')}</b> miqdorida avans to'lovini amalga oshiradi.</p>
-      <p>2.3. Qolgan 50 foiz to'lov, ya'ni <b>${formatAmount(remaining, contract.currency || 'UZS')}</b> ishlar to'liq topshirilib, qabul qilish-topshirish dalolatnomasi imzolanganidan so'ng 3 bank ish kuni ichida to'lanadi.</p>
+      <p>3.1. Kompaniya majburiyatlari: Xizmatlarni sifatli va belgilangan muddatlarda bajarish; Mijozga 24/7 texnik yordam ko‘rsatish; Taqdim etilgan barcha axborot va hujjatlarni sir saqlash; Innovatsion va xavfsiz texnologiyalarni qo‘llash.</p>
+      <p>3.2. Kompaniya huquqlari: Texnik topshiriqni aniq bajarish uchun qo‘shimcha ma’lumot so‘rash; Mijoz o‘z vaqtida to‘lovni amalga oshirmagan taqdirda xizmatni vaqtincha to‘xtatish.</p>
+      <p>3.3. Mijoz majburiyatlari: Xizmatlarni o‘z vaqtida qabul qilib olish; Belgilangan muddatlarda to‘lovni amalga oshirish; Loyiha uchun zarur barcha hujjatlar va ma’lumotlarni taqdim etish.</p>
     </div>
 
-    <div class="section-title">3. TOMONLARNING MAJBURIYATLARI</div>
+    <div class="section-title">4. Moliyaviy shartlar va to‘lov tartibi</div>
     <div class="section">
-      <p>3.1. Bajaruvchi xizmatlarni sifatli va belgilangan muddatlarda (<b>${formatDate(contract.endDate)}</b> gacha) bajarishi shart.</p>
-      <p>3.2. Buyurtmachi Bajaruvchiga xizmat ko'rsatish uchun zarur bo'lgan barcha ma'lumotlarni o'z vaqtida taqdim etishi shart.</p>
-      <p style="font-size: 8pt; font-style: italic; color: #666; margin-top: 10px;">* Batafsil shartlar va ish rejasi ilova qilingan OFFER hujjatida ko'rsatilgan.</p>
+      <p>4.1. Xizmat narxi, buyurtma muddati va to‘lov rekvizitlari OFFERda ko‘rsatilgan tartibda belgilanadi. Umumiy qiymat: <b>${formatAmount(amount, contract.currency || 'UZS')}</b>.</p>
+      <p>4.2. Shartnoma kuchga kirishi uchun belgilangan xizmat narxidan 50% miqdorda (<b>${formatAmount(advance, contract.currency || 'UZS')}</b>) oldindan to‘lov amalga oshirilishi shart.</p>
+      <p>4.7. Yakuniy natija topshirilganidan so‘ng, qolgan 50% (<b>${formatAmount(remaining, contract.currency || 'UZS')}</b>) amalga oshiriladi.</p>
     </div>
 
-    <div class="parties-grid">
+    <div class="section-title">5. Javobgarlik</div>
+    <div class="section">
+      <p>5.1. Tomonlar shartnoma shartlarini bajarmagan taqdirda O'zbekiston Respublikasi amaldagi qonunchiligiga muvofiq javobgar bo'ladilar.</p>
+      <p>5.2. Kompaniya uchinchi tomon dasturlari (API, Payme, Click, Telegram, Server, Hosting, Google sheets va h.k.) nosozliklari uchun javobgar emas.</p>
+    </div>
+
+    <div class="section-title">6. Fors-major holatlar</div>
+    <div class="section">
+      <p>6.1. Tomonlarning nazoratidan tashqarida bo'lgan tabiiy ofatlar va texnologik nosozliklar vaqtida tomonlar javobgar bo'lmaydi.</p>
+    </div>
+
+    <div class="section-title">7. Amal qilish muddati va bekor qilish</div>
+    <div class="section">
+      <p>7.1. Shartnoma tomonlar imzo qo'ygan kundan boshlab kuchga kiradi va loyiha muddati (<b>${formatDate(contract.endDate)}</b> gacha) amal qiladi.</p>
+    </div>
+
+    <div class="section-title">8. Yakuniy qoidalar</div>
+    <div class="section">
+      <p>8.1. O'zgartirish va qo'shimchalar faqat ikki tomonning yozma kelishuvi asosida amalga oshiriladi.</p>
+    </div>
+
+    <div class="section-title">9. Tomonlarning rekvizitlari</div>
+    <div class="parties-grid" style="margin-top: 10px;">
       <div class="party-box">
         <h4>KOMPANIYA</h4>
         <div class="details">
-          <b>${esc(settings.companyName || '"SAYD.X" LLC')}</b><br>
-          Manzil: ${esc(settings.address)}<br>
-          Tel: ${esc(settings.phone)}<br>
-          H/r: ${esc(settings.accountNumber)}<br>
-          Bank: ${esc(settings.bankName)}
+          <b>"SAYD.X" YATT</b><br>
+          Manzil: Toshkent sh., Yashnobod tum., Obod makon 56/12 uy<br>
+          Tel: +998 20 000 37 90<br>
+          H/r: 20218000207298668001<br>
+          Bank: TBC BANK (MFO: 00444, STIR: 637742163)
         </div>
       </div>
       <div class="party-box">
@@ -281,7 +309,7 @@ function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrC
           Vakil: ${esc(contract.clientName)}<br>
           Manzil: ${esc(contract.clientAddress || '---')}<br>
           Tel: ${esc(contract.clientPhone || '---')}<br>
-          To'lov turi: ${esc(contract.paymentType || "O'tkazma")}
+          To'lov turi: ${esc(contract.paymentType || "Card")}
         </div>
       </div>
     </div>
@@ -295,8 +323,8 @@ function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrC
       <div class="signature-container">
         <img src="${imzoUrl}" class="signature-img">
         <div class="sign-line"></div>
-        <div style="font-weight: 800; color: #4338ca;">${esc(settings.authorizedName)}</div>
-        <div style="font-size: 8pt; color: #666; margin-bottom: 4px;">${esc(settings.authorizedPosition)}</div>
+        <div style="font-weight: 800; color: #4338ca;">SAIDMUHAMMADALIXON UMID O'G'LI</div>
+        <div style="font-size: 8pt; color: #666; margin-bottom: 4px;">Kompaniya rahbari</div>
       </div>
     </div>
   </div>
