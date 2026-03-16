@@ -558,11 +558,11 @@ export default function Contracts() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                        <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Click orqali to'lov (Karta)</label>
-                       <Input name="clickDetails" defaultValue="5614 6821 2364 5204 SAIDMUHAMMADALIXON ATAULLA" className="glass-input h-11 text-sm font-bold" />
+                       <Input name="clickDetails" defaultValue="5614 6821 2364 5204 SAIDMUHAMMADALIXON ATAULLAYEV" className="glass-input h-11 text-sm font-bold" />
                     </div>
                     <div className="space-y-2">
                        <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Muammoli holatda bog'lanish</label>
-                       <Input name="issueContact" defaultValue="Kompaniya ta`sischisi Ataullayev Saidmhammadalixon 20-000-37-90" className="glass-input h-11 text-sm font-bold" />
+                       <Input name="issueContact" defaultValue="Kompaniya ta`sischisi Ataullayev Saidmuhammadalixon 20-000-37-90" className="glass-input h-11 text-sm font-bold" />
                     </div>
                   </div>
                   <div className="space-y-2">
