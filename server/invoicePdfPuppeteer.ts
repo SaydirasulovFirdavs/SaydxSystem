@@ -590,23 +590,33 @@ export async function generateInvoicePdfPuppeteer(
 
   const html = buildInvoiceHtml(invoice, items, project, settings, baseUrl, lang, qrCodeDataUri);
 
+  console.log(`Generating PDF for invoice: ${invoice.invoiceNumber}...`);
   const puppeteer = await import("puppeteer");
   const browser = await puppeteer.default.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-accelerated-2d-canvas",
+      "--no-first-run",
+      "--no-zygote",
+      "--single-process",
+      "--disable-gpu"
+    ],
   });
-
+  
   try {
     const page = await browser.newPage();
     await page.setContent(html, {
       waitUntil: ["networkidle0", "domcontentloaded"],
-      timeout: 30000,
+      timeout: 60000,
     });
-
+    
     // Wait for everything to settle
     await page.evaluateHandle('document.fonts.ready');
-    await new Promise(r => setTimeout(r, 500)); // Extra wiggle room for images/layout
-
+    await new Promise(r => setTimeout(r, 500));
+    
     // Robust height calculation
     const bodyHeight = await page.evaluate(() => {
       return Math.max(
@@ -618,12 +628,11 @@ export async function generateInvoicePdfPuppeteer(
         document.documentElement.clientHeight
       );
     });
-
-    // Final height with small buffer for PDF rendering variations
+    
     const finalHeightPx = Math.max(1060, bodyHeight + 20);
-
+    
     await page.setViewport({
-      width: 794, // Standard A4 width at 96 DPI
+      width: 794,
       height: Math.round(finalHeightPx),
       deviceScaleFactor: 2
     });

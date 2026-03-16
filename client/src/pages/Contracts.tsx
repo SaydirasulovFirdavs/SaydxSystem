@@ -130,6 +130,14 @@ export default function Contracts() {
       clientMfo: getVal("clientMfo"),
       clientInn: getVal("clientInn"),
       clientAccountNumber: getVal("clientAccountNumber"),
+      // Offer fields
+      workSchedule: getVal("workSchedule"),
+      managerPhone: getVal("managerPhone"),
+      clickDetails: getVal("clickDetails"),
+      issueContact: getVal("issueContact"),
+      projectDurationInfo: getVal("projectDurationInfo"),
+      proposedServices: getVal("proposedServices"),
+      advantages: getVal("advantages"),
       status: "active",
     };
 
@@ -152,7 +160,12 @@ export default function Contracts() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
-      if (!response.ok) throw new Error("PDF error");
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "PDF generatsiya qilishda xatolik");
+      }
+      
       const { url } = await response.json();
       const link = document.createElement("a");
       link.href = url;
@@ -161,8 +174,8 @@ export default function Contracts() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (e) {
-      alert("PDF yuklanmadi");
+    } catch (e: any) {
+      alert(`PDF yuklanmadi: ${e.message}`);
     } finally {
       setIsPdfLoading(false);
     }
@@ -198,6 +211,14 @@ export default function Contracts() {
       clientMfo: getVal("clientMfo"),
       clientInn: getVal("clientInn"),
       clientAccountNumber: getVal("clientAccountNumber"),
+      // Offer fields
+      workSchedule: getVal("workSchedule"),
+      managerPhone: getVal("managerPhone"),
+      clickDetails: getVal("clickDetails"),
+      issueContact: getVal("issueContact"),
+      projectDurationInfo: getVal("projectDurationInfo"),
+      proposedServices: getVal("proposedServices"),
+      advantages: getVal("advantages"),
     };
     try {
       await updateContract.mutateAsync({ id: selectedContract.id, contract: data as any });
@@ -522,6 +543,44 @@ export default function Contracts() {
                   </div>
                 </div>
 
+                <div className="space-y-4 pt-4 border-t border-indigo-500/20">
+                  <label className="text-xs font-black uppercase tracking-widest text-indigo-400 ml-1">OFFER Ma'lumotlari (Qo'shimcha kelishuv uchun)</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Ish grafigi</label>
+                       <Input name="workSchedule" defaultValue="Dushanbadan yakshanbagacha, soat 10:00 dan 22:00 gacha" className="glass-input h-11 text-sm font-bold" />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Menedjer telfon raqami</label>
+                       <Input name="managerPhone" defaultValue="20-000-37-90" className="glass-input h-11 text-sm font-bold" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Click orqali to'lov (Karta)</label>
+                       <Input name="clickDetails" defaultValue="5614 6821 2364 5204 SAIDMUHAMMADALIXON ATAULLA" className="glass-input h-11 text-sm font-bold" />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Muammoli holatda bog'lanish</label>
+                       <Input name="issueContact" defaultValue="Kompaniya ta`sischisi Ataullayev Saidmhammadalixon 20-000-37-90" className="glass-input h-11 text-sm font-bold" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Loyiha tugallanishi uchun ketadigan vaqt</label>
+                     <Input name="projectDurationInfo" defaultValue="45 kun (+ - 10)" className="glass-input h-11 text-sm font-bold" />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Taklif qilinayotgan xizmatlar</label>
+                       <textarea name="proposedServices" defaultValue="Qog'ozda ishlaydigan holatni avtomatlashtirish, Doimiy qo'llab-quvvatlash, Moliyaviy xolatingizni yaxshilash uchun, Sayt va Telegram botlar yaratish hamda avtomatlashtirish, Sayt va Botlarda to'lov tizimlarini integratsiyalash" rows={3} className="w-full rounded-xl border border-white/10 bg-white/5 p-2 text-white text-xs font-medium focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none" />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Xizmatning afzalliklari</label>
+                       <textarea name="advantages" defaultValue="Har bir mijoz va sohaga mos yondashuv, Eng yangi texnologiyalar asosida xizmat, Oson foydalanish, Avtomatlashtirish va integratsiya, 24/7 texnik yordam" rows={3} className="w-full rounded-xl border border-white/10 bg-white/5 p-2 text-white text-xs font-medium focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none" />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-4 pt-4 border-t border-white/5">
                   <label className="text-xs font-black uppercase tracking-widest text-primary/60 ml-1">Mijozning qo'shimcha ma'lumotlari (PDF uchun)</label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -838,6 +897,44 @@ export default function Contracts() {
                   <option value="card" className="text-black">Karta</option>
                   <option value="transfer" className="text-black">O'tkazma</option>
                 </select>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-indigo-500/20">
+              <label className="text-xs font-black uppercase tracking-widest text-indigo-400 ml-1">OFFER Ma'lumotlari</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Ish grafigi</label>
+                   <Input name="workSchedule" defaultValue={selectedContract?.workSchedule} className="glass-input h-11 text-sm font-bold" />
+                </div>
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Menedjer telfon raqami</label>
+                   <Input name="managerPhone" defaultValue={selectedContract?.managerPhone} className="glass-input h-11 text-sm font-bold" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Click orqali to'lov (Karta)</label>
+                   <Input name="clickDetails" defaultValue={selectedContract?.clickDetails} className="glass-input h-11 text-sm font-bold" />
+                </div>
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Muammoli holatda bog'lanish</label>
+                   <Input name="issueContact" defaultValue={selectedContract?.issueContact} className="glass-input h-11 text-sm font-bold" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                 <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Loyiha tugallanishi uchun ketadigan vaqt</label>
+                 <Input name="projectDurationInfo" defaultValue={selectedContract?.projectDurationInfo} className="glass-input h-11 text-sm font-bold" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Taklif qilinayotgan xizmatlar</label>
+                   <textarea name="proposedServices" defaultValue={selectedContract?.proposedServices} rows={3} className="w-full rounded-xl border border-white/10 bg-white/5 p-2 text-white text-xs font-medium focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none" />
+                </div>
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Xizmatning afzalliklari</label>
+                   <textarea name="advantages" defaultValue={selectedContract?.advantages} rows={3} className="w-full rounded-xl border border-white/10 bg-white/5 p-2 text-white text-xs font-medium focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none" />
+                </div>
               </div>
             </div>
 

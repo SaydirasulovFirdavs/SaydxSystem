@@ -572,7 +572,8 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
             res.json({ url });
         } catch (err) {
             console.error("Contract PDF generation failed:", err);
-            res.status(500).json({ message: "Shartnoma PDF yaratishda xato" });
+            const msg = err instanceof Error ? err.message : String(err);
+            res.status(500).json({ message: `Shartnoma PDF yaratishda xato: ${msg}` });
         }
     });
 
@@ -585,12 +586,15 @@ export function registerFinanceRoutes(app: Express, isAuthenticated: any, isAdmi
             const filePath = getContractPdfPath(id);
             if (!filePath) return res.status(404).json({ message: "PDF topilmadi" });
 
-            const downloadName = `SHARTNOMA-${contract.contractNumber.replace(/\s/g, "-")}.pdf`;
+            const safeNumber = contract.contractNumber.replace(/[^a-zA-Z0-9-]/g, "_");
+            const downloadName = `SHARTNOMA-${safeNumber}.pdf`;
             res.setHeader("Content-Type", "application/pdf");
             res.setHeader("Content-Disposition", `attachment; filename="${downloadName}"`);
             res.sendFile(path.resolve(filePath));
         } catch (err) {
-            res.status(500).json({ message: "PDF yuklanmadi" });
+            console.error("PDF download failed:", err);
+            const msg = err instanceof Error ? err.message : String(err);
+            res.status(500).json({ message: `PDF yuklanmadi: ${msg}` });
         }
     });
     // --- Contracts ---

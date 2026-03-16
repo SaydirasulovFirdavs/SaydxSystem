@@ -264,6 +264,15 @@ export const contracts = pgTable("contracts", {
   clientInn: text("client_inn"),
   clientAccountNumber: text("client_account_number"),
   
+  // Offer specific fields
+  workSchedule: text("work_schedule"),
+  managerPhone: text("manager_phone"),
+  clickDetails: text("click_details"),
+  issueContact: text("issue_contact"),
+  projectDurationInfo: text("project_duration_info"),
+  proposedServices: text("proposed_services"),
+  advantages: text("advantages"),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -338,27 +347,21 @@ export const insertInvoiceSchema = createInsertSchema(invoices, {
 }).omit({ id: true, createdAt: true });
 export const insertInvoiceItemSchema = createInsertSchema(invoiceItems).omit({ id: true, createdAt: true });
 export const insertSalarySchema = createInsertSchema(salaries).omit({ id: true, createdAt: true });
-export const insertContractSchema = createInsertSchema(contracts)
-  .omit({ id: true, createdAt: true })
-  .extend({
-    startDate: z.coerce.date(),
-    endDate: z.coerce.date(),
-    projectId: z.coerce.number().optional().nullable(),
-    workMethod: z.string().optional().nullable(),
-    advancePayment: z.string().optional().nullable(),
-    remainingAmount: z.string().optional().nullable(),
-    contractType: z.string().optional().nullable(),
-    technicalAssignmentUrl: z.string().optional().nullable(),
-    assignedEmployeeId: z.string().optional().nullable(),
-    paymentType: z.string().optional().nullable(),
-    title: z.string().optional().nullable(),
-    clientAddress: z.string().optional().nullable(),
-    clientPhone: z.string().optional().nullable(),
-    clientBankName: z.string().optional().nullable(),
-    clientMfo: z.string().optional().nullable(),
-    clientInn: z.string().optional().nullable(),
-    clientAccountNumber: z.string().optional().nullable(),
-  });
+export const insertContractSchema = createInsertSchema(contracts, {
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+}).omit({ id: true, createdAt: true }).extend({
+  projectId: z.coerce.number().optional().nullable(),
+  assignedEmployeeId: z.string().optional().nullable(),
+  clientId: z.coerce.number().optional().nullable(),
+  workSchedule: z.string().optional().nullable(),
+  managerPhone: z.string().optional().nullable(),
+  clickDetails: z.string().optional().nullable(),
+  issueContact: z.string().optional().nullable(),
+  projectDurationInfo: z.string().optional().nullable(),
+  proposedServices: z.string().optional().nullable(),
+  advantages: z.string().optional().nullable(),
+});
 
 export const paymentDetailLineSchema = z.object({ title: z.string(), value: z.string() });
 export const updateInvoiceSettingsSchema = z.object({
