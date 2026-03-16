@@ -338,7 +338,6 @@ function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrC
     <div class="offer-header">
       <div class="offer-logo-section">
         <img src="${logoUrl}">
-        <div class="brand">SAYD.X</div>
       </div>
       <div class="offer-label-section">
         <div class="offer-label">OFFER</div>
