@@ -367,7 +367,20 @@ function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrC
       <tr><td>Menedjer telfoni</td><td>${esc(contract.managerPhone || settings.phone || "---")}</td></tr>
       <tr><td>Ish tartibi</td><td>${esc((contract.workMethod || "Offline").toUpperCase())}</td></tr>
       <tr><td>To'lov turi</td><td>${esc((contract.paymentType || "Card").toUpperCase())}</td></tr>
-      <tr><td>Click to'lovi uchun</td><td>${esc(contract.clickDetails || "---")}</td></tr>
+      <tr>
+        <td>Click to'lovi uchun</td>
+        <td>
+          ${(() => {
+            const details = contract.clickDetails || "";
+            // Regex to match card number (digits and spaces) and the following name
+            const match = details.match(/^([\d\s]+)\s+([A-Za-z\s.'`‘’‘]+)$/);
+            if (match) {
+              return `<b>${esc(match[1].trim())}</b><br><span style="font-size: 0.85em; color: #4b5563;">${esc(match[2].trim())}</span>`;
+            }
+            return esc(details || "---");
+          })()}
+        </td>
+      </tr>
       <tr><td>Muammoli bog'lanish</td><td>${esc(contract.issueContact || settings.phone || "---")}</td></tr>
       <tr><td>Ketadigan vaqt</td><td>${esc(contract.projectDurationInfo || "---")}</td></tr>
     </table>
