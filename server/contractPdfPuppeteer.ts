@@ -83,17 +83,17 @@ function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrC
   <style>
     body { 
       font-family: 'Inter', sans-serif; 
-      line-height: 1.4; 
+      line-height: 1.5; 
       color: #1a1a1a; 
       margin: 0; 
       padding: 0; 
       font-size: 11pt; 
     }
     .page {
-      padding: 50px 70px;
+      padding: 60px 80px;
       position: relative;
       page-break-after: always;
-      min-height: 1000px; /* Restore to avoid white screens in some viewers */
+      min-height: 1000px;
     }
     .page:last-child {
       page-break-after: auto;
@@ -114,18 +114,18 @@ function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrC
       z-index: -1;
     }
     
-    .header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #6366f1; padding-bottom: 15px; }
-    .header img { height: 45px; margin-bottom: 8px; }
+    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #6366f1; padding-bottom: 20px; }
+    .header img { height: 48px; margin-bottom: 10px; }
     .title { font-size: 16pt; font-weight: 800; color: #4338ca; text-transform: uppercase; letter-spacing: 1px; }
     .contract-no { font-size: 12pt; font-weight: 600; margin-top: 5px; color: #666; }
     
-    .meta-row { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: 600; font-size: 10pt; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    .meta-row { display: flex; justify-content: space-between; margin-bottom: 25px; font-weight: 600; font-size: 10pt; border-bottom: 1px solid #eee; padding-bottom: 10px; }
     
-    .section { margin-bottom: 15px; }
+    .section { margin-bottom: 20px; }
     .section-title { 
       font-weight: 800; 
       text-transform: uppercase; 
-      margin: 15px 0 8px 0; 
+      margin: 20px 0 10px 0; 
       color: #312e81;
       font-size: 10.5pt;
       display: flex;
@@ -141,11 +141,11 @@ function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrC
       border-radius: 2px;
     }
     
-    p { margin: 6px 0; text-align: justify; text-indent: 0; }
+    p { margin: 8px 0; text-align: justify; text-indent: 0; }
     .indent { padding-left: 20px; }
     
-    .parties-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; page-break-inside: avoid; border-top: 1px solid #eee; padding-top: 20px; }
-    .party-box h4 { margin-bottom: 8px; text-transform: uppercase; color: #4338ca; border-bottom: 2px solid #e0e7ff; padding-bottom: 4px; font-weight: 800; }
+    .parties-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 35px; page-break-inside: avoid; border-top: 1px solid #eee; padding-top: 25px; }
+    .party-box h4 { margin-bottom: 10px; text-transform: uppercase; color: #4338ca; border-bottom: 2px solid #e0e7ff; padding-bottom: 4px; font-weight: 800; }
     .details { font-size: 9pt; color: #374151; line-height: 1.5; }
     
     .footer { margin-top: 40px; display: flex; justify-content: space-between; align-items: center; page-break-inside: avoid; }
@@ -169,8 +169,8 @@ function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrC
     }
     
     b { color: #000; }
-    ul { margin: 12px 0 12px 25px; padding: 0; }
-    li { margin-bottom: 4px; text-align: justify; }
+    ul { margin: 15px 0 20px 25px; padding: 0; }
+    li { margin-bottom: 6px; text-align: justify; }
 
     /* Offer Styles */
     .offer-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
