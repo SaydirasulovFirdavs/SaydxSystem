@@ -30,7 +30,36 @@ function formatAmount(amt: string | number, currency: string) {
   return new Intl.NumberFormat("uz-UZ").format(n) + " " + currency;
 }
 
-function buildContractHtml(contract: any, settings: any, baseUrl: string, qrCodeDataUri: string) {
+function getSettings(s: any) {
+  const defaults = {
+    companyName: "SAYD.X LLC",
+    address: "Toshkent, O'zbekiston",
+    phone: "+998 90 000 00 00",
+    email: "info@saydx.uz",
+    website: "saydx.uz",
+    bankName: "Your Bank Name",
+    accountNumber: "1234 5678 9012 3456",
+    paymentNote: "To'lov shartnoma asosida amalga oshiriladi.",
+    authorizedName: "Authorized Name",
+    authorizedPosition: "Position",
+  };
+  if (!s) return defaults;
+  return {
+    companyName: s.companyName ?? defaults.companyName,
+    address: s.address ?? defaults.address,
+    phone: s.phone ?? defaults.phone,
+    email: s.email ?? defaults.email,
+    website: s.website ?? defaults.website,
+    bankName: s.bankName ?? defaults.bankName,
+    accountNumber: s.accountNumber ?? defaults.accountNumber,
+    paymentNote: s.paymentNote ?? defaults.paymentNote,
+    authorizedName: s.authorizedName ?? defaults.authorizedName,
+    authorizedPosition: s.authorizedPosition ?? defaults.authorizedPosition,
+  };
+}
+
+function buildContractHtml(contract: any, rawSettings: any, baseUrl: string, qrCodeDataUri: string) {
+  const settings = getSettings(rawSettings);
   const logoUrl = `${baseUrl}/LOGO2.png`;
   const imzoUrl = `${baseUrl}/imzo.PNG`;
 
