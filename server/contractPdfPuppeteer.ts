@@ -406,17 +406,17 @@ export async function generateContractPdfPuppeteer(contract: any, settings: any,
     await page.setContent(html, { waitUntil: "networkidle0", timeout: 60000 });
     
     ensureDir(UPLOAD_DIR);
-    const fileName = `contract_${contract.id}_${Date.now()}.pdf`;
-    const filePath = path.join(UPLOAD_DIR, fileName);
+    // Use consistent naming: contract-{id}-{timestamp}.pdf
+    const finalFilePath = path.join(UPLOAD_DIR, filename);
     
     await page.pdf({
-      path: filePath,
+      path: finalFilePath,
       format: "A4",
       printBackground: true,
     });
     
-    console.log(`Contract PDF generated: ${filePath}`);
-    return `/api/uploads/contracts/${fileName}`;
+    console.log(`Contract PDF generated: ${finalFilePath}`);
+    return `/api/contracts/${contract.id}/pdf`;
   } catch (error) {
     console.error("Puppeteer PDF generation error:", error);
     throw error;
